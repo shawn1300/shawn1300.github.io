@@ -1,1 +1,785 @@
-<h1>Welcome my blog!</h1>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shawn's Blog | 思考与记录</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 基础样式 */
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #f9f9f9;
+            --dark-color: #333;
+            --gray-color: #ecf0f1;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 导航栏 */
+        header {
+            background-color: white;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark-color);
+            font-weight: 500;
+            transition: var(--transition);
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+        .nav-links a:hover {
+            color: var(--secondary-color);
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .nav-links a.active {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        /* 英雄区域 */
+        .hero {
+            background: linear-gradient(135deg, #2c3e50 0%, #4a6491 100%);
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+            margin-bottom: 60px;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            opacity: 0.9;
+        }
+
+        .hero-btns {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+        }
+
+        /* 文章分类 */
+        .section-title {
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+            color: var(--primary-color);
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title:after {
+            content: '';
+            display: block;
+            width: 70px;
+            height: 4px;
+            background-color: var(--secondary-color);
+            margin: 15px auto 0;
+            border-radius: 2px;
+        }
+
+        .category-filter {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 50px;
+        }
+
+        .category-btn {
+            padding: 10px 25px;
+            background-color: white;
+            border: 2px solid var(--gray-color);
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .category-btn:hover {
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
+        }
+
+        .category-btn.active {
+            background-color: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+
+        /* 文章网格 */
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 80px;
+        }
+
+        .article-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .article-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .article-img {
+            height: 200px;
+            width: 100%;
+            background-color: #ddd;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .article-content {
+            padding: 25px;
+        }
+
+        .article-category {
+            display: inline-block;
+            padding: 5px 15px;
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--secondary-color);
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .article-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        .article-excerpt {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+
+        .article-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #888;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .read-more {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .read-more:hover {
+            color: var(--primary-color);
+        }
+
+        /* 友链区域 */
+        .friends-section {
+            margin-bottom: 80px;
+        }
+
+        .friends-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 25px;
+        }
+
+        .friend-card {
+            background-color: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .friend-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .friend-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #ddd;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .friend-info h4 {
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .friend-info p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* 关于区域 */
+        .about-section {
+            background-color: white;
+            padding: 60px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 80px;
+            display: flex;
+            align-items: center;
+            gap: 50px;
+        }
+
+        .about-img {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background-color: #ddd;
+            flex-shrink: 0;
+        }
+
+        .about-content h3 {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .about-content p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            background-color: var(--gray-color);
+            border-radius: 50%;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            transition: var(--transition);
+        }
+
+        .social-links a:hover {
+            background-color: var(--secondary-color);
+            color: white;
+            transform: translateY(-5px);
+        }
+
+        /* 页脚 */
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 60px 0 30px;
+            text-align: center;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 40px;
+            margin-bottom: 50px;
+        }
+
+        .footer-section {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .footer-section h4 {
+            font-size: 1.3rem;
+            margin-bottom: 25px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .footer-section h4:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -10px;
+            width: 40px;
+            height: 3px;
+            background-color: var(--secondary-color);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: #ddd;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--secondary-color);
+            padding-left: 5px;
+        }
+
+        .copyright {
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            .about-section {
+                flex-direction: column;
+                text-align: center;
+                padding: 40px;
+            }
+            
+            .hero h1 {
+                font-size: 2.8rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .nav-links {
+                gap: 15px;
+            }
+            
+            .hero {
+                padding: 70px 0;
+            }
+            
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+            
+            .articles-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero-btns {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .category-filter {
+                gap: 10px;
+            }
+            
+            .category-btn {
+                padding: 8px 18px;
+                font-size: 0.9rem;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <a href="#" class="logo">
+                    <i class="fas fa-blog"></i> Shawn's Blog
+                </a>
+                <ul class="nav-links">
+                    <li><a href="#" class="active">首页</a></li>
+                    <li><a href="#articles">文章</a></li>
+                    <li><a href="#friends">友链</a></li>
+                    <li><a href="#about">关于</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 英雄区域 -->
+    <section class="hero">
+        <div class="container">
+            <h1>探索、思考与记录</h1>
+            <p>这里是Shawn的博客空间，分享技术思考、旅行见闻与生活随笔。每一段旅程都值得被记录，每一个想法都值得被分享。</p>
+            <div class="hero-btns">
+                <a href="#articles" class="btn btn-primary">浏览文章</a>
+                <a href="#about" class="btn btn-secondary">关于我</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 文章分类与列表 -->
+    <section class="container" id="articles">
+        <h2 class="section-title">最新文章</h2>
+        
+        <div class="category-filter">
+            <button class="category-btn active" data-category="all">全部</button>
+            <button class="category-btn" data-category="travel">旅行</button>
+            <button class="category-btn" data-category="essay">随笔</button>
+            <button class="category-btn" data-category="tech">技术</button>
+            <button class="category-btn" data-category="reading">阅读</button>
+        </div>
+        
+        <div class="articles-grid">
+            <!-- 文章卡片 1 -->
+            <div class="article-card" data-category="travel">
+                <div class="article-img" style="background-image: url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');"></div>
+                <div class="article-content">
+                    <span class="article-category">旅行</span>
+                    <h3 class="article-title">日本关西红叶狩：京都古寺的秋日物语</h3>
+                    <p class="article-excerpt">京都的秋天是红色与金色的交响曲。从永观堂到东福寺，每一座古刹都在红叶的映衬下展现出不同的韵味。这次旅行不仅是一场视觉盛宴，更是一次心灵的洗礼。</p>
+                    <div class="article-meta">
+                        <span><i class="far fa-calendar"></i> 2024年11月15日</span>
+                        <a href="articles/japan-autumn.html" class="read-more">阅读全文 <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 文章卡片 2 -->
+            <div class="article-card" data-category="essay">
+                <div class="article-img" style="background-image: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');"></div>
+                <div class="article-content">
+                    <span class="article-category">随笔</span>
+                    <h3 class="article-title">深夜咖啡馆：城市里的孤独与温暖</h3>
+                    <p class="article-excerpt">城市的夜晚，咖啡馆成了许多人的避风港。在这里，孤独与温暖交织，陌生人的故事在咖啡香气中静静流淌。每一个深夜不归的人，都有自己的理由。</p>
+                    <div class="article-meta">
+                        <span><i class="far fa-calendar"></i> 2024年11月10日</span>
+                        <a href="articles/late-night-cafe.html" class="read-more">阅读全文 <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 文章卡片 3 -->
+            <div class="article-card" data-category="tech">
+                <div class="article-img" style="background-image: url('https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');"></div>
+                <div class="article-content">
+                    <span class="article-category">技术</span>
+                    <h3 class="article-title">静态博客搭建指南：从GitHub Pages到自定义域名</h3>
+                    <p class="article-excerpt">无需服务器和数据库，用GitHub Pages和静态站点生成器搭建个人博客的完整指南。涵盖Jekyll、Hugo、Hexo的选择与部署，以及域名绑定和优化技巧。</p>
+                    <div class="article-meta">
+                        <span><i class="far fa-calendar"></i> 2024年11月5日</span>
+                        <a href="articles/static-blog-guide.html" class="read-more">阅读全文 <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 文章卡片 4 -->
+            <div class="article-card" data-category="travel">
+                <div class="article-img" style="background-image: url('https://images.unsplash.com/photo-1506929562872-bb421503ef21?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');"></div>
+                <div class="article-content">
+                    <span class="article-category">旅行</span>
+                    <h3 class="article-title">云南大理：苍山洱海间的慢生活</h3>
+                    <p class="article-excerpt">在大理，时间仿佛变得缓慢。苍山的云雾、洱海的波光、古城的石板路，还有白族民居的青瓦白墙，构成了一幅静谧而诗意的生活画卷。</p>
+                    <div class="article-meta">
+                        <span><i class="far fa-calendar"></i> 2024年10月28日</span>
+                        <a href="articles/dali-yunnan.html" class="read-more">阅读全文 <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 文章卡片 5 -->
+            <div class="article-card" data-category="reading">
+                <div class="article-img" style="background-image: url('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');"></div>
+                <div class="article-content">
+                    <span class="article-category">阅读</span>
+                    <h3 class="article-title">《百年孤独》：马孔多的雨与轮回</h3>
+                    <p class="article-excerpt">重读马尔克斯的这部巨著，依然被布恩迪亚家族七代人的命运所震撼。魔幻现实主义下，是对孤独、时间与命运的深刻思考。</p>
+                    <div class="article-meta">
+                        <span><i class="far fa-calendar"></i> 2024年10月20日</span>
+                        <a href="articles/one-hundred-years.html" class="read-more">阅读全文 <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 文章卡片 6 -->
+            <div class="article-card" data-category="essay">
+                <div class="article-img" style="background-image: url('https://images.unsplash.com/photo-1499750310107-5fef28a66643?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');"></div>
+                <div class="article-content">
+                    <span class="article-category">随笔</span>
+                    <h3 class="article-title">数字时代的注意力危机：我们为何越来越难专注</h3>
+                    <p class="article-excerpt">推送通知、短视频、碎片化信息...在数字洪流中，我们的注意力被不断切割。如何在这个时代重新找回深度思考的能力？</p>
+                    <div class="article-meta">
+                        <span><i class="far fa-calendar"></i> 2024年10月15日</span>
+                        <a href="articles/attention-crisis.html" class="read-more">阅读全文 <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 友链区域 -->
+    <section class="container" id="friends">
+        <h2 class="section-title">朋友们</h2>
+        <div class="friends-grid">
+            <div class="friend-card">
+                <div class="friend-avatar"></div>
+                <div class="friend-info">
+                    <h4>小明の实验室</h4>
+                    <p>前端开发者，热爱探索新技术</p>
+                </div>
+            </div>
+            <div class="friend-card">
+                <div class="friend-avatar"></div>
+                <div class="friend-info">
+                    <h4>旅行者笔记</h4>
+                    <p>环球旅行者，分享各地见闻</p>
+                </div>
+            </div>
+            <div class="friend-card">
+                <div class="friend-avatar"></div>
+                <div class="friend-info">
+                    <h4>代码与诗</h4>
+                    <p>程序员诗人，技术文艺双修</p>
+                </div>
+            </div>
+            <div class="friend-card">
+                <div class="friend-avatar"></div>
+                <div class="friend-info">
+                    <h4>摄影日记</h4>
+                    <p>街头摄影师，捕捉生活瞬间</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 关于区域 -->
+    <section class="container" id="about">
+        <div class="about-section">
+            <div class="about-img"></div>
+            <div class="about-content">
+                <h3>关于Shawn</h3>
+                <p>你好！我是Shawn，一名对世界充满好奇心的探索者。白天与技术为伴，夜晚与文字共舞。在这里记录我的思考、旅行见闻与技术学习心得。</p>
+                <p>相信生活不止眼前的代码，还有远方的山水与书中的智慧。希望这个博客空间能成为思想碰撞的小小角落，也期待与你交流。</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-github"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-weixin"></i></a>
+                    <a href="#"><i class="fas fa-envelope"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>博客分类</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">旅行日记</a></li>
+                        <li><a href="#">生活随笔</a></li>
+                        <li><a href="#">技术分享</a></li>
+                        <li><a href="#">阅读笔记</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>快速链接</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">文章归档</a></li>
+                        <li><a href="#">友情链接</a></li>
+                        <li><a href="#">关于本站</a></li>
+                        <li><a href="#">联系我</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>联系信息</h4>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-envelope"></i> shawn@example.com</li>
+                        <li><i class="fas fa-map-marker-alt"></i> 中国 · 上海</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>© 2024 Shawn's Blog. 基于 GitHub Pages 构建 | 托管于 <a href="https://shawn1300.github.io" style="color:#3498db;">shawn1300.github.io</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 文章分类过滤功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterButtons = document.querySelectorAll('.category-btn');
+            const articleCards = document.querySelectorAll('.article-card');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // 更新按钮状态
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const filterValue = this.getAttribute('data-category');
+                    
+                    // 过滤文章卡片
+                    articleCards.forEach(card => {
+                        if (filterValue === 'all' || card.getAttribute('data-category') === filterValue) {
+                            card.style.display = 'block';
+                            setTimeout(() => {
+                                card.style.opacity = '1';
+                                card.style.transform = 'translateY(0)';
+                            }, 10);
+                        } else {
+                            card.style.opacity = '0';
+                            card.style.transform = 'translateY(20px)';
+                            setTimeout(() => {
+                                card.style.display = 'none';
+                            }, 300);
+                        }
+                    });
+                });
+            });
+            
+            // 平滑滚动到锚点
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+            
+            // 导航栏滚动效果
+            window.addEventListener('scroll', function() {
+                const header = document.querySelector('header');
+                if (window.scrollY > 100) {
+                    header.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                } else {
+                    header.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
