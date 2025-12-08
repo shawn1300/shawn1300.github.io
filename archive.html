@@ -9,59 +9,472 @@
         :root {
             --primary-color: #2c3e50;
             --secondary-color: #3498db;
+            --accent-color: #e74c3c;
             --light-color: #f9f9f9;
+            --dark-color: #333;
             --gray-color: #ecf0f1;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --border-radius: 8px;
+            --category-travel: #3498db;
+            --category-essay: #9b59b6;
+            --category-tech: #2ecc71;
+            --category-reading: #e67e22;
+            --category-life: #e74c3c;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #f8f9fa; color: #333; line-height: 1.6; }
-        .container { max-width: 900px; margin: 0 auto; padding: 0 20px; }
-        /* 导航栏 - 与首页保持一致 */
-        header { background-color: white; box-shadow: var(--shadow); position: sticky; top: 0; z-index: 1000; }
-        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; }
-        .logo { font-size: 1.5rem; font-weight: 700; color: var(--primary-color); text-decoration: none; }
-        .logo i { margin-right: 10px; color: var(--secondary-color); }
-        .nav-links { display: flex; list-style: none; gap: 25px; }
-        .nav-links a { text-decoration: none; color: #555; font-weight: 500; transition: color 0.3s; }
-        .nav-links a:hover, .nav-links a.active { color: var(--secondary-color); }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 导航栏 */
+        header {
+            background-color: white;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 25px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark-color);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+        .nav-links a:hover {
+            color: var(--secondary-color);
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .nav-links a.active {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
         /* 页面标题 */
-        .page-header { text-align: center; padding: 80px 0 40px; }
-        .page-header h1 { font-size: 2.8rem; color: var(--primary-color); margin-bottom: 15px; }
-        .page-header p { color: #666; max-width: 600px; margin: 0 auto; font-size: 1.1rem; }
+        .page-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #4a6491 100%);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+            margin-bottom: 50px;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+        }
+
+        .page-header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+        }
+
+        .page-header p {
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
+            opacity: 0.9;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px 25px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* 分类筛选 */
+        .category-filters {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 50px;
+        }
+
+        .filter-btn {
+            padding: 10px 25px;
+            background-color: white;
+            border: 2px solid var(--gray-color);
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        .filter-btn.active {
+            color: white;
+            border-color: transparent;
+        }
+
+        .filter-btn[data-category="all"] { background-color: var(--primary-color); color: white; }
+        .filter-btn[data-category="travel"] { background-color: var(--category-travel); color: white; }
+        .filter-btn[data-category="essay"] { background-color: var(--category-essay); color: white; }
+        .filter-btn[data-category="tech"] { background-color: var(--category-tech); color: white; }
+        .filter-btn[data-category="reading"] { background-color: var(--category-reading); color: white; }
+        .filter-btn[data-category="life"] { background-color: var(--category-life); color: white; }
+
         /* 年份分组 */
-        .year-group { margin-bottom: 50px; }
-        .year-title { font-size: 1.8rem; color: var(--primary-color); padding-bottom: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--secondary-color); display: flex; justify-content: space-between; align-items: center; }
-        .year-count { background: var(--secondary-color); color: white; padding: 2px 12px; border-radius: 12px; font-size: 0.9rem; }
-        /* 文章列表 */
-        .article-list { list-style: none; }
-        .article-item { background: white; margin-bottom: 15px; border-radius: 8px; padding: 22px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); transition: transform 0.3s, box-shadow 0.3s; border-left: 4px solid transparent; }
-        .article-item:hover { transform: translateX(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.08); border-left-color: var(--secondary-color); }
-        .article-item a { text-decoration: none; color: inherit; display: block; }
-        .article-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.9rem; color: #666; }
-        .article-date { background: var(--gray-color); padding: 4px 12px; border-radius: 12px; font-weight: 500; }
-        .article-category { color: var(--secondary-color); font-weight: 600; }
-        .article-title { font-size: 1.3rem; color: var(--primary-color); margin-bottom: 8px; }
-        .article-excerpt { color: #666; font-size: 0.95rem; line-height: 1.5; }
-        /* 统计信息 */
-        .stats-bar { background: white; padding: 20px; border-radius: 8px; margin-bottom: 40px; display: flex; justify-content: space-around; text-align: center; box-shadow: var(--shadow); }
-        .stat-item .number { font-size: 2rem; font-weight: 700; color: var(--secondary-color); }
-        .stat-item .label { color: #666; font-size: 0.9rem; }
+        .year-group {
+            margin-bottom: 60px;
+            background: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .year-title {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            border-bottom: 3px solid var(--secondary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .year-count {
+            background: var(--secondary-color);
+            color: white;
+            padding: 4px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* 文章网格 */
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .article-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border: 1px solid #eee;
+        }
+
+        .article-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .article-img {
+            height: 180px;
+            width: 100%;
+            background-size: cover;
+            background-position: center;
+            background-color: #ddd;
+        }
+
+        .article-content {
+            padding: 20px;
+        }
+
+        .article-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .article-date {
+            color: #666;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .article-category {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .category-travel { background-color: var(--category-travel); }
+        .category-essay { background-color: var(--category-essay); }
+        .category-tech { background-color: var(--category-tech); }
+        .category-reading { background-color: var(--category-reading); }
+        .category-life { background-color: var(--category-life); }
+
+        .article-title {
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .article-excerpt {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .article-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .read-time {
+            color: #888;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .read-more {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .read-more:hover {
+            color: var(--primary-color);
+            gap: 8px;
+        }
+
         /* 页脚 */
-        footer { background-color: var(--primary-color); color: white; text-align: center; padding: 30px 0; margin-top: 60px; }
-        .back-to-top { display: inline-block; margin-top: 20px; color: #aaa; }
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+            margin-top: 80px;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        .footer-section {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .footer-section h4 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .footer-section h4:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -8px;
+            width: 40px;
+            height: 2px;
+            background-color: var(--secondary-color);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+
+        .footer-links a {
+            color: #ddd;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--secondary-color);
+            padding-left: 5px;
+        }
+
+        .copyright {
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        /* 空状态提示 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            .articles-grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+
         @media (max-width: 768px) {
-            .nav-links { gap: 15px; font-size: 0.9rem; }
-            .page-header h1 { font-size: 2.2rem; }
-            .article-meta { flex-direction: column; align-items: flex-start; gap: 8px; }
-            .stats-bar { flex-direction: column; gap: 20px; }
+            .navbar {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .nav-links {
+                justify-content: center;
+            }
+            
+            .page-header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .year-group {
+                padding: 20px;
+            }
+            
+            .articles-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .footer-section h4:after {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .category-filters {
+                gap: 10px;
+            }
+            
+            .filter-btn {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
+            
+            .stats {
+                gap: 15px;
+            }
+            
+            .stat-item {
+                padding: 12px 20px;
+                min-width: 120px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- 导航栏 -->
     <header>
         <div class="container">
             <nav class="navbar">
-                <a href="index.html" class="logo"><i class="fas fa-book-open"></i> Shawn's Blog</a>
+                <a href="index.html" class="logo">
+                    <i class="fas fa-book-open"></i> Shawn's Blog
+                </a>
                 <ul class="nav-links">
                     <li><a href="index.html">首页</a></li>
                     <li><a href="archive.html" class="active">归档</a></li>
@@ -72,69 +485,107 @@
         </div>
     </header>
 
-    <div class="container">
-        <!-- 页面标题 -->
-        <div class="page-header">
+    <!-- 页面标题 -->
+    <div class="page-header">
+        <div class="container">
             <h1><i class="far fa-calendar-alt"></i> 文章归档</h1>
-            <p>按时间顺序呈现所有思考与记录。目前共有 <strong id="total-count">0</strong> 篇文章，持续更新中。</p>
-        </div>
-
-        <!-- 统计信息 -->
-        <div class="stats-bar">
-            <div class="stat-item">
-                <div class="number" id="current-year-count">0</div>
-                <div class="label">今年文章</div>
-            </div>
-            <div class="stat-item">
-                <div class="number" id="total-categories">0</div>
-                <div class="label">分类数量</div>
-            </div>
-            <div class="stat-item">
-                <div class="number" id="total-words">0</div>
-                <div class="label">累计字数</div>
-            </div>
-        </div>
-
-        <!-- 文章归档列表 (按年份分组) -->
-        <div id="archive-container">
-            <!-- JavaScript 将动态生成这里的内容 -->
-            <div class="loading" style="text-align: center; padding: 40px; color: #666;">
-                <i class="fas fa-spinner fa-spin"></i> 正在加载文章列表...
+            <p>按分类和时间顺序呈现所有思考与记录，点击分类快速筛选</p>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-number" id="total-articles">0</span>
+                    <span class="stat-label">总文章数</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="total-categories">0</span>
+                    <span class="stat-label">分类数量</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="current-year">0</span>
+                    <span class="stat-label">今年更新</span>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- 分类筛选 -->
+    <div class="container">
+        <div class="category-filters">
+            <button class="filter-btn active" data-category="all">
+                <i class="fas fa-layer-group"></i> 全部文章
+            </button>
+            <button class="filter-btn" data-category="travel">
+                <i class="fas fa-plane"></i> 旅行
+            </button>
+            <button class="filter-btn" data-category="essay">
+                <i class="fas fa-pen-fancy"></i> 随笔
+            </button>
+            <button class="filter-btn" data-category="tech">
+                <i class="fas fa-code"></i> 技术
+            </button>
+            <button class="filter-btn" data-category="reading">
+                <i class="fas fa-book"></i> 阅读
+            </button>
+            <button class="filter-btn" data-category="life">
+                <i class="fas fa-heart"></i> 生活
+            </button>
+        </div>
+
+        <!-- 文章归档列表 -->
+        <div id="archive-container">
+            <!-- 内容由JavaScript动态生成 -->
+        </div>
+    </div>
+
+    <!-- 页脚 -->
     <footer>
         <div class="container">
-            <p>© 2024 Shawn's Blog. 所有文章均为原创，转载请注明出处。</p>
-            <a href="#" class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">
-                <i class="fas fa-arrow-up"></i> 返回顶部
-            </a>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>博客分类</h4>
+                    <ul class="footer-links">
+                        <li><a href="#" data-category="travel">旅行日记</a></li>
+                        <li><a href="#" data-category="essay">生活随笔</a></li>
+                        <li><a href="#" data-category="tech">技术分享</a></li>
+                        <li><a href="#" data-category="reading">阅读笔记</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>快速链接</h4>
+                    <ul class="footer-links">
+                        <li><a href="index.html">博客首页</a></li>
+                        <li><a href="archive.html">文章归档</a></li>
+                        <li><a href="index.html#friends">友情链接</a></li>
+                        <li><a href="index.html#about">关于我</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>博客信息</h4>
+                    <ul class="footer-links">
+                        <li><i class="far fa-copyright"></i> 始于2024年</li>
+                        <li><i class="fas fa-blog"></i> 基于GitHub Pages</li>
+                        <li><i class="fas fa-code"></i> 纯静态构建</li>
+                        <li><i class="fas fa-pen"></i> 持续更新中</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>© 2024 Shawn's Blog. 基于 GitHub Pages 构建 | 托管于 <a href="https://shawn1300.github.io" style="color:#3498db;">shawn1300.github.io</a></p>
+            </div>
         </div>
     </footer>
 
     <script>
-        // 文章数据 - 你只需要维护这个数组即可
-        // 每次写完新文章，在这里添加一个新对象
+        // 文章数据 - 你只需要维护这个数组
         const allArticles = [
-            {
-                title: "我的静态博客诞生手记",
-                date: "2025-12-8",
-                category: "tech",
-                excerpt: "我的静态博客是如何诞生的呢？。",
-                url: "articles/japan-autumn.html",
-                wordCount: 500
-            },
-
-            
-            <!-- 页面标题 
             {
                 title: "日本关西红叶狩：京都古寺的秋日物语",
                 date: "2024-11-15",
                 category: "travel",
                 excerpt: "京都的秋天是红色与金色的交响曲。从永观堂到东福寺，每一座古刹都在红叶的映衬下展现出不同的韵味。",
                 url: "articles/japan-autumn.html",
-                wordCount: 2450
+                readTime: "5分钟",
+                image: "images/posts/japan-autumn.jpg"
             },
             {
                 title: "深夜咖啡馆：城市里的孤独与温暖",
@@ -142,7 +593,8 @@
                 category: "essay",
                 excerpt: "城市的夜晚，咖啡馆成了许多人的避风港。在这里，孤独与温暖交织，陌生人的故事在咖啡香气中静静流淌。",
                 url: "articles/late-night-cafe.html",
-                wordCount: 1800
+                readTime: "4分钟",
+                image: "images/posts/late-night-cafe.jpg"
             },
             {
                 title: "静态博客搭建指南：从GitHub Pages到自定义域名",
@@ -150,7 +602,8 @@
                 category: "tech",
                 excerpt: "无需服务器和数据库，用GitHub Pages和静态站点生成器搭建个人博客的完整指南。",
                 url: "articles/static-blog-guide.html",
-                wordCount: 3200
+                readTime: "8分钟",
+                image: "images/posts/static-blog-guide.jpg"
             },
             {
                 title: "云南大理：苍山洱海间的慢生活",
@@ -158,7 +611,8 @@
                 category: "travel",
                 excerpt: "在大理，时间仿佛变得缓慢。苍山的云雾、洱海的波光、古城的石板路，还有白族民居的青瓦白墙。",
                 url: "articles/dali-yunnan.html",
-                wordCount: 2100
+                readTime: "6分钟",
+                image: "images/posts/dali-yunnan.jpg"
             },
             {
                 title: "《百年孤独》：马孔多的雨与轮回",
@@ -166,7 +620,8 @@
                 category: "reading",
                 excerpt: "重读马尔克斯的这部巨著，依然被布恩迪亚家族七代人的命运所震撼。魔幻现实主义下，是对孤独、时间与命运的深刻思考。",
                 url: "articles/one-hundred-years.html",
-                wordCount: 2800
+                readTime: "7分钟",
+                image: "images/posts/one-hundred-years.jpg"
             },
             {
                 title: "数字时代的注意力危机：我们为何越来越难专注",
@@ -174,7 +629,8 @@
                 category: "essay",
                 excerpt: "推送通知、短视频、碎片化信息...在数字洪流中，我们的注意力被不断切割。如何在这个时代重新找回深度思考的能力？",
                 url: "articles/attention-crisis.html",
-                wordCount: 1950
+                readTime: "5分钟",
+                image: "images/posts/attention-crisis.jpg"
             },
             {
                 title: "初次滑雪体验：从恐惧到享受的速度之旅",
@@ -182,20 +638,31 @@
                 category: "life",
                 excerpt: "人生第一次站在滑雪道上，双腿发颤。但当克服恐惧滑下初级道时，那种自由与掌控感让人瞬间上瘾。",
                 url: "articles/first-ski.html",
-                wordCount: 1650
+                readTime: "4分钟",
+                image: "images/posts/first-ski.jpg"
+            },
+            {
+                title: "我的静态博客诞生手记",
+                date: "2024-12-07",
+                category: "tech",
+                excerpt: "记录从零开始搭建GitHub Pages静态博客的完整过程，分享技术选择与心得感悟。",
+                url: "blog-story.html",
+                readTime: "3分钟",
+                image: "images/posts/blog-story.jpg"
             }
-                -->
         ];
 
-        // 工具函数：获取文章年份
+        // 工具函数：获取年份
         function getYearFromDate(dateStr) {
             return dateStr.split('-')[0];
         }
 
-        // 工具函数：格式化日期显示
+        // 工具函数：格式化日期
         function formatDate(dateStr) {
             const date = new Date(dateStr);
-            return `${date.getMonth() + 1}月${date.getDate()}日`;
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            return `${month}月${day}日`;
         }
 
         // 工具函数：获取分类中文名
@@ -210,10 +677,24 @@
             return map[category] || category;
         }
 
-        // 主渲染函数
+        // 工具函数：获取分类图标
+        function getCategoryIcon(category) {
+            const map = {
+                'travel': 'fa-plane',
+                'essay': 'fa-pen-fancy',
+                'tech': 'fa-code',
+                'reading': 'fa-book',
+                'life': 'fa-heart'
+            };
+            return map[category] || 'fa-file-alt';
+        }
+
+        // 渲染归档页面
         function renderArchive() {
-            // 1. 按日期从新到旧排序
-            const sortedArticles = [...allArticles].sort((a, b) => new Date(b.date) - new Date(a.date));
+            // 1. 按日期排序（新到旧）
+            const sortedArticles = [...allArticles].sort((a, b) => 
+                new Date(b.date) - new Date(a.date)
+            );
             
             // 2. 按年份分组
             const articlesByYear = {};
@@ -224,67 +705,191 @@
                 }
                 articlesByYear[year].push(article);
             });
-
+            
             // 3. 生成HTML
             let archiveHTML = '';
+            const years = Object.keys(articlesByYear).sort((a, b) => b - a);
             const currentYear = new Date().getFullYear().toString();
             
-            // 遍历每个年份（从新到旧）
-            const years = Object.keys(articlesByYear).sort((a, b) => b - a);
-            
-            years.forEach(year => {
-                const articles = articlesByYear[year];
-                archiveHTML += `
-                    <div class="year-group">
-                        <div class="year-title">
-                            <span><i class="far fa-calendar"></i> ${year} 年</span>
-                            <span class="year-count">${articles.length} 篇</span>
-                        </div>
-                        <ul class="article-list">
-                `;
-                
-                articles.forEach(article => {
-                    archiveHTML += `
-                        <li class="article-item">
-                            <a href="${article.url}">
-                                <div class="article-meta">
-                                    <span class="article-date">${formatDate(article.date)}</span>
-                                    <span class="article-category">${getCategoryName(article.category)}</span>
-                                </div>
-                                <h3 class="article-title">${article.title}</h3>
-                                <p class="article-excerpt">${article.excerpt}</p>
-                            </a>
-                        </li>
-                    `;
-                });
-                
-                archiveHTML += `
-                        </ul>
+            if (years.length === 0) {
+                archiveHTML = `
+                    <div class="empty-state">
+                        <i class="far fa-calendar-times"></i>
+                        <h3>暂无文章</h3>
+                        <p>还没有发布任何文章，快去写一篇吧！</p>
                     </div>
                 `;
-            });
-
+            } else {
+                years.forEach(year => {
+                    const articles = articlesByYear[year];
+                    const yearCount = articles.length;
+                    
+                    archiveHTML += `
+                        <div class="year-group" data-year="${year}">
+                            <div class="year-title">
+                                <span><i class="far fa-calendar"></i> ${year} 年</span>
+                                <span class="year-count">${yearCount} 篇</span>
+                            </div>
+                            <div class="articles-grid">
+                    `;
+                    
+                    articles.forEach(article => {
+                        const categoryName = getCategoryName(article.category);
+                        const categoryClass = `category-${article.category}`;
+                        
+                        archiveHTML += `
+                            <div class="article-card" data-category="${article.category}" data-year="${year}">
+                                <div class="article-img" style="background-image: url('${article.image || 'images/default-thumb.jpg'}');"></div>
+                                <div class="article-content">
+                                    <div class="article-meta">
+                                        <span class="article-date">
+                                            <i class="far fa-calendar"></i> ${formatDate(article.date)}
+                                        </span>
+                                        <span class="article-category ${categoryClass}">
+                                            <i class="fas ${getCategoryIcon(article.category)}"></i> ${categoryName}
+                                        </span>
+                                    </div>
+                                    <h3 class="article-title">${article.title}</h3>
+                                    <p class="article-excerpt">${article.excerpt}</p>
+                                    <div class="article-footer">
+                                        <span class="read-time">
+                                            <i class="far fa-clock"></i> ${article.readTime || '3分钟'}
+                                        </span>
+                                        <a href="${article.url}" class="read-more">
+                                            阅读全文 <i class="fas fa-arrow-right"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    archiveHTML += `
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
             // 4. 更新页面
             document.getElementById('archive-container').innerHTML = archiveHTML;
             
             // 5. 更新统计数据
-            document.getElementById('total-count').textContent = allArticles.length;
+            document.getElementById('total-articles').textContent = allArticles.length;
             
-            // 今年文章数量
-            const currentYearCount = allArticles.filter(a => getYearFromDate(a.date) === currentYear).length;
-            document.getElementById('current-year-count').textContent = currentYearCount;
-            
-            // 分类数量
             const categories = new Set(allArticles.map(a => a.category));
             document.getElementById('total-categories').textContent = categories.size;
             
-            // 总字数
-            const totalWords = allArticles.reduce((sum, a) => sum + (a.wordCount || 0), 0);
-            document.getElementById('total-words').textContent = (totalWords / 1000).toFixed(1) + 'k';
+            const currentYearCount = allArticles.filter(a => getYearFromDate(a.date) === currentYear).length;
+            document.getElementById('current-year').textContent = currentYearCount;
+            
+            // 6. 绑定筛选事件
+            setupFilterButtons();
         }
-
-        // 页面加载完成后执行
+        
+        // 设置分类筛选功能
+        function setupFilterButtons() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const articleCards = document.querySelectorAll('.article-card');
+            const footerLinks = document.querySelectorAll('.footer-links a[data-category]');
+            
+            // 筛选按钮点击事件
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const category = this.getAttribute('data-category');
+                    
+                    // 更新按钮状态
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 筛选文章卡片
+                    let visibleCount = 0;
+                    articleCards.forEach(card => {
+                        const cardCategory = card.getAttribute('data-category');
+                        
+                        if (category === 'all' || cardCategory === category) {
+                            card.style.display = 'block';
+                            setTimeout(() => {
+                                card.style.opacity = '1';
+                                card.style.transform = 'translateY(0)';
+                            }, 10);
+                            visibleCount++;
+                        } else {
+                            card.style.opacity = '0';
+                            card.style.transform = 'translateY(20px)';
+                            setTimeout(() => {
+                                card.style.display = 'none';
+                            }, 300);
+                        }
+                    });
+                    
+                    // 显示/隐藏年份分组
+                    document.querySelectorAll('.year-group').forEach(yearGroup => {
+                        const year = yearGroup.getAttribute('data-year');
+                        const hasVisibleCards = Array.from(articleCards).some(card => 
+                            card.style.display !== 'none' && 
+                            card.getAttribute('data-year') === year
+                        );
+                        
+                        yearGroup.style.display = hasVisibleCards ? 'block' : 'none';
+                    });
+                    
+                    // 更新页面标题
+                    if (category !== 'all') {
+                        const categoryName = getCategoryName(category);
+                        document.querySelector('.page-header h1').innerHTML = 
+                            `<i class="fas ${getCategoryIcon(category)}"></i> ${categoryName}分类`;
+                        document.querySelector('.page-header p').textContent = 
+                            `共找到 ${visibleCount} 篇${categoryName}相关文章`;
+                    } else {
+                        document.querySelector('.page-header h1').innerHTML = 
+                            `<i class="far fa-calendar-alt"></i> 文章归档`;
+                        document.querySelector('.page-header p').textContent = 
+                            '按分类和时间顺序呈现所有思考与记录，点击分类快速筛选';
+                    }
+                });
+            });
+            
+            // 页脚分类链接点击事件
+            footerLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const category = this.getAttribute('data-category');
+                    
+                    // 触发对应的筛选按钮
+                    const targetButton = document.querySelector(`.filter-btn[data-category="${category}"]`);
+                    if (targetButton) {
+                        targetButton.click();
+                        
+                        // 平滑滚动到筛选区域
+                        document.querySelector('.category-filters').scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        }
+        
+        // 页面加载完成后渲染
         document.addEventListener('DOMContentLoaded', renderArchive);
+        
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
     </script>
 </body>
 </html>
