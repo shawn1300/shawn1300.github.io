@@ -3,93 +3,237 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的静态博客诞生手记 | Shawn's Blog</title>
+    <title>文章标题 | Shawn's Blog</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* 基础样式 - 与首页保持一致 */
         :root {
             --primary-color: #2c3e50;
             --secondary-color: #3498db;
+            --accent-color: #e74c3c;
             --light-color: #f9f9f9;
-            --text-color: #333;
-            --border-color: #eee;
+            --dark-color: #333;
+            --gray-color: #ecf0f1;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --border-radius: 8px;
         }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
         }
+
         body {
             background-color: #f8f9fa;
-            color: var(--text-color);
+            color: var(--dark-color);
             line-height: 1.6;
-            padding: 20px;
+        }
+
+        .container {
             max-width: 800px;
             margin: 0 auto;
+            padding: 0 20px;
         }
-        .article-header {
-            text-align: center;
-            padding: 40px 0;
-            margin-bottom: 40px;
+
+        /* 导航栏 */
+        header {
+            background-color: white;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
-        .article-title {
-            font-size: 2.2rem;
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
             color: var(--primary-color);
-            margin-bottom: 15px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
         }
-        .article-meta {
-            color: #666;
-            font-size: 0.95rem;
+
+        .logo i {
+            margin-right: 10px;
+            color: var(--secondary-color);
         }
-        .article-content {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+
+        /* 文章头部 */
+        .article-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #4a6491 100%);
+            color: white;
+            padding: 60px 0;
+            margin-bottom: 40px;
+            text-align: center;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
         }
-        .article-content p {
+
+        .article-title {
+            font-size: 2.5rem;
             margin-bottom: 20px;
-            font-size: 1.05rem;
+            line-height: 1.3;
         }
+
+        .article-meta {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .article-category {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 30px;
+        }
+
+        /* 文章内容 */
+        .article-content {
+            background-color: white;
+            padding: 50px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 50px;
+        }
+
         .article-content h2 {
             color: var(--primary-color);
-            margin: 35px 0 20px;
+            margin: 30px 0 15px;
             padding-bottom: 10px;
-            border-bottom: 2px solid var(--border-color);
+            border-bottom: 2px solid var(--gray-color);
         }
+
+        .article-content p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
         .article-content blockquote {
             border-left: 4px solid var(--secondary-color);
             padding-left: 20px;
-            margin: 25px 0;
-            color: #555;
+            margin: 30px 0;
+            color: #666;
             font-style: italic;
         }
-        .back-link {
-            display: inline-block;
+
+        .article-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+        }
+
+        /* 文章页脚 */
+        .article-footer {
+            border-top: 1px solid #eee;
+            padding-top: 30px;
             margin-top: 40px;
-            padding: 10px 20px;
-            background: var(--secondary-color);
-            color: white;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .article-tags span {
+            display: inline-block;
+            background-color: var(--gray-color);
+            padding: 5px 15px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        /* 导航按钮 */
+        .article-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin: 40px 0;
+        }
+
+        .nav-btn {
+            padding: 12px 25px;
+            background-color: white;
+            border-radius: var(--border-radius);
             text-decoration: none;
-            border-radius: 5px;
-            transition: background 0.3s;
+            color: var(--dark-color);
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            max-width: 45%;
         }
-        .back-link:hover {
-            background: #2980b9;
+
+        .nav-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            color: var(--secondary-color);
         }
+
+        .nav-btn i {
+            margin: 0 10px;
+        }
+
+        /* 响应式设计 */
         @media (max-width: 768px) {
-            .article-content {
-                padding: 25px;
-            }
             .article-title {
-                font-size: 1.8rem;
+                font-size: 2rem;
             }
-            body {
-                padding: 15px;
+            .article-content {
+                padding: 30px;
+            }
+            .article-navigation {
+                flex-direction: column;
+                gap: 15px;
+        }
+            .nav-btn {
+                max-width: 100%;
             }
         }
     </style>
 </head>
 <body>
+    <!-- 导航栏 -->
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <a href="../index.html" class="logo">
+                    <i class="fas fa-arrow-left"></i> 返回首页
+                </a>
+                <div style="display: flex; gap: 20px;">
+                    <a href="#search" style="text-decoration: none; color: var(--dark-color);">
+                        <i class="fas fa-search"></i> 搜索
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 文章头部 -->
+    <div class="article-header">
+        <div class="container">
+            <h1 class="article-title">这里是你的文章标题</h1>
+            <div class="article-meta">
+                <span><i class="far fa-calendar"></i> 发布日期：2024年1月1日</span>
+                <span><i class="far fa-clock"></i> 阅读时间：约5分钟</span>
+                <span class="article-category">分类：<strong>旅行</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文章内容 -->
+    <div class="container">
     <article>
         <header class="article-header">
             <h1 class="article-title">我的静态博客诞生手记</h1>
@@ -145,5 +289,35 @@ GitHub Pages静态博客可能不是最强大的选择，但它给了我完全�
             <a href="index.html" class="back-link">← 返回博客首页</a>
         </div>
     </article>
+
+        <!-- 导航按钮 -->
+        <div class="article-navigation">
+            <a href="previous-article.html" class="nav-btn">
+                <i class="fas fa-chevron-left"></i>
+                <div>
+                    <div style="font-size: 0.8rem; color: #888;">上一篇</div>
+                    <div>上一篇文章标题</div>
+                </div>
+            </a>
+            <a href="next-article.html" class="nav-btn" style="text-align: right;">
+                <div>
+                    <div style="font-size: 0.8rem; color: #888;">下一篇</div>
+                    <div>下一篇文章标题</div>
+                </div>
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // 你可以在这里添加文章特定的JavaScript代码
+        document.addEventListener('DOMContentLoaded', function() {
+            // 示例：更新最后阅读时间
+            const lastUpdated = document.querySelector('.article-footer div:nth-child(2)');
+            if (lastUpdated) {
+                // 这里可以添加动态更新逻辑
+            }
+        });
+    </script>
 </body>
 </html>
