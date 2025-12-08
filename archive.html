@@ -15,11 +15,11 @@
             --gray-color: #ecf0f1;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             --border-radius: 8px;
-            --category-travel: #3498db;
-            --category-essay: #9b59b6;
-            --category-tech: #2ecc71;
-            --category-reading: #e67e22;
-            --category-life: #e74c3c;
+            --travel-color: #3498db;
+            --essay-color: #9b59b6;
+            --tech-color: #2ecc71;
+            --reading-color: #e67e22;
+            --life-color: #e74c3c;
         }
 
         * {
@@ -118,33 +118,6 @@
             opacity: 0.9;
         }
 
-        .stats {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-top: 30px;
-            flex-wrap: wrap;
-        }
-
-        .stat-item {
-            background: rgba(255, 255, 255, 0.15);
-            padding: 15px 25px;
-            border-radius: var(--border-radius);
-            text-align: center;
-            backdrop-filter: blur(10px);
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            display: block;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-
         /* 分类筛选 */
         .category-filters {
             display: flex;
@@ -155,7 +128,7 @@
         }
 
         .filter-btn {
-            padding: 10px 25px;
+            padding: 12px 25px;
             background-color: white;
             border: 2px solid var(--gray-color);
             border-radius: 30px;
@@ -177,20 +150,16 @@
             border-color: transparent;
         }
 
-        .filter-btn[data-category="all"] { background-color: var(--primary-color); color: white; }
-        .filter-btn[data-category="travel"] { background-color: var(--category-travel); color: white; }
-        .filter-btn[data-category="essay"] { background-color: var(--category-essay); color: white; }
-        .filter-btn[data-category="tech"] { background-color: var(--category-tech); color: white; }
-        .filter-btn[data-category="reading"] { background-color: var(--category-reading); color: white; }
-        .filter-btn[data-category="life"] { background-color: var(--category-life); color: white; }
+        .filter-btn[data-category="all"] { background-color: var(--primary-color); }
+        .filter-btn[data-category="travel"] { background-color: var(--travel-color); }
+        .filter-btn[data-category="essay"] { background-color: var(--essay-color); }
+        .filter-btn[data-category="tech"] { background-color: var(--tech-color); }
+        .filter-btn[data-category="reading"] { background-color: var(--reading-color); }
+        .filter-btn[data-category="life"] { background-color: var(--life-color); }
 
         /* 年份分组 */
         .year-group {
             margin-bottom: 60px;
-            background: white;
-            padding: 30px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
         }
 
         .year-title {
@@ -239,7 +208,7 @@
             width: 100%;
             background-size: cover;
             background-position: center;
-            background-color: #ddd;
+            background-color: #f0f0f0; /* 默认背景色 */
         }
 
         .article-content {
@@ -270,11 +239,11 @@
             color: white;
         }
 
-        .category-travel { background-color: var(--category-travel); }
-        .category-essay { background-color: var(--category-essay); }
-        .category-tech { background-color: var(--category-tech); }
-        .category-reading { background-color: var(--category-reading); }
-        .category-life { background-color: var(--category-life); }
+        .category-travel { background-color: var(--travel-color); }
+        .category-essay { background-color: var(--essay-color); }
+        .category-tech { background-color: var(--tech-color); }
+        .category-reading { background-color: var(--reading-color); }
+        .category-life { background-color: var(--life-color); }
 
         .article-title {
             font-size: 1.3rem;
@@ -288,10 +257,6 @@
             font-size: 0.95rem;
             line-height: 1.5;
             margin-bottom: 15px;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
         }
 
         .article-footer {
@@ -326,6 +291,37 @@
             gap: 8px;
         }
 
+        /* 空状态提示 */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        /* 错误提示 */
+        .error-message {
+            background: #ffe6e6;
+            border-left: 4px solid #e74c3c;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            color: #c0392b;
+            display: none;
+        }
+
         /* 页脚 */
         footer {
             background-color: var(--primary-color);
@@ -335,56 +331,6 @@
             margin-top: 80px;
         }
 
-        .footer-content {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 40px;
-            margin-bottom: 30px;
-        }
-
-        .footer-section {
-            flex: 1;
-            min-width: 250px;
-        }
-
-        .footer-section h4 {
-            font-size: 1.2rem;
-            margin-bottom: 20px;
-            position: relative;
-            display: inline-block;
-        }
-
-        .footer-section h4:after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: -8px;
-            width: 40px;
-            height: 2px;
-            background-color: var(--secondary-color);
-        }
-
-        .footer-links {
-            list-style: none;
-        }
-
-        .footer-links li {
-            margin-bottom: 10px;
-        }
-
-        .footer-links a {
-            color: #ddd;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            font-size: 0.95rem;
-        }
-
-        .footer-links a:hover {
-            color: var(--secondary-color);
-            padding-left: 5px;
-        }
-
         .copyright {
             padding-top: 20px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -392,26 +338,7 @@
             font-size: 0.9rem;
         }
 
-        /* 空状态提示 */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
-
-        .empty-state i {
-            font-size: 3rem;
-            color: #ddd;
-            margin-bottom: 20px;
-        }
-
-        /* 响应式设计 */
-        @media (max-width: 992px) {
-            .articles-grid {
-                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            }
-        }
-
+        /* 响应式 */
         @media (max-width: 768px) {
             .navbar {
                 flex-direction: column;
@@ -419,50 +346,12 @@
                 text-align: center;
             }
             
-            .nav-links {
-                justify-content: center;
-            }
-            
             .page-header h1 {
                 font-size: 2.2rem;
             }
             
-            .year-group {
-                padding: 20px;
-            }
-            
             .articles-grid {
                 grid-template-columns: 1fr;
-            }
-            
-            .footer-content {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .footer-section h4:after {
-                left: 50%;
-                transform: translateX(-50%);
-            }
-        }
-
-        @media (max-width: 576px) {
-            .category-filters {
-                gap: 10px;
-            }
-            
-            .filter-btn {
-                padding: 8px 16px;
-                font-size: 0.9rem;
-            }
-            
-            .stats {
-                gap: 15px;
-            }
-            
-            .stat-item {
-                padding: 12px 20px;
-                min-width: 120px;
             }
         }
     </style>
@@ -489,23 +378,13 @@
     <div class="page-header">
         <div class="container">
             <h1><i class="far fa-calendar-alt"></i> 文章归档</h1>
-            <p>按分类和时间顺序呈现所有思考与记录，点击分类快速筛选</p>
-            
-            <div class="stats">
-                <div class="stat-item">
-                    <span class="stat-number" id="total-articles">0</span>
-                    <span class="stat-label">总文章数</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number" id="total-categories">0</span>
-                    <span class="stat-label">分类数量</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number" id="current-year">0</span>
-                    <span class="stat-label">今年更新</span>
-                </div>
-            </div>
+            <p>按分类和时间顺序呈现所有思考与记录</p>
         </div>
+    </div>
+
+    <!-- 错误提示区域 -->
+    <div class="container">
+        <div id="error-message" class="error-message"></div>
     </div>
 
     <!-- 分类筛选 -->
@@ -532,43 +411,16 @@
         </div>
 
         <!-- 文章归档列表 -->
-        <div id="archive-container">
-            <!-- 内容由JavaScript动态生成 -->
+        <div id="archive-container" class="container">
+            <div class="loading" style="text-align:center; padding:40px;">
+                <i class="fas fa-spinner fa-spin"></i> 正在加载文章列表...
+            </div>
         </div>
     </div>
 
     <!-- 页脚 -->
     <footer>
         <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h4>博客分类</h4>
-                    <ul class="footer-links">
-                        <li><a href="#" data-category="travel">旅行日记</a></li>
-                        <li><a href="#" data-category="essay">生活随笔</a></li>
-                        <li><a href="#" data-category="tech">技术分享</a></li>
-                        <li><a href="#" data-category="reading">阅读笔记</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>快速链接</h4>
-                    <ul class="footer-links">
-                        <li><a href="index.html">博客首页</a></li>
-                        <li><a href="archive.html">文章归档</a></li>
-                        <li><a href="index.html#friends">友情链接</a></li>
-                        <li><a href="index.html#about">关于我</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>博客信息</h4>
-                    <ul class="footer-links">
-                        <li><i class="far fa-copyright"></i> 始于2024年</li>
-                        <li><i class="fas fa-blog"></i> 基于GitHub Pages</li>
-                        <li><i class="fas fa-code"></i> 纯静态构建</li>
-                        <li><i class="fas fa-pen"></i> 持续更新中</li>
-                    </ul>
-                </div>
-            </div>
             <div class="copyright">
                 <p>© 2024 Shawn's Blog. 基于 GitHub Pages 构建 | 托管于 <a href="https://shawn1300.github.io" style="color:#3498db;">shawn1300.github.io</a></p>
             </div>
@@ -576,34 +428,18 @@
     </footer>
 
     <script>
-        // 文章数据 - 你只需要维护这个数组
+        // ============================================
+        // 文章数据配置区（你只需要修改这里！）
+        // ============================================
         const allArticles = [
-        <!-- 文章归档列表 {
-                title: "日本关西游：京阿尼动漫物语",
-                date: "2025-12-08",
-                category: "travel",
-                excerpt: "京都的夏天如动漫版烈日炎炎而富有生气。从贵船神社到平等院，每一座古刹都在夏日的映衬下展现出不同的韵味。这次旅行不仅是一场视觉盛宴，更是一次心灵的洗礼。",
-                url: "articles/travel.html",
-                readTime: "5分钟",
-                image: "images/250717.jpg"
-            },
-            {
-                title: "我的静态博客诞生手记",
-                date: "2025-12-08",
-                category: "tech",
-                excerpt: "我的静态博客是如何诞生的呢？",
-                url: "articles/tech-001.html",
-                readTime: "5分钟",
-                image: "images/blogscreenshot.png"
-            }, -->
             {
                 title: "日本关西红叶狩：京都古寺的秋日物语",
-                date: "2024-11-15",
-                category: "travel",
+                date: "2024-11-15",           // 格式：YYYY-MM-DD
+                category: "travel",           // 分类：travel/essay/tech/reading/life
                 excerpt: "京都的秋天是红色与金色的交响曲。从永观堂到东福寺，每一座古刹都在红叶的映衬下展现出不同的韵味。",
                 url: "articles/japan-autumn.html",
                 readTime: "5分钟",
-                image: "images/posts/japan-autumn.jpg"
+                image: "images/japan-autumn.jpg"  // 图片路径（可选）
             },
             {
                 title: "深夜咖啡馆：城市里的孤独与温暖",
@@ -612,7 +448,7 @@
                 excerpt: "城市的夜晚，咖啡馆成了许多人的避风港。在这里，孤独与温暖交织，陌生人的故事在咖啡香气中静静流淌。",
                 url: "articles/late-night-cafe.html",
                 readTime: "4分钟",
-                image: "images/posts/late-night-cafe.jpg"
+                image: "images/late-night-cafe.jpg"
             },
             {
                 title: "静态博客搭建指南：从GitHub Pages到自定义域名",
@@ -621,7 +457,7 @@
                 excerpt: "无需服务器和数据库，用GitHub Pages和静态站点生成器搭建个人博客的完整指南。",
                 url: "articles/static-blog-guide.html",
                 readTime: "8分钟",
-                image: "images/posts/static-blog-guide.jpg"
+                image: "images/static-blog-guide.jpg"
             },
             {
                 title: "云南大理：苍山洱海间的慢生活",
@@ -630,7 +466,7 @@
                 excerpt: "在大理，时间仿佛变得缓慢。苍山的云雾、洱海的波光、古城的石板路，还有白族民居的青瓦白墙。",
                 url: "articles/dali-yunnan.html",
                 readTime: "6分钟",
-                image: "images/posts/dali-yunnan.jpg"
+                image: "images/dali-yunnan.jpg"
             },
             {
                 title: "《百年孤独》：马孔多的雨与轮回",
@@ -639,7 +475,7 @@
                 excerpt: "重读马尔克斯的这部巨著，依然被布恩迪亚家族七代人的命运所震撼。魔幻现实主义下，是对孤独、时间与命运的深刻思考。",
                 url: "articles/one-hundred-years.html",
                 readTime: "7分钟",
-                image: "images/posts/one-hundred-years.jpg"
+                image: "images/one-hundred-years.jpg"
             },
             {
                 title: "数字时代的注意力危机：我们为何越来越难专注",
@@ -648,16 +484,7 @@
                 excerpt: "推送通知、短视频、碎片化信息...在数字洪流中，我们的注意力被不断切割。如何在这个时代重新找回深度思考的能力？",
                 url: "articles/attention-crisis.html",
                 readTime: "5分钟",
-                image: "images/posts/attention-crisis.jpg"
-            },
-            {
-                title: "初次滑雪体验：从恐惧到享受的速度之旅",
-                date: "2023-12-20",
-                category: "life",
-                excerpt: "人生第一次站在滑雪道上，双腿发颤。但当克服恐惧滑下初级道时，那种自由与掌控感让人瞬间上瘾。",
-                url: "articles/first-ski.html",
-                readTime: "4分钟",
-                image: "images/posts/first-ski.jpg"
+                image: "images/attention-crisis.jpg"
             },
             {
                 title: "我的静态博客诞生手记",
@@ -666,24 +493,44 @@
                 excerpt: "记录从零开始搭建GitHub Pages静态博客的完整过程，分享技术选择与心得感悟。",
                 url: "blog-story.html",
                 readTime: "3分钟",
-                image: "images/posts/blog-story.jpg"
+                image: "images/blog-story.jpg"
             }
+            // 添加新文章时，复制上面的格式，注意每个对象用逗号分隔
+            // {
+            //     title: "新文章标题",
+            //     date: "2024-12-08",
+            //     category: "life",
+            //     excerpt: "文章摘要...",
+            //     url: "articles/new-article.html",
+            //     readTime: "5分钟",
+            //     image: "images/new-image.jpg"
+            // },
         ];
+        // ============================================
+        // 数据配置结束
+        // ============================================
 
-        // 工具函数：获取年份
+        // 工具函数
         function getYearFromDate(dateStr) {
-            return dateStr.split('-')[0];
+            try {
+                return dateStr.split('-')[0];
+            } catch (e) {
+                console.error('日期格式错误:', dateStr);
+                return '未知年份';
+            }
         }
 
-        // 工具函数：格式化日期
         function formatDate(dateStr) {
-            const date = new Date(dateStr);
-            const month = date.getMonth() + 1;
-            const day = date.getDate();
-            return `${month}月${day}日`;
+            try {
+                const date = new Date(dateStr);
+                const month = date.getMonth() + 1;
+                const day = date.getDate();
+                return `${month}月${day}日`;
+            } catch (e) {
+                return dateStr;
+            }
         }
 
-        // 工具函数：获取分类中文名
         function getCategoryName(category) {
             const map = {
                 'travel': '旅行',
@@ -695,7 +542,6 @@
             return map[category] || category;
         }
 
-        // 工具函数：获取分类图标
         function getCategoryIcon(category) {
             const map = {
                 'travel': 'fa-plane',
@@ -709,44 +555,61 @@
 
         // 渲染归档页面
         function renderArchive() {
-            // 1. 按日期排序（新到旧）
-            const sortedArticles = [...allArticles].sort((a, b) => 
-                new Date(b.date) - new Date(a.date)
-            );
+            const container = document.getElementById('archive-container');
+            const errorEl = document.getElementById('error-message');
             
-            // 2. 按年份分组
-            const articlesByYear = {};
-            sortedArticles.forEach(article => {
-                const year = getYearFromDate(article.date);
-                if (!articlesByYear[year]) {
-                    articlesByYear[year] = [];
+            try {
+                // 验证数据
+                if (!Array.isArray(allArticles)) {
+                    throw new Error('文章数据格式错误：allArticles 必须是数组');
                 }
-                articlesByYear[year].push(article);
-            });
-            
-            // 3. 生成HTML
-            let archiveHTML = '';
-            const years = Object.keys(articlesByYear).sort((a, b) => b - a);
-            const currentYear = new Date().getFullYear().toString();
-            
-            if (years.length === 0) {
-                archiveHTML = `
-                    <div class="empty-state">
-                        <i class="far fa-calendar-times"></i>
-                        <h3>暂无文章</h3>
-                        <p>还没有发布任何文章，快去写一篇吧！</p>
-                    </div>
-                `;
-            } else {
+
+                if (allArticles.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="far fa-calendar-times"></i>
+                            <h3>暂无文章</h3>
+                            <p>还没有发布任何文章，快去写一篇吧！</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // 按日期排序
+                const sortedArticles = [...allArticles].sort((a, b) => {
+                    try {
+                        return new Date(b.date) - new Date(a.date);
+                    } catch (e) {
+                        return 0;
+                    }
+                });
+
+                // 按年份分组
+                const articlesByYear = {};
+                sortedArticles.forEach((article, index) => {
+                    try {
+                        const year = getYearFromDate(article.date);
+                        if (!articlesByYear[year]) {
+                            articlesByYear[year] = [];
+                        }
+                        articlesByYear[year].push(article);
+                    } catch (e) {
+                        console.error(`第 ${index} 篇文章数据有问题:`, article);
+                    }
+                });
+
+                // 生成HTML
+                let archiveHTML = '';
+                const years = Object.keys(articlesByYear).sort((a, b) => b - a);
+
                 years.forEach(year => {
                     const articles = articlesByYear[year];
-                    const yearCount = articles.length;
                     
                     archiveHTML += `
                         <div class="year-group" data-year="${year}">
                             <div class="year-title">
                                 <span><i class="far fa-calendar"></i> ${year} 年</span>
-                                <span class="year-count">${yearCount} 篇</span>
+                                <span class="year-count">${articles.length} 篇</span>
                             </div>
                             <div class="articles-grid">
                     `;
@@ -754,17 +617,18 @@
                     articles.forEach(article => {
                         const categoryName = getCategoryName(article.category);
                         const categoryClass = `category-${article.category}`;
+                        const imageUrl = article.image || 'images/default-thumb.jpg';
                         
                         archiveHTML += `
-                            <div class="article-card" data-category="${article.category}" data-year="${year}">
-                                <div class="article-img" style="background-image: url('${article.image || 'images/default-thumb.jpg'}');"></div>
+                            <div class="article-card" data-category="${article.category}">
+                                <div class="article-img" style="background-image: url('${imageUrl}');"></div>
                                 <div class="article-content">
                                     <div class="article-meta">
                                         <span class="article-date">
                                             <i class="far fa-calendar"></i> ${formatDate(article.date)}
                                         </span>
                                         <span class="article-category ${categoryClass}">
-                                            <i class="fas ${getCategoryIcon(article.category)}"></i> ${categoryName}
+                                            ${categoryName}
                                         </span>
                                     </div>
                                     <h3 class="article-title">${article.title}</h3>
@@ -787,31 +651,32 @@
                         </div>
                     `;
                 });
+
+                container.innerHTML = archiveHTML;
+                setupFilterButtons();
+                
+            } catch (error) {
+                console.error('渲染归档页面时出错:', error);
+                errorEl.textContent = `加载文章列表时出错: ${error.message}`;
+                errorEl.style.display = 'block';
+                
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>加载文章列表失败</h3>
+                        <p>请检查文章数据格式是否正确，然后刷新页面重试。</p>
+                        <p style="font-size:0.9rem; margin-top:10px;">错误信息: ${error.message}</p>
+                    </div>
+                `;
             }
-            
-            // 4. 更新页面
-            document.getElementById('archive-container').innerHTML = archiveHTML;
-            
-            // 5. 更新统计数据
-            document.getElementById('total-articles').textContent = allArticles.length;
-            
-            const categories = new Set(allArticles.map(a => a.category));
-            document.getElementById('total-categories').textContent = categories.size;
-            
-            const currentYearCount = allArticles.filter(a => getYearFromDate(a.date) === currentYear).length;
-            document.getElementById('current-year').textContent = currentYearCount;
-            
-            // 6. 绑定筛选事件
-            setupFilterButtons();
         }
-        
+
         // 设置分类筛选功能
         function setupFilterButtons() {
             const filterButtons = document.querySelectorAll('.filter-btn');
             const articleCards = document.querySelectorAll('.article-card');
-            const footerLinks = document.querySelectorAll('.footer-links a[data-category]');
-            
-            // 筛选按钮点击事件
+            const yearGroups = document.querySelectorAll('.year-group');
+
             filterButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     const category = this.getAttribute('data-category');
@@ -820,18 +685,15 @@
                     filterButtons.forEach(btn => btn.classList.remove('active'));
                     this.classList.add('active');
                     
-                    // 筛选文章卡片
-                    let visibleCount = 0;
+                    // 筛选文章
                     articleCards.forEach(card => {
                         const cardCategory = card.getAttribute('data-category');
-                        
                         if (category === 'all' || cardCategory === category) {
                             card.style.display = 'block';
                             setTimeout(() => {
                                 card.style.opacity = '1';
                                 card.style.transform = 'translateY(0)';
                             }, 10);
-                            visibleCount++;
                         } else {
                             card.style.opacity = '0';
                             card.style.transform = 'translateY(20px)';
@@ -841,72 +703,22 @@
                         }
                     });
                     
-                    // 显示/隐藏年份分组
-                    document.querySelectorAll('.year-group').forEach(yearGroup => {
-                        const year = yearGroup.getAttribute('data-year');
-                        const hasVisibleCards = Array.from(articleCards).some(card => 
-                            card.style.display !== 'none' && 
-                            card.getAttribute('data-year') === year
+                    // 更新年份组显示状态
+                    yearGroups.forEach(group => {
+                        const yearCards = group.querySelectorAll('.article-card');
+                        const hasVisibleCards = Array.from(yearCards).some(card => 
+                            card.style.display !== 'none'
                         );
-                        
-                        yearGroup.style.display = hasVisibleCards ? 'block' : 'none';
+                        group.style.display = hasVisibleCards ? 'block' : 'none';
                     });
-                    
-                    // 更新页面标题
-                    if (category !== 'all') {
-                        const categoryName = getCategoryName(category);
-                        document.querySelector('.page-header h1').innerHTML = 
-                            `<i class="fas ${getCategoryIcon(category)}"></i> ${categoryName}分类`;
-                        document.querySelector('.page-header p').textContent = 
-                            `共找到 ${visibleCount} 篇${categoryName}相关文章`;
-                    } else {
-                        document.querySelector('.page-header h1').innerHTML = 
-                            `<i class="far fa-calendar-alt"></i> 文章归档`;
-                        document.querySelector('.page-header p').textContent = 
-                            '按分类和时间顺序呈现所有思考与记录，点击分类快速筛选';
-                    }
-                });
-            });
-            
-            // 页脚分类链接点击事件
-            footerLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const category = this.getAttribute('data-category');
-                    
-                    // 触发对应的筛选按钮
-                    const targetButton = document.querySelector(`.filter-btn[data-category="${category}"]`);
-                    if (targetButton) {
-                        targetButton.click();
-                        
-                        // 平滑滚动到筛选区域
-                        document.querySelector('.category-filters').scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-                    }
                 });
             });
         }
-        
-        // 页面加载完成后渲染
-        document.addEventListener('DOMContentLoaded', renderArchive);
-        
-        // 平滑滚动
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                e.preventDefault();
-                const targetId = this.getAttribute('href');
-                if (targetId === '#') return;
-                
-                const targetElement = document.querySelector(targetId);
-                if (targetElement) {
-                    window.scrollTo({
-                        top: targetElement.offsetTop - 80,
-                        behavior: 'smooth'
-                    });
-                }
-            });
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('文章数据:', allArticles); // 在控制台检查数据
+            renderArchive();
         });
     </script>
 </body>
