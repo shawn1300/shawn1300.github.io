@@ -1,0 +1,286 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简易条形码生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .description {
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus {
+            border-color: #4a86e8;
+            outline: none;
+        }
+        
+        .format-selector {
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .format-selector label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: white;
+        }
+        
+        button {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .barcode-container {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px dashed #ddd;
+            border-radius: 8px;
+            min-height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        svg {
+            max-width: 100%;
+        }
+        
+        .empty-state {
+            color: #999;
+        }
+        
+        .download-btn {
+            display: none;
+            margin: 20px auto 0;
+            background: linear-gradient(to right, #0bab64, #3bb78f);
+        }
+        
+        footer {
+            margin-top: 30px;
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .loading {
+            display: none;
+            margin-top: 15px;
+            color: #4a86e8;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>简易条形码生成器</h1>
+        <p class="description">输入文本内容，选择条形码格式，即可实时生成条形码</p >
+        
+        <div class="input-group">
+            <input type="text" id="barcodeInput" placeholder="请输入要生成条形码的文本" autocomplete="off">
+        </div>
+        
+        <div class="format-selector">
+            <label for="barcodeFormat">选择条形码格式：</label>
+            <select id="barcodeFormat">
+                <option value="CODE128">CODE128 (最常用)</option>
+                <option value="EAN13">EAN13 (商品编码)</option>
+                <option value="EAN8">EAN8 (短商品编码)</option>
+                <option value="UPC">UPC (产品代码)</option>
+                <option value="CODE39">CODE39</option>
+                <option value="ITF">ITF (交插二五码)</option>
+                <option value="MSI">MSI</option>
+                <option value="pharmacode">Pharmacode (药品码)</option>
+            </select>
+        </div>
+        
+        <div class="loading" id="loadingIndicator">正在生成条形码...</div>
+        
+        <div class="barcode-container">
+            <div class="empty-state" id="emptyState">条形码将显示在这里</div>
+            <svg id="barcode"></svg>
+        </div>
+        
+        <button id="downloadBtn" class="download-btn">下载条形码</button>
+        
+        <footer>
+            <p>© 2023 简易条形码生成器 | 使用 JsBarcode 库</p >
+        </footer>
+    </div>
+
+    <!-- 将JsBarcode库放在页面底部，确保DOM加载完成后再加载脚本 -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const barcodeInput = document.getElementById('barcodeInput');
+            const barcodeFormat = document.getElementById('barcodeFormat');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const emptyState = document.getElementById('emptyState');
+            const barcodeSvg = document.getElementById('barcode');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            
+            // 防抖函数，避免频繁生成
+            let debounceTimer;
+            function debounce(callback, delay) {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(callback, delay);
+            }
+            
+            // 生成条形码
+            function generateBarcode() {
+                const text = barcodeInput.value.trim();
+                const format = barcodeFormat.value;
+                
+                if (!text) {
+                    emptyState.style.display = 'block';
+                    emptyState.textContent = '条形码将显示在这里';
+                    barcodeSvg.style.display = 'none';
+                    downloadBtn.style.display = 'none';
+                    return;
+                }
+                
+                loadingIndicator.style.display = 'block';
+                
+                // 使用防抖，避免频繁生成
+                debounce(() => {
+                    try {
+                        // 生成条形码
+                        JsBarcode("#barcode", text, {
+                            format: format,
+                            width: 2,
+                            height: 100,
+                            displayValue: true,
+                            fontSize: 16,
+                            lineColor: "#333",
+                            background: "transparent"
+                        });
+                        
+                        // 显示条形码，隐藏空状态
+                        emptyState.style.display = 'none';
+                        barcodeSvg.style.display = 'block';
+                        downloadBtn.style.display = 'block';
+                    } catch (error) {
+                        emptyState.style.display = 'block';
+                        emptyState.textContent = '生成条形码时出错: ' + error.message;
+                        barcodeSvg.style.display = 'none';
+                        downloadBtn.style.display = 'none';
+                        console.error(error);
+                    } finally {
+                        loadingIndicator.style.display = 'none';
+                    }
+                }, 500);
+            }
+            
+            // 下载条形码
+            function downloadBarcode() {
+                const svgData = new XMLSerializer().serializeToString(barcodeSvg);
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+                const img = new Image();
+                
+                img.onload = function() {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    
+                    try {
+                        const a = document.createElement("a");
+                        a.download = "barcode.png";
+                        a.href = canvas.toDataURL("image/png");
+                        a.click();
+                    } catch (error) {
+                        alert('下载条形码时出错：' + error.message);
+                    }
+                };
+                
+                img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+            }
+            
+            // 事件监听 - 实时生成
+            barcodeInput.addEventListener('input', generateBarcode);
+            barcodeFormat.addEventListener('change', generateBarcode);
+            downloadBtn.addEventListener('click', downloadBarcode);
+            
+            // 初始生成一次（如果有默认值）
+            generateBarcode();
+        });
+    </script>
+</body>
+</html>
