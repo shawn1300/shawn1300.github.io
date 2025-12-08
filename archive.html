@@ -654,6 +654,73 @@
 
                 container.innerHTML = archiveHTML;
                 setupFilterButtons();
+                // ========================================
+// URL参数处理：自动筛选功能
+// ========================================
+
+function getUrlParameter(name) {
+    // 获取URL中的参数值
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+}
+
+function autoFilterFromUrl() {
+    const category = getUrlParameter('category');
+    
+    if (category) {
+        // 找到对应的筛选按钮
+        const targetButton = document.querySelector(`.filter-btn[data-category="${category}"]`);
+        
+        if (targetButton) {
+            // 等待页面加载完成后自动点击按钮
+            setTimeout(() => {
+                targetButton.click();
+                
+                // 更新页面标题和描述，显示筛选状态
+                updatePageTitleForCategory(category);
+                
+                // 滚动到筛选区域（可选）
+                document.querySelector('.category-filters').scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }, 300); // 稍微延迟，确保DOM已加载
+        }
+    }
+}
+
+function updatePageTitleForCategory(category) {
+    if (category !== 'all') {
+        const categoryName = getCategoryName(category);
+        const pageTitle = document.querySelector('.page-header h1');
+        const pageDesc = document.querySelector('.page-header p');
+        
+        if (pageTitle && pageDesc) {
+            const iconMap = {
+                'travel': 'fa-plane',
+                'essay': 'fa-pen-fancy',
+                'tech': 'fa-code',
+                'reading': 'fa-book',
+                'life': 'fa-heart'
+            };
+            
+            const icon = iconMap[category] || 'fa-filter';
+            pageTitle.innerHTML = `<i class="fas ${icon}"></i> ${categoryName} 分类`;
+            pageDesc.textContent = `以下为 ${categoryName} 相关的所有文章`;
+        }
+    }
+}
+
+// 在页面加载完成后执行
+document.addEventListener('DOMContentLoaded', function() {
+    // 先渲染归档页面
+    renderArchive();
+    
+    // 然后检查URL参数，自动筛选
+    setTimeout(() => {
+        autoFilterFromUrl();
+    }, 100);
+});
                 
             } catch (error) {
                 console.error('渲染归档页面时出错:', error);
