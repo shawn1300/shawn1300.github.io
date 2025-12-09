@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>访客留言板 | Shawn's Blog</title>
+    <style>
+        /* 样式沿用之前的，这里省略以节省篇幅 */
+        /* 完整样式参考之前的代码 */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-book"></i> 访客留言板</h1>
+        
+        <!-- 留言表单 -->
+        <div class="input-form">
+            <div class="form-group">
+                <label>用户名 *</label>
+                <input type="text" id="username" placeholder="你的名字" maxlength="30">
+            </div>
+            <div class="form-group">
+                <label>邮箱（仅我可见）</label>
+                <input type="email" id="email" placeholder="你的邮箱">
+            </div>
+            <div class="form-group">
+                <label>留言内容 *</label>
+                <textarea id="message" placeholder="想说的话..."></textarea>
+            </div>
+            <button class="btn" onclick="submitMessage()">发布留言</button>
+            <div id="statusMsg"></div>
+        </div>
+        
+        <!-- 留言列表 -->
+        <div class="messages-container">
+            <h2>最新留言</h2>
+            <div id="messagesList">加载中...</div>
+        </div>
+    </div>
+
+    <script>
+        // 后端API地址
+        // 如果你的Vercel域名是：https://shawn1300.vercel.app
+        // 那么API地址是：https://shawn1300.vercel.app/api/submit-message
+        const API_ENDPOINT = '/api/submit-message'; // 如果和博客同域
+        
+        // 从GitHub获取留言（无需token，因为是读操作）
+        async function loadMessages() {
+            try {
+                const response = await fetch(
+                    'https://api.github.com/repos/shawn1300/shawn1300.github.io/issues/1/comments'
+                );
+                const comments = await response.json();
+                displayMessages(comments);
+            } catch (error) {
+                console.error('加载失败:', error);
+            }
+        }
+        
+        // 提交留言（通过你的后端）
+        async function submitMessage() {
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const content = document.getElementById('message').value.trim();
+            
+            if (!username || !content) {
+                showStatus('请填写用户名和内容', 'error');
+                return;
+            }
+            
+            const btn = document.querySelector('.btn');
+            btn.disabled = true;
+            btn.textContent = '提交中...';
+            
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, content })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('留言成功！', 'success');
+                    document.getElementById('username').value = '';
+                    document.getElementById('email').value = '';
+                    document.getElementById('message').value = '';
+                    loadMessages(); // 刷新列表
+                } else {
+                    showStatus('失败：' + result.error, 'error');
+                }
+            } catch (error) {
+                showStatus('网络错误，请重试', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '发布留言';
+            }
+        }
+        
+        function showStatus(msg, type) {
+            const el = document.getElementById('statusMsg');
+            el.textContent = msg;
+            el.className = type;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+        
+        // 页面加载
+        document.addEventListener('DOMContentLoaded', loadMessages);
+    </script>
+</body>
+</html>
