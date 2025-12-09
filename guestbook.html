@@ -4,8 +4,149 @@
     <meta charset="UTF-8">
     <title>访客留言板 | Shawn's Blog</title>
     <style>
-        /* 样式沿用之前的，这里省略以节省篇幅 */
-        /* 完整样式参考之前的代码 */
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --light-color: #f9f9f9;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: #f8f9fa; padding: 20px; max-width: 800px; margin: 0 auto; }
+        
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+        h1 { color: var(--primary-color); margin-bottom: 20px; text-align: center; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 30px; }
+        
+        /* 输入表单 */
+        .input-form { margin-bottom: 40px; background: var(--light-color); padding: 25px; border-radius: 8px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #555; font-weight: 500; }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        input:focus, textarea:focus { border-color: var(--secondary-color); outline: none; }
+        textarea { height: 120px; resize: vertical; }
+        
+        /* 按钮 */
+        .btn { 
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn:hover { background: #2980b9; }
+        .btn:disabled { background: #cccccc; cursor: not-allowed; }
+        .btn-secondary {
+            background: #6c757d;
+            margin-left: 10px;
+        }
+        .btn-secondary:hover { background: #545b62; }
+        
+        /* 消息列表 */
+        .messages-container { margin-top: 40px; }
+        .message {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #eaeaea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+        .message:hover { transform: translateY(-2px); }
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .message-author { 
+            font-weight: 600; 
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .message-time { 
+            color: #888; 
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .message-content { 
+            line-height: 1.6; 
+            color: #333;
+            font-size: 1.05rem;
+        }
+        .message-footer {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px dashed #eee;
+            color: #aaa;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        /* 状态消息 */
+        .status-msg { 
+            padding: 15px; 
+            border-radius: 6px; 
+            margin-bottom: 20px;
+            display: none;
+        }
+        .status-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .status-info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        
+        /* 加载动画 */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .spinner {
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 管理提示 */
+        .admin-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 30px;
+            font-size: 0.9rem;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+            .message-header { flex-direction: column; align-items: flex-start; gap: 5px; }
+            .btn-group { display: flex; flex-direction: column; gap: 10px; }
+            .btn-secondary { margin-left: 0; }
+        }
     </style>
 </head>
 <body>
