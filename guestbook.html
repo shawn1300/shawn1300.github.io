@@ -281,38 +281,38 @@
         }
         
         // ========== 显示留言 ==========
-        function displayMessages(comments) {
-            const messagesDiv = document.getElementById('messages');
-            
-            if (!comments || comments.length === 0) {
-                messagesDiv.innerHTML = '<div class="empty">还没有留言，快来第一个留言吧！</div>';
-                return;
-            }
-            
-            // 按时间倒序
-            comments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-            
-            let html = '';
-            comments.forEach(comment => {
-                // 从留言内容提取信息
-                const body = comment.body || '';
-                const username = extractUsername(body);
-                const content = extractContent(body);
-                const time = formatTime(comment.created_at);
-                
-                html += `
-                <div class="message-item">
-                    <div class="message-header">
-                        <div class="message-author">👤 ${escapeHtml(username || '匿名用户')}</div>
-                        <div class="message-time">${time}</div>
-                    </div>
-                    <div class="message-content">${escapeHtml(content || body)}</div>
-                </div>
-                `;
-            });
-            
-            messagesDiv.innerHTML = html;
-        }
+function displayMessages(comments) {
+    const messagesDiv = document.getElementById('messages');
+    
+    if (!comments || comments.length === 0) {
+        messagesDiv.innerHTML = '<div class="empty">还没有留言，快来第一个留言吧！</div>';
+        return;
+    }
+    
+    // 按时间倒序
+    comments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    
+    let html = '';
+    comments.forEach(comment => {
+        // 从留言内容提取信息
+        const body = comment.body || '';
+        const username = extractUsername(body);
+        const content = extractContent(body);
+        const time = formatTime(comment.created_at); // 使用GitHub API的时间
+        
+        html += `
+        <div class="message-item">
+            <div class="message-header">
+                <div class="message-author">👤 ${escapeHtml(username || '匿名用户')}</div>
+                <div class="message-time">${time}</div>
+            </div>
+            <div class="message-content">${escapeHtml(content || cleanContent(body))}</div>
+        </div>
+        `;
+    });
+    
+    messagesDiv.innerHTML = html;
+}
         
         // ========== 提交留言 ==========
         async function submitMessage() {
