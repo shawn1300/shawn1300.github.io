@@ -1,0 +1,72 @@
+<!-- save as guestbook-test.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>留言板简化测试</title>
+</head>
+<body>
+    <h2>留言板简化测试版</h2>
+    
+    <div>
+        <input type="text" id="name" placeholder="昵称">
+        <textarea id="content" placeholder="留言内容"></textarea>
+        <button onclick="submitTest()">提交测试</button>
+        <button onclick="loadTest()">加载留言</button>
+    </div>
+    
+    <div id="result" style="margin-top:20px;padding:10px;border:1px solid #ccc;"></div>
+    
+    <script>
+        const API = 'https://shawn1300-github-io.vercel.app/api';
+        
+        function log(msg) {
+            document.getElementById('result').innerHTML += msg + '<br>';
+        }
+        
+        async function loadTest() {
+            log('正在加载留言...');
+            try {
+                const response = await fetch(API + '/get-comments');
+                const data = await response.json();
+                log('加载结果：' + JSON.stringify(data));
+            } catch (error) {
+                log('加载失败：' + error.message);
+            }
+        }
+        
+        async function submitTest() {
+            const name = document.getElementById('name').value || '测试用户';
+            const content = document.getElementById('content').value || '测试留言';
+            
+            log('正在提交留言...');
+            try {
+                const response = await fetch(API + '/submit-comment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: name,
+                        email: 'test@example.com',
+                        content: content
+                    })
+                });
+                
+                const data = await response.json();
+                log('提交结果：' + JSON.stringify(data));
+                
+                if (data.success) {
+                    // 自动刷新留言
+                    setTimeout(loadTest, 1000);
+                }
+            } catch (error) {
+                log('提交失败：' + error.message);
+            }
+        }
+        
+        // 页面加载时自动测试
+        window.onload = function() {
+            log('页面加载完成，API地址：' + API);
+            loadTest();
+        };
+    </script>
+</body>
+</html>
