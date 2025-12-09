@@ -4,632 +4,439 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>留言板 | Shawn's Blog</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --light-color: #f9f9f9;
-            --success-color: #27ae60;
-            --error-color: #e74c3c;
-        }
-        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            font-family: 'Segoe UI', sans-serif;
         }
         
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             min-height: 100vh;
             padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
         
         .container {
+            max-width: 800px;
+            margin: 0 auto;
             background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-            width: 100%;
-            max-width: 900px;
-        }
-        
-        /* 头部 */
-        .header {
-            background: var(--primary-color);
-            color: white;
+            border-radius: 15px;
             padding: 30px;
-            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
         }
         
-        .header h1 {
-            font-size: 2.5rem;
+        h1 {
+            color: #2c3e50;
+            text-align: center;
             margin-bottom: 10px;
         }
         
-        .header p {
-            opacity: 0.9;
-            font-size: 1.1rem;
-        }
-        
-        /* 主要内容区域 */
-        .main-content {
-            display: flex;
-            min-height: 600px;
-        }
-        
-        /* 左侧留言表单 */
-        .form-section {
-            flex: 1;
-            padding: 40px;
-            background: var(--light-color);
-            border-right: 1px solid #eee;
-        }
-        
-        .form-title {
-            color: var(--primary-color);
+        .subtitle {
+            text-align: center;
+            color: #666;
             margin-bottom: 30px;
-            font-size: 1.8rem;
         }
         
-        .form-group {
-            margin-bottom: 25px;
+        .form-box {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
         }
         
-        .form-label {
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
             display: block;
             margin-bottom: 8px;
             color: #555;
             font-weight: 500;
         }
         
-        .form-input {
+        input, textarea {
             width: 100%;
-            padding: 14px;
-            border: 2px solid #e0e0e0;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        input:focus, textarea:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 14px 28px;
             border-radius: 8px;
             font-size: 16px;
-            transition: all 0.3s;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s;
         }
         
-        .form-input:focus {
-            border-color: var(--secondary-color);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        .btn:hover {
+            background: #2980b9;
         }
         
-        textarea.form-input {
-            min-height: 150px;
-            resize: vertical;
-            line-height: 1.5;
+        .btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
         }
         
-        /* 右侧留言列表 */
-        .messages-section {
-            flex: 1.2;
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
+        .messages-box {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
         }
         
         .messages-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-        }
-        
-        .messages-title {
-            color: var(--primary-color);
-            font-size: 1.8rem;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
         }
         
         .refresh-btn {
-            background: var(--secondary-color);
+            background: #2ecc71;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 8px 16px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
-            transition: background 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
         
-        .refresh-btn:hover {
-            background: #2980b9;
-        }
-        
-        /* 留言列表容器 */
-        .messages-container {
-            flex: 1;
+        .message-list {
+            max-height: 500px;
             overflow-y: auto;
-            padding-right: 10px;
         }
         
-        .messages-container::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .messages-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        
-        .messages-container::-webkit-scrollbar-thumb {
-            background: #ccc;
-            border-radius: 10px;
-        }
-        
-        /* 单个留言卡片 */
-        .message-card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            border-left: 4px solid var(--secondary-color);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        
-        .message-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        .message-item {
+            background: #f9f9f9;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
         }
         
         .message-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 10px;
         }
         
         .message-author {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .author-avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
             font-weight: bold;
-            font-size: 18px;
+            color: #2c3e50;
         }
         
-        .author-info h4 {
-            color: var(--primary-color);
-            font-size: 1.1rem;
-            margin-bottom: 4px;
-        }
-        
-        .author-info .time {
-            color: #888;
-            font-size: 0.9rem;
+        .message-time {
+            color: #7f8c8d;
+            font-size: 14px;
         }
         
         .message-content {
-            color: #333;
             line-height: 1.6;
-            font-size: 1.05rem;
+            color: #333;
         }
         
-        /* 按钮 */
-        .btn {
-            background: var(--secondary-color);
-            color: white;
-            border: none;
-            padding: 16px 32px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-        }
-        
-        .btn:hover {
-            background: #2980b9;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(52, 152, 219, 0.2);
-        }
-        
-        .btn:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        /* 状态消息 */
-        .status-message {
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
+        .status {
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
             display: none;
-            align-items: center;
-            gap: 12px;
         }
         
-        .status-success {
+        .success {
             background: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
         
-        .status-error {
+        .error {
             background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
         
-        .status-loading {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-        
-        /* 加载状态 */
         .loading {
             text-align: center;
+            padding: 30px;
+            color: #666;
+        }
+        
+        .empty {
+            text-align: center;
             padding: 40px;
-            color: #666;
-        }
-        
-        .spinner {
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* 空状态 */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
-        
-        .empty-state i {
-            font-size: 4rem;
-            color: #ddd;
-            margin-bottom: 20px;
-        }
-        
-        /* 页脚 */
-        .footer {
-            background: #f8f9fa;
-            padding: 20px;
-            text-align: center;
-            border-top: 1px solid #eee;
-            color: #666;
-            font-size: 0.9rem;
-        }
-        
-        .footer a {
-            color: var(--secondary-color);
-            text-decoration: none;
-        }
-        
-        .footer a:hover {
-            text-decoration: underline;
-        }
-        
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            .main-content {
-                flex-direction: column;
-            }
-            
-            .form-section {
-                border-right: none;
-                border-bottom: 1px solid #eee;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .header, .form-section, .messages-section {
-                padding: 25px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            body {
-                padding: 10px;
-            }
-            
-            .header h1 {
-                font-size: 1.6rem;
-            }
-            
-            .message-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-            
-            .refresh-btn {
-                align-self: flex-start;
-            }
+            color: #888;
+            font-style: italic;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- 头部 -->
-        <div class="header">
-            <h1><i class="fas fa-comments"></i> 留言板</h1>
-            <p>分享你的想法，与博主和其他访客交流</p>
-        </div>
+        <h1>📝 留言板</h1>
+        <p class="subtitle">留下你的想法，与其他访客交流</p>
         
-        <!-- 主要内容 -->
-        <div class="main-content">
-            <!-- 左侧留言表单 -->
-            <div class="form-section">
-                <h2 class="form-title"><i class="fas fa-pen-alt"></i> 写下你的留言</h2>
-                
-                <form id="commentForm">
-                    <div class="form-group">
-                        <label for="username" class="form-label">
-                            <i class="fas fa-user"></i> 昵称 *
-                        </label>
-                        <input type="text" 
-                               id="username" 
-                               class="form-input" 
-                               placeholder="如何称呼你？" 
-                               maxlength="30"
-                               required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="email" class="form-label">
-                            <i class="fas fa-envelope"></i> 邮箱（仅博主可见）
-                        </label>
-                        <input type="email" 
-                               id="email" 
-                               class="form-input" 
-                               placeholder="你的邮箱（可选）">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="content" class="form-label">
-                            <i class="fas fa-comment-dots"></i> 留言内容 *
-                        </label>
-                        <textarea id="content" 
-                                  class="form-input" 
-                                  placeholder="你想说些什么？支持Markdown格式..."
-                                  maxlength="1000"
-                                  required></textarea>
-                        <div style="text-align: right; margin-top: 5px; color: #888; font-size: 0.9rem;">
-                            <span id="charCount">0</span>/1000
-                        </div>
-                    </div>
-                    
-                    <div id="formStatus" class="status-message"></div>
-                    
-                    <button type="button" onclick="submitComment()" class="btn" id="submitBtn">
-                        <i class="fas fa-paper-plane"></i> 发布留言
-                    </button>
-                </form>
+        <!-- 留言表单 -->
+        <div class="form-box">
+            <div class="input-group">
+                <label for="name">昵称 *</label>
+                <input type="text" id="name" placeholder="怎么称呼你？" required>
             </div>
             
-            <!-- 右侧留言列表 -->
-            <div class="messages-section">
-                <div class="messages-header">
-                    <h2 class="messages-title"><i class="fas fa-history"></i> 最新留言</h2>
-                    <button onclick="loadComments()" class="refresh-btn" id="refreshBtn">
-                        <i class="fas fa-redo"></i> 刷新
-                    </button>
-                </div>
-                
-                <div id="loadingStatus" class="status-message status-loading">
-                    <i class="fas fa-spinner spinner"></i>
-                    <span>正在加载留言...</span>
-                </div>
-                
-                <div class="messages-container" id="messagesContainer">
-                    <!-- 留言将通过JavaScript动态加载 -->
-                </div>
+            <div class="input-group">
+                <label for="email">邮箱（仅博主可见）</label>
+                <input type="email" id="email" placeholder="你的邮箱（可选）">
             </div>
+            
+            <div class="input-group">
+                <label for="message">留言内容 *</label>
+                <textarea id="message" placeholder="想说的话..." required></textarea>
+            </div>
+            
+            <div id="formStatus" class="status"></div>
+            
+            <button class="btn" id="submitBtn" onclick="submitMessage()">发布留言</button>
         </div>
         
-        <!-- 页脚 -->
-        <div class="footer">
-            <p>
-                <i class="fas fa-info-circle"></i> 
-                留言存储在GitHub Issues中，博主可以后台管理。
-                访问 <a href="https://github.com/shawn1300/shawn1300.github.io/issues/1" target="_blank">GitHub Issue页面</a>
-            </p>
+        <!-- 留言列表 -->
+        <div class="messages-box">
+            <div class="messages-header">
+                <h2>💬 最新留言</h2>
+                <button class="refresh-btn" onclick="loadMessages()">🔄 刷新</button>
+            </div>
+            
+            <div id="loading" class="loading">正在加载留言...</div>
+            <div id="messages" class="message-list"></div>
+        </div>
+        
+        <div style="text-align:center; margin-top:20px; color:#666; font-size:14px;">
+            留言存储在 GitHub Issues，博主可以在后台管理
         </div>
     </div>
 
-<script>
-    // ========== 修复版配置 ==========
-    const CONFIG = {
-        API_BASE_URL: 'https://shawn1300-github-io.vercel.app/api',
-        ENDPOINTS: {
-            GET_COMMENTS: '/get-comments',
-            SUBMIT_COMMENT: '/submit-comment'
-        }
-    };
-
-    // ========== 核心函数 ==========
-    async function loadComments() {
-        console.log('加载留言...');
-        try {
-            const container = document.getElementById('messagesContainer');
-            const loading = document.getElementById('loadingStatus');
-            
-            if (loading) loading.style.display = 'flex';
-            
-            const response = await fetch(CONFIG.API_BASE_URL + CONFIG.ENDPOINTS.GET_COMMENTS);
-            const result = await response.json();
-            
-            if (result.success) {
-                displayComments(result.comments || []);
-            } else {
-                throw new Error(result.error || '加载失败');
-            }
-        } catch (error) {
-            console.error('加载失败:', error);
-            const container = document.getElementById('messagesContainer');
-            if (container) {
-                container.innerHTML = `<div class="error">加载失败: ${error.message}</div>`;
-            }
-        } finally {
-            const loading = document.getElementById('loadingStatus');
-            if (loading) loading.style.display = 'none';
-        }
-    }
-
-    function displayComments(comments) {
-        const container = document.getElementById('messagesContainer');
-        if (!container) return;
+    <script>
+        // ========== 配置 ==========
+        const API = {
+            GET: 'https://shawn1300-github-io.vercel.app/api/get-comments',
+            POST: 'https://shawn1300-github-io.vercel.app/api/submit-comment'
+        };
         
-        if (!comments || comments.length === 0) {
-            container.innerHTML = '<div class="empty">还没有留言，快来第一个留言吧！</div>';
-            return;
-        }
-        
-        let html = '';
-        comments.forEach(comment => {
-            const usernameMatch = comment.body.match(/\*\*(.*?)\*\*/);
-            const username = usernameMatch ? usernameMatch[1] : '匿名用户';
-            const content = comment.body.split('留言：')[1] || comment.body;
-            const time = new Date(comment.created_at).toLocaleString('zh-CN');
+        // ========== 页面加载 ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('留言板加载完成');
+            loadMessages();
             
-            html += `
-            <div class="message-card">
-                <div class="message-header">
-                    <div class="message-author">
-                        <div class="author-avatar">${username.charAt(0).toUpperCase()}</div>
-                        <div class="author-info">
-                            <h4>${escapeHtml(username)}</h4>
-                            <div class="time">${time}</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="message-content">${escapeHtml(content)}</div>
-            </div>
-            `;
+            // 支持 Ctrl+Enter 提交
+            document.getElementById('message').addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'Enter') {
+                    submitMessage();
+                }
+            });
         });
         
-        container.innerHTML = html;
-    }
-
-    async function submitComment() {
-        console.log('提交留言...');
-        
-        const username = document.getElementById('username')?.value.trim();
-        const email = document.getElementById('email')?.value.trim();
-        const content = document.getElementById('content')?.value.trim();
-        
-        if (!username || !content) {
-            alert('请输入昵称和留言内容');
-            return;
+        // ========== 加载留言 ==========
+        async function loadMessages() {
+            const loading = document.getElementById('loading');
+            const messagesDiv = document.getElementById('messages');
+            
+            loading.style.display = 'block';
+            messagesDiv.innerHTML = '';
+            
+            try {
+                console.log('正在获取留言...');
+                const response = await fetch(API.GET);
+                const result = await response.json();
+                
+                console.log('获取结果:', result);
+                
+                if (result.success) {
+                    displayMessages(result.comments || []);
+                } else {
+                    throw new Error(result.error || '加载失败');
+                }
+            } catch (error) {
+                console.error('加载失败:', error);
+                messagesDiv.innerHTML = `<div class="error">加载失败: ${error.message}</div>`;
+            } finally {
+                loading.style.display = 'none';
+            }
         }
         
-        const submitBtn = document.getElementById('submitBtn');
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
-        }
-        
-        try {
-            const response = await fetch(CONFIG.API_BASE_URL + CONFIG.ENDPOINTS.SUBMIT_COMMENT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, email, content })
+        // ========== 显示留言 ==========
+        function displayMessages(comments) {
+            const messagesDiv = document.getElementById('messages');
+            
+            if (!comments || comments.length === 0) {
+                messagesDiv.innerHTML = '<div class="empty">还没有留言，快来第一个留言吧！</div>';
+                return;
+            }
+            
+            // 按时间倒序
+            comments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            
+            let html = '';
+            comments.forEach(comment => {
+                // 从留言内容提取信息
+                const body = comment.body || '';
+                const username = extractUsername(body);
+                const content = extractContent(body);
+                const time = formatTime(comment.created_at);
+                
+                html += `
+                <div class="message-item">
+                    <div class="message-header">
+                        <div class="message-author">👤 ${escapeHtml(username || '匿名用户')}</div>
+                        <div class="message-time">${time}</div>
+                    </div>
+                    <div class="message-content">${escapeHtml(content || body)}</div>
+                </div>
+                `;
             });
             
-            const result = await response.json();
+            messagesDiv.innerHTML = html;
+        }
+        
+        // ========== 提交留言 ==========
+        async function submitMessage() {
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const message = document.getElementById('message').value.trim();
+            const statusDiv = document.getElementById('formStatus');
+            const submitBtn = document.getElementById('submitBtn');
             
-            if (result.success) {
-                alert('留言提交成功！');
-                // 清空表单
-                if (document.getElementById('username')) document.getElementById('username').value = '';
-                if (document.getElementById('email')) document.getElementById('email').value = '';
-                if (document.getElementById('content')) document.getElementById('content').value = '';
-                // 重新加载留言
-                loadComments();
-            } else {
-                throw new Error(result.error || '提交失败');
+            // 验证
+            if (!name || !message) {
+                showStatus('请填写昵称和留言内容', 'error');
+                return;
             }
-        } catch (error) {
-            alert('提交失败: ' + error.message);
-            console.error('提交错误:', error);
-        } finally {
-            if (submitBtn) {
+            
+            // 禁用按钮
+            submitBtn.disabled = true;
+            submitBtn.textContent = '提交中...';
+            statusDiv.style.display = 'none';
+            
+            try {
+                console.log('正在提交留言...', { name, email });
+                
+                const response = await fetch(API.POST, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: name,
+                        email: email,
+                        content: message
+                    })
+                });
+                
+                const result = await response.json();
+                console.log('提交结果:', result);
+                
+                if (result.success) {
+                    // 成功
+                    showStatus('留言提交成功！', 'success');
+                    
+                    // 清空表单
+                    document.getElementById('name').value = '';
+                    document.getElementById('email').value = '';
+                    document.getElementById('message').value = '';
+                    
+                    // 重新加载留言
+                    setTimeout(loadMessages, 1000);
+                } else {
+                    throw new Error(result.error || '提交失败');
+                }
+            } catch (error) {
+                console.error('提交失败:', error);
+                showStatus('提交失败: ' + error.message, 'error');
+            } finally {
+                // 恢复按钮
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 发布留言';
+                submitBtn.textContent = '发布留言';
             }
         }
-    }
-
-    // ========== 工具函数 ==========
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    // ========== 页面初始化 ==========
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('留言板初始化...');
         
-        // 加载留言
-        loadComments();
-        
-        // 添加事件监听（备用）
-        const submitBtn = document.getElementById('submitBtn');
-        const refreshBtn = document.getElementById('refreshBtn');
-        
-        if (submitBtn) {
-            submitBtn.addEventListener('click', submitComment);
+        // ========== 工具函数 ==========
+        function extractUsername(body) {
+            // 提取 **用户名** 格式
+            const match = body.match(/\*\*(.*?)\*\*/);
+            return match ? match[1] : null;
         }
         
-        if (refreshBtn) {
-            refreshBtn.addEventListener('click', loadComments);
-        }
-        
-        // 快捷键支持
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.key === 'Enter') {
-                submitComment();
+        function extractContent(body) {
+            // 提取留言正文（去掉用户名部分）
+            const lines = body.split('\n');
+            const contentStart = lines.findIndex(line => line.includes('留言：'));
+            if (contentStart !== -1) {
+                return lines.slice(contentStart + 1).join('\n').trim();
             }
-        });
-    });
-
-    // ========== 全局导出 ==========
-    window.loadComments = loadComments;
-    window.submitComment = submitComment;
-    
-    console.log('留言板脚本加载完成');
-</script>
+            return body;
+        }
+        
+        function formatTime(timeString) {
+            const date = new Date(timeString);
+            const now = new Date();
+            const diff = now - date;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+            
+            if (minutes < 1) return '刚刚';
+            if (minutes < 60) return `${minutes}分钟前`;
+            if (hours < 24) return `${hours}小时前`;
+            if (days < 7) return `${days}天前`;
+            
+            return date.toLocaleDateString('zh-CN', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML.replace(/\n/g, '<br>');
+        }
+        
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('formStatus');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 3000);
+        }
+        
+        // ========== 全局导出 ==========
+        window.submitMessage = submitMessage;
+        window.loadMessages = loadMessages;
+        
+        console.log('留言板脚本初始化完成');
+    </script>
 </body>
 </html>
