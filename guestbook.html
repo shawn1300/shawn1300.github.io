@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>访客留言板 | Shawn's Blog</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --light-color: #f9f9f9;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: #f8f9fa; padding: 20px; max-width: 800px; margin: 0 auto; }
+        
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+        h1 { color: var(--primary-color); margin-bottom: 30px; text-align: center; }
+        
+        /* 输入区域 */
+        .input-area { margin-bottom: 40px; }
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            margin-bottom: 15px;
+            transition: border 0.3s;
+        }
+        textarea:focus { border-color: var(--secondary-color); outline: none; }
+        
+        button {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover { background: #2980b9; }
+        button:disabled { background: #cccccc; cursor: not-allowed; }
+        
+        /* 消息列表 */
+        .messages { margin-top: 30px; }
+        .message {
+            background: var(--light-color);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--secondary-color);
+        }
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .message-content { line-height: 1.6; }
+        
+        .loading { text-align: center; padding: 30px; color: #666; }
+        .error { background: #ffe6e6; color: #c0392b; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+        .success { background: #e6ffe6; color: #27ae60; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-book"></i> 访客留言板</h1>
+        
+        <div class="input-area">
+            <p>在这里写下你想说的话，所有访客都能看到：</p>
+            <textarea id="messageInput" placeholder="请输入留言内容..."></textarea>
+            <button id="submitBtn" onclick="submitMessage()">发布留言</button>
+            <div id="statusMsg"></div>
+        </div>
+        
+        <div class="messages">
+            <h2><i class="far fa-comments"></i> 所有留言</h2>
+            <div id="messagesContainer">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> 正在加载留言...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== 配置区 ==========
+        // 请修改以下配置为你自己的信息
+        const CONFIG = {
+            GITHUB_USERNAME: 'shawn1300',  // 你的GitHub用户名
+            REPO_NAME: 'shawn1300.github.io',  // 你的仓库名
+            ISSUE_NUMBER: 1,  // 用于留言的Issue编号（创建一个编号为1的Issue）
+            ACCESS_TOKEN: ''  // ⚠️ 安全警告：在实际部署时不要在这里写token！
+        };
+        // ========== 配置结束 ==========
+        
+        // API端点
+        const API = {
+            // 获取留言（读取Issue的评论）
+            getMessages: `https://api.github.com/repos/${CONFIG.GITHUB_USERNAME}/${CONFIG.REPO_NAME}/issues/${CONFIG.ISSUE_NUMBER}/comments`,
+            
+            // 发布留言（在Issue下添加评论）
+            postMessage: `https://api.github.com/repos/${CONFIG.GITHUB_USERNAME}/${CONFIG.REPO_NAME}/issues/${CONFIG.ISSUE_NUMBER}/comments`
+        };
+        
+        // 页面元素
+        const messageInput = document.getElementById('messageInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const messagesContainer = document.getElementById('messagesContainer');
+        const statusMsg = document.getElementById('statusMsg');
+        
+        // 加载留言
+        async function loadMessages() {
+            try {
+                const response = await fetch(API.getMessages);
+                if (!response.ok) throw new Error('获取留言失败');
+                
+                const comments = await response.json();
+                displayMessages(comments);
+            } catch (error) {
+                messagesContainer.innerHTML = `
+                    <div class="error">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        无法加载留言：${error.message}<br>
+                        请确保已创建Issue #${CONFIG.ISSUE_NUMBER}
+                    </div>
+                `;
+            }
+        }
+        
+        // 显示留言
+        function displayMessages(comments) {
+            if (comments.length === 0) {
+                messagesContainer.innerHTML = '<p style="text-align:center;color:#666;padding:30px;">还没有留言，成为第一个发言的人吧！</p>';
+                return;
+            }
+            
+            let html = '';
+            comments.forEach(comment => {
+                const date = new Date(comment.created_at).toLocaleString('zh-CN');
+                html += `
+                    <div class="message">
+                        <div class="message-header">
+                            <span><i class="fas fa-user"></i> ${comment.user.login}</span>
+                            <span><i class="far fa-clock"></i> ${date}</span>
+                        </div>
+                        <div class="message-content">${comment.body}</div>
+                    </div>
+                `;
+            });
+            
+            messagesContainer.innerHTML = html;
+        }
+        
+        // 发布留言
+        async function submitMessage() {
+            const content = messageInput.value.trim();
+            
+            if (!content) {
+                showStatus('请输入留言内容', 'error');
+                return;
+            }
+            
+            // 获取用户输入的token（安全方式）
+            const token = prompt('请输入GitHub Token（需要public_repo权限）：');
+            if (!token) {
+                showStatus('需要Token才能发布留言', 'error');
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = '发布中...';
+            
+            try {
+                const response = await fetch(API.postMessage, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/vnd.github.v3+json'
+                    },
+                    body: JSON.stringify({ body: content })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || '发布失败');
+                }
+                
+                showStatus('留言发布成功！', 'success');
+                messageInput.value = '';
+                
+                // 重新加载留言
+                loadMessages();
+                
+            } catch (error) {
+                showStatus(`发布失败：${error.message}`, 'error');
+                console.error('发布错误：', error);
+                
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '发布留言';
+            }
+        }
+        
+        // 显示状态消息
+        function showStatus(msg, type) {
+            statusMsg.innerHTML = `
+                <div class="${type}">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                    ${msg}
+                </div>
+            `;
+            
+            // 3秒后自动消失
+            setTimeout(() => {
+                statusMsg.innerHTML = '';
+            }, 3000);
+        }
+        
+        // 页面加载完成时执行
+        document.addEventListener('DOMContentLoaded', loadMessages);
+        
+        // 支持按Ctrl+Enter发送
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                submitMessage();
+            }
+        });
+    </script>
+</body>
+</html>
