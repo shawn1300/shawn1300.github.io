@@ -444,6 +444,101 @@
             font-size: 0.9rem;
         }
 
+        /* 侧边工具栏 */
+        .tools-sidebar {
+            position: fixed;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            transition: var(--transition);
+        }
+
+        .tools-toggle {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 20px 0 0 20px;
+            padding: 12px 15px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+        }
+
+        .tools-toggle:hover {
+            background-color: #2980b9;
+            width: 60px;
+        }
+
+        .tools-toggle i {
+            transition: transform 0.3s ease;
+        }
+
+        .tools-toggle.active i {
+            transform: rotate(180deg);
+        }
+
+        .tools-menu {
+            background-color: white;
+            border-radius: 10px 0 0 10px;
+            box-shadow: -2px 0 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            margin-top: 10px;
+            width: 0;
+            overflow: hidden;
+        }
+
+        .tools-menu.active {
+            max-height: 400px;
+            opacity: 1;
+            width: 200px;
+        }
+
+        .tool-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: var(--dark-color);
+            transition: var(--transition);
+            border-bottom: 1px solid #f0f0f0;
+            white-space: nowrap;
+        }
+
+        .tool-item:last-child {
+            border-bottom: none;
+        }
+
+        .tool-item:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--secondary-color);
+            padding-left: 25px;
+        }
+
+        .tool-item i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .tool-label {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
         /* 响应式设计 */
         @media (max-width: 992px) {
             .about-section {
@@ -454,6 +549,24 @@
             
             .hero h1 {
                 font-size: 2.8rem;
+            }
+            
+            .tools-sidebar {
+                top: auto;
+                bottom: 20px;
+                transform: none;
+            }
+            
+            .tools-menu {
+                position: absolute;
+                bottom: 100%;
+                right: 0;
+                margin-bottom: 10px;
+                border-radius: 10px;
+            }
+            
+            .tools-menu.active {
+                width: 180px;
             }
         }
 
@@ -483,6 +596,10 @@
                 flex-direction: column;
                 align-items: center;
             }
+            
+            .tools-menu.active {
+                width: 160px;
+            }
         }
 
         @media (max-width: 576px) {
@@ -498,10 +615,51 @@
             .footer-content {
                 flex-direction: column;
             }
+            
+            .tools-toggle {
+                width: 45px;
+                height: 45px;
+                padding: 10px;
+            }
+            
+            .tools-menu.active {
+                width: 140px;
+            }
+            
+            .tool-item {
+                padding: 12px 15px;
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- 侧边工具栏 -->
+    <div class="tools-sidebar">
+        <button class="tools-toggle" id="toolsToggle">
+            <i class="fas fa-tools"></i>
+        </button>
+        <div class="tools-menu" id="toolsMenu">
+            <a href="barcode.html" class="tool-item">
+                <i class="fas fa-barcode"></i>
+                <span class="tool-label">条形码生成</span>
+            </a>
+            <a href="ase.html" class="tool-item">
+                <i class="fas fa-lock"></i>
+                <span class="tool-label">AES加密工具</span>
+            </a>
+            <!-- 可以继续添加更多工具链接 -->
+            <a href="#" class="tool-item">
+                <i class="fas fa-calculator"></i>
+                <span class="tool-label">计算工具</span>
+            </a>
+            <a href="#" class="tool-item">
+                <i class="fas fa-palette"></i>
+                <span class="tool-label">颜色选择器</span>
+            </a>
+        </div>
+    </div>
+
     <!-- 导航栏 -->
     <header>
         <div class="container">
@@ -546,10 +704,9 @@
         </div>
         
         <div class="articles-grid">
-         <!-- 文章卡片 1 -->
+            <!-- 文章卡片 1 -->
             <div class="article-card" data-category="travel">
                 <div class="article-img" style="background-image: url('images/250717.jpg');"></div>
-                <!-- 文章卡片 1 <div class="article-img" style="background-image: url('https://img2.nloln.de/file/BQACAgUAAyEGAASLVN5eAAIBlGk2hBigCHf2XzwcBwNy3E-eDF26AAJpHAACiw6wVU2QvSZ5LAEsNgQ.jpg" alt="1765180437231.jpg');"></div> -->
                 <div class="article-content">
                     <span class="article-category">旅行</span>
                     <h3 class="article-title">日本关西游：京阿尼动漫物语</h3>
@@ -574,188 +731,120 @@
                     </div>
                 </div>
             </div>
- <!-- 文章卡片 1 
-            <div class="article-card" data-category="travel">
-                <div class="article-img" style="background-image: url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');"></div>
-                <div class="article-content">
-                    <span class="article-category">旅行</span>
-                    <h3 class="article-title">日本关西游：京阿尼动漫物语</h3>
-                    <p class="article-excerpt">京都的夏天如动漫版烈日炎炎而富有生气。从贵船神社到平等院，每一座古刹都在夏日的映衬下展现出不同的韵味。这次旅行不仅是一场视觉盛宴，更是一次心灵的洗礼。</p>
-                    <div class="article-meta">
-                        <span><i class="far fa-calendar"></i> 2024年11月15日</span>
-                        <a href="articles/travel.html" class="read-more">阅读全文 <i class="fas fa-arrow-right"></i></a>
-                    </div>
-                </div>
-            </div>
-            -->
-            <!-- 文章卡片 2 
-            <div class="article-card" data-category="essay">
-                <div class="article-img" style="background-image: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');"></div>
-                <div class="article-content">
-                    <span class="article-category">随笔</span>
-                    <h3 class="article-title">深夜咖啡馆：城市里的孤独与温暖</h3>
-                    <p class="article-excerpt">城市的夜晚，咖啡馆成了许多人的避风港。在这里，孤独与温暖交织，陌生人的故事在咖啡香气中静静流淌。每一个深夜不归的人，都有自己的理由。</p>
-                    <div class="article-meta">
-                        <span><i class="far fa-calendar"></i> 2024年11月10日</span>
-                        <a href="articles/late-night-cafe.html" class="read-more">阅读全文 <i class="fas fa-arrow-right"></i></a>
-                    </div>
-                </div>
-            </div>
-            -->
-            <!-- 文章卡片 3 
-            <div class="article-card" data-category="tech">
-                <div class="article-img" style="background-image: url('https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');"></div>
-                <div class="article-content">
-                    <span class="article-category">技术</span>
-                    <h3 class="article-title">静态博客搭建指南：从GitHub Pages到自定义域名</h3>
-                    <p class="article-excerpt">无需服务器和数据库，用GitHub Pages和静态站点生成器搭建个人博客的完整指南。涵盖Jekyll、Hugo、Hexo的选择与部署，以及域名绑定和优化技巧。</p>
-                    <div class="article-meta">
-                        <span><i class="far fa-calendar"></i> 2024年11月5日</span>
-                        <a href="articles/static-blog-guide.html" class="read-more">阅读全文 <i class="fas fa-arrow-right"></i></a>
-                    </div>
-                </div>
-            </div>
-            -->
-            <!-- 文章卡片 4 
-            <div class="article-card" data-category="travel">
-                <div class="article-img" style="background-image: url('https://images.unsplash.com/photo-1506929562872-bb421503ef21?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');"></div>
-                <div class="article-content">
-                    <span class="article-category">旅行</span>
-                    <h3 class="article-title">云南大理：苍山洱海间的慢生活</h3>
-                    <p class="article-excerpt">在大理，时间仿佛变得缓慢。苍山的云雾、洱海的波光、古城的石板路，还有白族民居的青瓦白墙，构成了一幅静谧而诗意的生活画卷。</p>
-                    <div class="article-meta">
-                        <span><i class="far fa-calendar"></i> 2024年10月28日</span>
-                        <a href="articles/dali-yunnan.html" class="read-more">阅读全文 <i class="fas fa-arrow-right"></i></a>
-                    </div>
-                </div>
-            </div>
-            -->
-            <!-- 文章卡片 5 
-            <div class="article-card" data-category="reading">
-                <div class="article-img" style="background-image: url('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');"></div>
-                <div class="article-content">
-                    <span class="article-category">阅读</span>
-                    <h3 class="article-title">《百年孤独》：马孔多的雨与轮回</h3>
-                    <p class="article-excerpt">重读马尔克斯的这部巨著，依然被布恩迪亚家族七代人的命运所震撼。魔幻现实主义下，是对孤独、时间与命运的深刻思考。</p>
-                    <div class="article-meta">
-                        <span><i class="far fa-calendar"></i> 2024年10月20日</span>
-                        <a href="articles/one-hundred-years.html" class="read-more">阅读全文 <i class="fas fa-arrow-right"></i></a>
-                    </div>
-                </div>
-            </div>
-            -->
-            <!-- 文章卡片 6 
-            <div class="article-card" data-category="essay">
-                <div class="article-img" style="background-image: url('https://images.unsplash.com/photo-1499750310107-5fef28a66643?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');"></div>
-                <div class="article-content">
-                    <span class="article-category">随笔</span>
-                    <h3 class="article-title">数字时代的注意力危机：我们为何越来越难专注</h3>
-                    <p class="article-excerpt">推送通知、短视频、碎片化信息...在数字洪流中，我们的注意力被不断切割。如何在这个时代重新找回深度思考的能力？</p>
-                    <div class="article-meta">
-                        <span><i class="far fa-calendar"></i> 2024年10月15日</span>
-                        <a href="articles/attention-crisis.html" class="read-more">阅读全文 <i class="fas fa-arrow-right"></i></a>
-                    </div>
-                </div>
-            </div>
-       -->
         </div>
     </section>
 
     <!-- 友链区域 -->
-   <section class="container" id="friends">
+    <section class="container" id="friends">
         <h2 class="section-title">鸽子们</h2>
-       <div class="friends-grid">
-        <div class="friend-card">
-    <!-- 1. 将div替换为img标签，并链接到你images文件夹里的图片 -->
-    <img src="images/alex.jpg" alt="给橙" class="friend-avatar">
-    <div class="friend-info">
-        <!-- 2. 将标题和描述整体用a标签包裹，并指向朋友的博客链接 -->
-        <a href=" https://www.nerocats.com " target="_blank">
-            <h4>橙子🍊</h4>
-            <p>重庆小王子，给橙，热爱探索新技术</p>
-        </a>
-    </div>
-            
-</div>
-        <div class="friend-card">
-    <!-- 1. 将div替换为img标签，并链接到你images文件夹里的图片 -->
-    <img src="images/mengxin.jpg" alt="莽新" class="friend-avatar">
-    <div class="friend-info">
-        <!-- 2. 将标题和描述整体用a标签包裹，并指向朋友的博客链接 -->
-        <a href=" https://infinitentrophy.nloln.cn " target="_blank">
-            <h4>萌新</h4>
-            <p>经典社畜，金融巨鳄</p>
-        </a>
-    </div>
-</div>
-       </div>
+        <div class="friends-grid">
+            <div class="friend-card">
+                <img src="images/alex.jpg" alt="给橙" class="friend-avatar">
+                <div class="friend-info">
+                    <a href="https://www.nerocats.com" target="_blank">
+                        <h4>橙子🍊</h4>
+                        <p>重庆小王子，给橙，热爱探索新技术</p>
+                    </a>
+                </div>
+            </div>
+            <div class="friend-card">
+                <img src="images/mengxin.jpg" alt="莽新" class="friend-avatar">
+                <div class="friend-info">
+                    <a href="https://infinitentrophy.nloln.cn" target="_blank">
+                        <h4>萌新</h4>
+                        <p>经典社畜，金融巨鳄</p>
+                    </a>
+                </div>
+            </div>
+        </div>
     </section>
 
     <!-- 关于区域 -->
     <section class="container" id="about">
         <div class="about-section">
-           <img src="images/shawn.jpg" alt="Shawn的头像" class="about-img">
+            <img src="images/shawn.jpg" alt="Shawn的头像" class="about-img">
             <div class="about-content">
                 <h3>关于Shawn</h3>
                 <p>你好！我是Shawn，一名对世界充满好奇心的探索者。白天与技术为伴，夜晚与文字共舞。在这里记录我的思考、旅行见闻与技术学习心得。(好吧，其实这是Ai生成的...)</p>
                 <p>相信生活不止眼前的代码，还有远方的山水与书中的智慧。希望这个博客空间能成为思想碰撞的小小角落，也期待与你交流。(不过这段说的不赖，还是留着吧！)</p>
                 <div class="social-links">
-                <a href="https://github.com/shawn1300" target="_blank" title="GitHub">
-                    <i class="fab fa-github"></i>
-                </a>
-                <!-- 关于区域<a href="https://twitter.com" target="_blank" title="Twitter">
-                    <i class="fab fa-twitter"></i>
-                </a> -->
-                <a href="https://space.bilibili.com/4790056" target="_blank" title="B站">
-        <i class="fab fa-bilibili"></i>
-                </a>
-                <a href="mailto:shawn_1300@outlook.com" title="发送邮件">
-                    <i class="fas fa-envelope"></i>
-                </a>
-            </div>
+                    <a href="https://github.com/shawn1300" target="_blank" title="GitHub">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a href="https://space.bilibili.com/4790056" target="_blank" title="B站">
+                        <i class="fab fa-bilibili"></i>
+                    </a>
+                    <a href="mailto:shawn_1300@outlook.com" title="发送邮件">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- 页脚 -->
     <footer>
-    <div class="container">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h4>博客分类</h4>
-                <ul class="footer-links">
-                    <li><a href="archive.html?category=travel">旅行日记</a></li>
-                    <li><a href="archive.html?category=essay">生活随笔</a></li>
-                    <li><a href="archive.html?category=tech">技术分享</a></li>
-                    <li><a href="archive.html?category=reading">阅读笔记</a></li>
-                </ul>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>博客分类</h4>
+                    <ul class="footer-links">
+                        <li><a href="archive.html#category=travel">旅行日记</a></li>
+                        <li><a href="archive.html#category=essay">生活随笔</a></li>
+                        <li><a href="archive.html#category=tech">技术分享</a></li>
+                        <li><a href="archive.html#category=reading">阅读笔记</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>快速链接</h4>
+                    <ul class="footer-links">
+                        <li><a href="archive.html">文章归档</a></li>
+                        <li><a href="index.html#friends">友情链接</a></li>
+                        <li><a href="index.html#about">关于本站</a></li>
+                        <li><a href="mailto:shawn_1300@outlook.com">联系我</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>联系信息</h4>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-envelope"></i> shawn_1300@outlook.com</li>
+                        <li><i class="fas fa-map-marker-alt"></i> 中国(世界) · 浙江(义乌)</li>
+                    </ul>
+                </div>
             </div>
-            <div class="footer-section">
-                <h4>快速链接</h4>
-                <ul class="footer-links">
-                    <li><a href="archive.html">文章归档</a></li>
-                    <li><a href="index.html#friends">友情链接</a></li>
-                    <li><a href="index.html#about">关于本站</a></li>
-                    <li><a href="mailto:shawn_1300@outlook.com">联系我</a></li>
-                </ul>
-            </div>
-            <div class="footer-section">
-                <h4>联系信息</h4>
-                <ul class="footer-links">
-                    <li><i class="fas fa-envelope"></i> shawn_1300@outlook.com</li>
-                    <li><i class="fas fa-map-marker-alt"></i> 中国(世界) · 浙江(义乌)</li>
-                </ul>
+            <div class="copyright">
+                <p>© 2025 Shawn's Blog. 基于 GitHub Pages 构建 | 托管于 <a href="https://shawn1300.github.io" style="color:#3498db;">shawn1300.github.io</a></p>
             </div>
         </div>
-        <div class="copyright">
-            <p>© 2025 Shawn's Blog. 基于 GitHub Pages 构建 | 托管于 <a href="https://shawn1300.github.io" style="color:#3498db;">shawn1300.github.io</a></p>
-        </div>
-    </div>
     </footer>
 
     <script>
-        // 文章分类过滤功能
+        // 侧边工具栏功能
         document.addEventListener('DOMContentLoaded', function() {
+            const toolsToggle = document.getElementById('toolsToggle');
+            const toolsMenu = document.getElementById('toolsMenu');
+            
+            // 切换侧边栏显示/隐藏
+            toolsToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toolsMenu.classList.toggle('active');
+                toolsToggle.classList.toggle('active');
+            });
+            
+            // 点击页面其他地方关闭侧边栏
+            document.addEventListener('click', function(e) {
+                if (!toolsToggle.contains(e.target) && !toolsMenu.contains(e.target)) {
+                    toolsMenu.classList.remove('active');
+                    toolsToggle.classList.remove('active');
+                }
+            });
+            
+            // 阻止侧边栏内点击事件冒泡
+            toolsMenu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            // 文章分类过滤功能
             const filterButtons = document.querySelectorAll('.category-btn');
             const articleCards = document.querySelectorAll('.article-card');
             
@@ -800,6 +889,12 @@
                             top: targetElement.offsetTop - 80,
                             behavior: 'smooth'
                         });
+                        
+                        // 关闭侧边栏（如果是移动端）
+                        if (window.innerWidth <= 992) {
+                            toolsMenu.classList.remove('active');
+                            toolsToggle.classList.remove('active');
+                        }
                     }
                 });
             });
