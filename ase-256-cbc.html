@@ -1,0 +1,622 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AES-256-CBC 加解密工具</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #2575fc;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        textarea, input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border 0.3s ease;
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: monospace;
+        }
+        
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: #2575fc;
+            box-shadow: 0 0 0 3px rgba(37, 117, 252, 0.1);
+        }
+        
+        .key-iv-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        @media (max-width: 600px) {
+            .key-iv-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .encrypt-btn {
+            background-color: #6a11cb;
+            color: white;
+        }
+        
+        .encrypt-btn:hover {
+            background-color: #5a0db3;
+        }
+        
+        .decrypt-btn {
+            background-color: #2575fc;
+            color: white;
+        }
+        
+        .decrypt-btn:hover {
+            background-color: #1a65e0;
+        }
+        
+        .clear-btn {
+            background-color: #f8f9fa;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+        
+        .clear-btn:hover {
+            background-color: #e9ecef;
+        }
+        
+        .output {
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 10px;
+            min-height: 60px;
+            font-family: monospace;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        
+        .status {
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-weight: 500;
+            display: none;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        
+        .info-section {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .info-section h2 {
+            color: #2575fc;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .info-section ul {
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .info-section li {
+            margin-bottom: 10px;
+        }
+        
+        .footnote {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .generate-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        
+        .generate-btn:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AES-256-CBC 加解密工具</h1>
+            <p class="description">
+                使用AES-256-CBC算法对文本进行加密和解密。AES-256提供军用级加密强度，CBC模式可确保相同的明文产生不同的密文。
+            </p>
+        </header>
+        
+        <div class="main-content">
+            <div class="card">
+                <h2 class="card-title">加密</h2>
+                <div class="form-group">
+                    <label for="plaintext">明文 (要加密的文本):</label>
+                    <textarea id="plaintext" placeholder="请输入要加密的文本..."></textarea>
+                </div>
+                
+                <div class="key-iv-container">
+                    <div class="form-group">
+                        <label for="encrypt-key">密钥 (32字节, 64字符十六进制):</label>
+                        <input type="text" id="encrypt-key" placeholder="例如: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef">
+                        <button class="generate-btn" id="generate-key">生成随机密钥</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="encrypt-iv">初始化向量 (16字节, 32字符十六进制):</label>
+                        <input type="text" id="encrypt-iv" placeholder="例如: 0123456789abcdef0123456789abcdef">
+                        <button class="generate-btn" id="generate-iv">生成随机IV</button>
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button class="encrypt-btn" id="encrypt-btn">加密文本</button>
+                    <button class="clear-btn" id="clear-encrypt">清空</button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ciphertext-output">加密结果 (Base64格式):</label>
+                    <div class="output" id="ciphertext-output">加密结果将显示在这里...</div>
+                </div>
+                
+                <div id="encrypt-status" class="status"></div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">解密</h2>
+                <div class="form-group">
+                    <label for="ciphertext">密文 (Base64格式):</label>
+                    <textarea id="ciphertext" placeholder="请输入要解密的Base64密文..."></textarea>
+                </div>
+                
+                <div class="key-iv-container">
+                    <div class="form-group">
+                        <label for="decrypt-key">密钥 (32字节, 64字符十六进制):</label>
+                        <input type="text" id="decrypt-key" placeholder="例如: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="decrypt-iv">初始化向量 (16字节, 32字符十六进制):</label>
+                        <input type="text" id="decrypt-iv" placeholder="例如: 0123456789abcdef0123456789abcdef">
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button class="decrypt-btn" id="decrypt-btn">解密文本</button>
+                    <button class="clear-btn" id="clear-decrypt">清空</button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="plaintext-output">解密结果:</label>
+                    <div class="output" id="plaintext-output">解密结果将显示在这里...</div>
+                </div>
+                
+                <div id="decrypt-status" class="status"></div>
+            </div>
+        </div>
+        
+        <div class="info-section">
+            <h2>使用说明</h2>
+            <ul>
+                <li><strong>AES-256-CBC</strong> 是一种对称加密算法，使用相同的密钥进行加密和解密。</li>
+                <li><strong>密钥</strong> 必须是64个字符的十六进制字符串（32字节，256位）。</li>
+                <li><strong>初始化向量 (IV)</strong> 必须是32个字符的十六进制字符串（16字节）。</li>
+                <li>每次加密应使用不同的IV，以确保相同的明文产生不同的密文。</li>
+                <li>加密后的结果是Base64格式的字符串，可以直接复制使用。</li>
+                <li>解密时需要提供与加密时相同的密钥和IV。</li>
+                <li>您可以使用工具提供的按钮生成随机的密钥和IV。</li>
+            </ul>
+            
+            <h2>安全提示</h2>
+            <ul>
+                <li>请妥善保存您的密钥和IV，丢失后将无法解密数据。</li>
+                <li>不要在公共网络上传输未加密的密钥。</li>
+                <li>本工具在浏览器本地运行，数据不会发送到服务器。</li>
+                <li>对于高度敏感的数据，建议使用专门的加密软件。</li>
+            </ul>
+        </div>
+        
+        <div class="footnote">
+            <p>© 2023 AES-256-CBC 加解密工具 | 本工具完全在浏览器本地运行，不会上传任何数据</p>
+        </div>
+    </div>
+
+    <script>
+        // 生成随机十六进制字符串
+        function generateRandomHex(length) {
+            const bytes = new Uint8Array(length / 2);
+            crypto.getRandomValues(bytes);
+            return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+        }
+        
+        // 生成随机密钥（64字符十六进制）
+        document.getElementById('generate-key').addEventListener('click', function() {
+            const key = generateRandomHex(64);
+            document.getElementById('encrypt-key').value = key;
+            document.getElementById('decrypt-key').value = key;
+        });
+        
+        // 生成随机IV（32字符十六进制）
+        document.getElementById('generate-iv').addEventListener('click', function() {
+            const iv = generateRandomHex(32);
+            document.getElementById('encrypt-iv').value = iv;
+            document.getElementById('decrypt-iv').value = iv;
+        });
+        
+        // 清空加密区域
+        document.getElementById('clear-encrypt').addEventListener('click', function() {
+            document.getElementById('plaintext').value = '';
+            document.getElementById('ciphertext-output').textContent = '加密结果将显示在这里...';
+            document.getElementById('encrypt-status').className = 'status';
+            document.getElementById('encrypt-status').textContent = '';
+        });
+        
+        // 清空解密区域
+        document.getElementById('clear-decrypt').addEventListener('click', function() {
+            document.getElementById('ciphertext').value = '';
+            document.getElementById('plaintext-output').textContent = '解密结果将显示在这里...';
+            document.getElementById('decrypt-status').className = 'status';
+            document.getElementById('decrypt-status').textContent = '';
+        });
+        
+        // 显示状态消息
+        function showStatus(elementId, message, isError = false) {
+            const statusElement = document.getElementById(elementId);
+            statusElement.textContent = message;
+            statusElement.className = isError ? 'status error' : 'status success';
+            
+            // 3秒后自动隐藏状态消息
+            setTimeout(() => {
+                statusElement.className = 'status';
+                statusElement.textContent = '';
+            }, 3000);
+        }
+        
+        // 验证十六进制字符串
+        function isValidHex(str, expectedLength) {
+            if (!str || str.length !== expectedLength) return false;
+            const hexRegex = /^[0-9a-fA-F]+$/;
+            return hexRegex.test(str);
+        }
+        
+        // 加密函数
+        async function encryptAES(text, keyHex, ivHex) {
+            try {
+                // 验证密钥和IV
+                if (!isValidHex(keyHex, 64)) {
+                    throw new Error('密钥必须是64个字符的十六进制字符串（32字节）');
+                }
+                
+                if (!isValidHex(ivHex, 32)) {
+                    throw new Error('IV必须是32个字符的十六进制字符串（16字节）');
+                }
+                
+                // 将十六进制字符串转换为字节数组
+                const keyBytes = hexToBytes(keyHex);
+                const ivBytes = hexToBytes(ivHex);
+                
+                // 导入密钥
+                const key = await crypto.subtle.importKey(
+                    'raw',
+                    keyBytes,
+                    { name: 'AES-CBC' },
+                    false,
+                    ['encrypt']
+                );
+                
+                // 准备数据
+                const encoder = new TextEncoder();
+                const data = encoder.encode(text);
+                
+                // 加密
+                const encrypted = await crypto.subtle.encrypt(
+                    {
+                        name: 'AES-CBC',
+                        iv: ivBytes
+                    },
+                    key,
+                    data
+                );
+                
+                // 将加密结果转换为Base64
+                return arrayBufferToBase64(encrypted);
+            } catch (error) {
+                throw new Error(`加密失败: ${error.message}`);
+            }
+        }
+        
+        // 解密函数
+        async function decryptAES(ciphertextBase64, keyHex, ivHex) {
+            try {
+                // 验证密钥和IV
+                if (!isValidHex(keyHex, 64)) {
+                    throw new Error('密钥必须是64个字符的十六进制字符串（32字节）');
+                }
+                
+                if (!isValidHex(ivHex, 32)) {
+                    throw new Error('IV必须是32个字符的十六进制字符串（16字节）');
+                }
+                
+                // 将十六进制字符串转换为字节数组
+                const keyBytes = hexToBytes(keyHex);
+                const ivBytes = hexToBytes(ivHex);
+                
+                // 导入密钥
+                const key = await crypto.subtle.importKey(
+                    'raw',
+                    keyBytes,
+                    { name: 'AES-CBC' },
+                    false,
+                    ['decrypt']
+                );
+                
+                // 将Base64密文转换为字节数组
+                const ciphertext = base64ToArrayBuffer(ciphertextBase64);
+                
+                // 解密
+                const decrypted = await crypto.subtle.decrypt(
+                    {
+                        name: 'AES-CBC',
+                        iv: ivBytes
+                    },
+                    key,
+                    ciphertext
+                );
+                
+                // 将解密结果转换为文本
+                const decoder = new TextDecoder();
+                return decoder.decode(decrypted);
+            } catch (error) {
+                throw new Error(`解密失败: ${error.message}`);
+            }
+        }
+        
+        // 辅助函数：十六进制字符串转字节数组
+        function hexToBytes(hex) {
+            const bytes = new Uint8Array(hex.length / 2);
+            for (let i = 0; i < hex.length; i += 2) {
+                bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+            }
+            return bytes;
+        }
+        
+        // 辅助函数：字节数组转Base64
+        function arrayBufferToBase64(buffer) {
+            const bytes = new Uint8Array(buffer);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+        }
+        
+        // 辅助函数：Base64转字节数组
+        function base64ToArrayBuffer(base64) {
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+        
+        // 加密按钮点击事件
+        document.getElementById('encrypt-btn').addEventListener('click', async function() {
+            const plaintext = document.getElementById('plaintext').value.trim();
+            const key = document.getElementById('encrypt-key').value.trim();
+            const iv = document.getElementById('encrypt-iv').value.trim();
+            
+            if (!plaintext) {
+                showStatus('encrypt-status', '请输入要加密的文本', true);
+                return;
+            }
+            
+            if (!key) {
+                showStatus('encrypt-status', '请输入密钥', true);
+                return;
+            }
+            
+            if (!iv) {
+                showStatus('encrypt-status', '请输入初始化向量 (IV)', true);
+                return;
+            }
+            
+            try {
+                const ciphertext = await encryptAES(plaintext, key, iv);
+                document.getElementById('ciphertext-output').textContent = ciphertext;
+                document.getElementById('ciphertext').value = ciphertext;
+                showStatus('encrypt-status', '加密成功！');
+            } catch (error) {
+                showStatus('encrypt-status', error.message, true);
+            }
+        });
+        
+        // 解密按钮点击事件
+        document.getElementById('decrypt-btn').addEventListener('click', async function() {
+            const ciphertext = document.getElementById('ciphertext').value.trim();
+            const key = document.getElementById('decrypt-key').value.trim();
+            const iv = document.getElementById('decrypt-iv').value.trim();
+            
+            if (!ciphertext) {
+                showStatus('decrypt-status', '请输入要解密的密文', true);
+                return;
+            }
+            
+            if (!key) {
+                showStatus('decrypt-status', '请输入密钥', true);
+                return;
+            }
+            
+            if (!iv) {
+                showStatus('decrypt-status', '请输入初始化向量 (IV)', true);
+                return;
+            }
+            
+            try {
+                const plaintext = await decryptAES(ciphertext, key, iv);
+                document.getElementById('plaintext-output').textContent = plaintext;
+                showStatus('decrypt-status', '解密成功！');
+            } catch (error) {
+                showStatus('decrypt-status', error.message, true);
+            }
+        });
+        
+        // 初始化示例数据
+        window.addEventListener('DOMContentLoaded', function() {
+            // 设置示例密钥和IV
+            const exampleKey = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+            const exampleIV = '0123456789abcdef0123456789abcdef';
+            
+            document.getElementById('encrypt-key').value = exampleKey;
+            document.getElementById('decrypt-key').value = exampleKey;
+            document.getElementById('encrypt-iv').value = exampleIV;
+            document.getElementById('decrypt-iv').value = exampleIV;
+            
+            // 设置示例文本
+            document.getElementById('plaintext').value = '这是一个使用AES-256-CBC加密的示例文本。';
+            
+            // 生成示例加密文本
+            setTimeout(async () => {
+                try {
+                    const ciphertext = await encryptAES(
+                        '这是一个使用AES-256-CBC加密的示例文本。',
+                        exampleKey,
+                        exampleIV
+                    );
+                    document.getElementById('ciphertext').value = ciphertext;
+                } catch (error) {
+                    console.log('初始化示例数据时出错:', error);
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>
