@@ -471,15 +471,18 @@
         // ========================================
         // 配置区
         // ========================================
-        const CONFIG = {
-            // Vercel API地址 - 使用你的域名
-            API_BASE_URL: 'https://shawn1300-github-io.vercel.app/',
-            
-            // API端点
-            ENDPOINTS: {
-                GET_COMMENTS: '/get-comments',
-                SUBMIT_COMMENT: '/submit-comment'
-            },
+const CONFIG = {
+    // 改为你的Vercel域名
+    API_BASE_URL: 'https://shawn1300-github-io.vercel.app/api',
+    
+    ENDPOINTS: {
+        GET_COMMENTS: '/get-comments',
+        SUBMIT_COMMENT: '/submit-comment'
+    },
+    
+    // 添加你的自定义域名
+    ALLOWED_ORIGINS: ['https://gezi.de5.net', 'https://shawn1300.github.io']
+};
             
             // GitHub Issue链接
             GITHUB_ISSUE_URL: 'https://github.com/shawn1300/shawn1300.github.io/issues/1'
