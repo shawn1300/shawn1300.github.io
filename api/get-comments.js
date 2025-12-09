@@ -1,19 +1,31 @@
+// /api/get-comments.js
 export default async function handler(req, res) {
-  // 允许跨域
-  res.setHeader('Access-Control-Allow-Origin', 'https://shawn1300.github.io');
+  // ========== 同样的CORS配置 ==========
+  const allowedOrigins = [
+    'https://shawn1300.github.io',
+    'https://gezi.de5.net',
+    'http://localhost:3000',
+    'http://localhost:5500'
+  ];
+  
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
+  // ========== CORS结束 ==========
   
   try {
-    // 配置 - 从环境变量读取或使用默认值
+    const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
     const REPO_OWNER = process.env.REPO_OWNER || 'shawn1300';
     const REPO_NAME = process.env.REPO_NAME || 'shawn1300.github.io';
     const ISSUE_NUMBER = process.env.COMMENT_ISSUE_NUMBER || 1;
-    const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
     
     if (!GITHUB_TOKEN) {
       throw new Error('GitHub Token未配置');
@@ -24,14 +36,13 @@ export default async function handler(req, res) {
       {
         headers: {
           'Authorization': `token ${GITHUB_TOKEN}`,
-          'Accept': 'application/vnd.github.v3+json',
-          'User-Agent': 'Shawn-Blog'
+          'Accept': 'application/vnd.github.v3+json'
         }
       }
     );
     
     if (!response.ok) {
-      throw new Error(`GitHub API错误: ${response.status} - ${await response.text()}`);
+      throw new Error(`GitHub API错误: ${response.status}`);
     }
     
     const comments = await response.json();
@@ -39,7 +50,12 @@ export default async function handler(req, res) {
     res.status(200).json({
       success: true,
       count: comments.length,
-      comments: comments
+      comments: comments,
+      api_info: {
+        endpoint: 'get-comments',
+        allowed_origins: allowedOrigins,
+        timestamp: new Date().toISOString()
+      }
     });
     
   } catch (error) {
