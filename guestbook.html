@@ -467,340 +467,169 @@
         </div>
     </div>
 
-    <script>
-        // ========================================
-        // 配置区
-        // ========================================
-const CONFIG = {
-    // 改为你的Vercel域名
-    API_BASE_URL: 'https://shawn1300-github-io.vercel.app/api',
-    
-    ENDPOINTS: {
-        GET_COMMENTS: '/get-comments',
-        SUBMIT_COMMENT: '/submit-comment'
-    },
-    
-    // 添加你的自定义域名
-    ALLOWED_ORIGINS: ['https://gezi.de5.net', 'https://shawn1300.github.io']
-    // GitHub Issue链接
-    GITHUB_ISSUE_URL: 'https://github.com/shawn1300/shawn1300.github.io/issues/1'
-};
-        // ========================================
-        // 页面元素
-        // ========================================
-        const elements = {
-            form: document.getElementById('commentForm'),
-            username: document.getElementById('username'),
-            email: document.getElementById('email'),
-            content: document.getElementById('content'),
-            charCount: document.getElementById('charCount'),
-            submitBtn: document.getElementById('submitBtn'),
-            refreshBtn: document.getElementById('refreshBtn'),
-            messagesContainer: document.getElementById('messagesContainer'),
-            loadingStatus: document.getElementById('loadingStatus'),
-            formStatus: document.getElementById('formStatus')
-        };
-        
-        // ========================================
-        // 页面初始化
-        // ========================================
-        document.addEventListener('DOMContentLoaded', function() {
-            // 加载留言
-            loadComments();
+<script>
+    // ========== 修复版配置 ==========
+    const CONFIG = {
+        API_BASE_URL: 'https://shawn1300-github-io.vercel.app/api',
+        ENDPOINTS: {
+            GET_COMMENTS: '/get-comments',
+            SUBMIT_COMMENT: '/submit-comment'
+        }
+    };
+
+    // ========== 核心函数 ==========
+    async function loadComments() {
+        console.log('加载留言...');
+        try {
+            const container = document.getElementById('messagesContainer');
+            const loading = document.getElementById('loadingStatus');
             
-            // 实时字数统计
-            elements.content.addEventListener('input', function() {
-                elements.charCount.textContent = this.value.length;
-            });
+            if (loading) loading.style.display = 'flex';
             
-            // 支持Ctrl+Enter提交
-            elements.content.addEventListener('keydown', function(e) {
-                if (e.ctrlKey && e.key === 'Enter') {
-                    submitComment();
-                }
-            });
+            const response = await fetch(CONFIG.API_BASE_URL + CONFIG.ENDPOINTS.GET_COMMENTS);
+            const result = await response.json();
             
-            // 自动保存草稿到本地存储
-            setInterval(saveDraft, 5000);
-            loadDraft();
-        });
-        
-        // ========================================
-        // 留言功能
-        // ========================================
-        async function loadComments() {
-            showLoading(true);
-            
-            try {
-                const response = await fetch(`${CONFIG.API_BASE_URL}${CONFIG.ENDPOINTS.GET_COMMENTS}`);
-                const result = await response.json();
-                
-                if (result.success) {
-                    displayComments(result.comments || []);
-                } else {
-                    throw new Error(result.error || '加载失败');
-                }
-            } catch (error) {
-                console.error('加载留言失败:', error);
-                showError('无法加载留言：' + error.message);
-            } finally {
-                showLoading(false);
+            if (result.success) {
+                displayComments(result.comments || []);
+            } else {
+                throw new Error(result.error || '加载失败');
             }
+        } catch (error) {
+            console.error('加载失败:', error);
+            const container = document.getElementById('messagesContainer');
+            if (container) {
+                container.innerHTML = `<div class="error">加载失败: ${error.message}</div>`;
+            }
+        } finally {
+            const loading = document.getElementById('loadingStatus');
+            if (loading) loading.style.display = 'none';
+        }
+    }
+
+    function displayComments(comments) {
+        const container = document.getElementById('messagesContainer');
+        if (!container) return;
+        
+        if (!comments || comments.length === 0) {
+            container.innerHTML = '<div class="empty">还没有留言，快来第一个留言吧！</div>';
+            return;
         }
         
-        function displayComments(comments) {
-            const container = elements.messagesContainer;
+        let html = '';
+        comments.forEach(comment => {
+            const usernameMatch = comment.body.match(/\*\*(.*?)\*\*/);
+            const username = usernameMatch ? usernameMatch[1] : '匿名用户';
+            const content = comment.body.split('留言：')[1] || comment.body;
+            const time = new Date(comment.created_at).toLocaleString('zh-CN');
             
-            if (!comments || comments.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="far fa-comment-dots"></i>
-                        <h3>还没有留言</h3>
-                        <p>成为第一个留言的人吧！</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            // 按时间倒序排序
-            comments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-            
-            let html = '';
-            comments.forEach(comment => {
-                const username = extractUsername(comment.body);
-                const content = extractContent(comment.body);
-                const time = formatTime(comment.created_at);
-                const initial = username ? username.charAt(0).toUpperCase() : '?';
-                
-                html += `
-                <div class="message-card">
-                    <div class="message-header">
-                        <div class="message-author">
-                            <div class="author-avatar">${initial}</div>
-                            <div class="author-info">
-                                <h4>${escapeHtml(username || '匿名用户')}</h4>
-                                <div class="time">${time}</div>
-                            </div>
+            html += `
+            <div class="message-card">
+                <div class="message-header">
+                    <div class="message-author">
+                        <div class="author-avatar">${username.charAt(0).toUpperCase()}</div>
+                        <div class="author-info">
+                            <h4>${escapeHtml(username)}</h4>
+                            <div class="time">${time}</div>
                         </div>
-                        <a href="${comment.html_url}" target="_blank" 
-                           style="color: #666; font-size: 0.9rem;"
-                           title="在GitHub上查看">
-                            <i class="fab fa-github"></i>
-                        </a>
-                    </div>
-                    <div class="message-content">
-                        ${formatContent(content || comment.body)}
                     </div>
                 </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-        }
-        
-        async function submitComment() {
-            const username = elements.username.value.trim();
-            const email = elements.email.value.trim();
-            const content = elements.content.value.trim();
-            
-            // 验证输入
-            if (!username) {
-                showFormError('请输入昵称');
-                elements.username.focus();
-                return;
-            }
-            
-            if (!content) {
-                showFormError('请输入留言内容');
-                elements.content.focus();
-                return;
-            }
-            
-            if (content.length > 1000) {
-                showFormError('留言内容不能超过1000字');
-                return;
-            }
-            
-            // 禁用提交按钮
-            elements.submitBtn.disabled = true;
-            elements.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
-            
-            try {
-                const response = await fetch(`${CONFIG.API_BASE_URL}${CONFIG.ENDPOINTS.SUBMIT_COMMENT}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        username: username,
-                        email: email,
-                        content: content
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    showFormSuccess('留言发布成功！');
-                    clearForm();
-                    clearDraft();
-                    loadComments(); // 刷新留言列表
-                } else {
-                    throw new Error(result.error || '提交失败');
-                }
-            } catch (error) {
-                console.error('提交留言失败:', error);
-                showFormError('提交失败：' + error.message);
-            } finally {
-                // 恢复提交按钮
-                elements.submitBtn.disabled = false;
-                elements.submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 发布留言';
-            }
-        }
-        
-        function clearForm() {
-            elements.username.value = '';
-            elements.email.value = '';
-            elements.content.value = '';
-            elements.charCount.textContent = '0';
-        }
-        
-        // ========================================
-        // 草稿保存功能
-        // ========================================
-        function saveDraft() {
-            const draft = {
-                username: elements.username.value,
-                email: elements.email.value,
-                content: elements.content.value
-            };
-            localStorage.setItem('guestbook_draft', JSON.stringify(draft));
-        }
-        
-        function loadDraft() {
-            const draft = localStorage.getItem('guestbook_draft');
-            if (draft) {
-                try {
-                    const data = JSON.parse(draft);
-                    elements.username.value = data.username || '';
-                    elements.email.value = data.email || '';
-                    elements.content.value = data.content || '';
-                    elements.charCount.textContent = data.content ? data.content.length : 0;
-                } catch (e) {
-                    // 忽略解析错误
-                }
-            }
-        }
-        
-        function clearDraft() {
-            localStorage.removeItem('guestbook_draft');
-        }
-        
-        // ========================================
-        // 工具函数
-        // ========================================
-        function extractUsername(body) {
-            // 从留言内容中提取用户名（格式：**用户名** 留言：）
-            const match = body.match(/\*\*(.*?)\*\*/);
-            return match ? match[1] : null;
-        }
-        
-        function extractContent(body) {
-            // 提取留言正文（去掉用户名部分）
-            const lines = body.split('\n');
-            // 跳过包含**用户名**的行
-            const contentStart = lines.findIndex(line => line.includes('留言：')) + 1;
-            return lines.slice(contentStart).join('\n').trim();
-        }
-        
-        function formatTime(timeString) {
-            const date = new Date(timeString);
-            const now = new Date();
-            const diffMs = now - date;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMs / 3600000);
-            const diffDays = Math.floor(diffMs / 86400000);
-            
-            if (diffMins < 1) return '刚刚';
-            if (diffMins < 60) return `${diffMins}分钟前`;
-            if (diffHours < 24) return `${diffHours}小时前`;
-            if (diffDays < 7) return `${diffDays}天前`;
-            
-            return date.toLocaleDateString('zh-CN', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-        
-        function formatContent(text) {
-            // 简单的Markdown转换
-            return escapeHtml(text)
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                .replace(/`([^`]+)`/g, '<code>$1</code>')
-                .replace(/\n/g, '<br>')
-                .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-        }
-        
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-        
-        // ========================================
-        // UI状态管理
-        // ========================================
-        function showLoading(show) {
-            elements.loadingStatus.style.display = show ? 'flex' : 'none';
-            elements.refreshBtn.disabled = show;
-        }
-        
-        function showFormSuccess(message) {
-            elements.formStatus.className = 'status-message status-success';
-            elements.formStatus.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
-            elements.formStatus.style.display = 'flex';
-            
-            setTimeout(() => {
-                elements.formStatus.style.display = 'none';
-            }, 3000);
-        }
-        
-        function showFormError(message) {
-            elements.formStatus.className = 'status-message status-error';
-            elements.formStatus.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
-            elements.formStatus.style.display = 'flex';
-        }
-        
-        function showError(message) {
-            elements.messagesContainer.innerHTML = `
-                <div class="status-message status-error">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span>${message}</span>
-                </div>
+                <div class="message-content">${escapeHtml(content)}</div>
+            </div>
             `;
+        });
+        
+        container.innerHTML = html;
+    }
+
+    async function submitComment() {
+        console.log('提交留言...');
+        
+        const username = document.getElementById('username')?.value.trim();
+        const email = document.getElementById('email')?.value.trim();
+        const content = document.getElementById('content')?.value.trim();
+        
+        if (!username || !content) {
+            alert('请输入昵称和留言内容');
+            return;
         }
         
-        // ========================================
-        // 全局快捷键
-        // ========================================
-        document.addEventListener('keydown', function(e) {
-            // F5刷新留言
-            if (e.key === 'F5') {
-                e.preventDefault();
-                loadComments();
-            }
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+        }
+        
+        try {
+            const response = await fetch(CONFIG.API_BASE_URL + CONFIG.ENDPOINTS.SUBMIT_COMMENT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, content })
+            });
             
-            // Esc清空表单
-            if (e.key === 'Escape') {
-                if (confirm('确定要清空当前表单内容吗？')) {
-                    clearForm();
-                }
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('留言提交成功！');
+                // 清空表单
+                if (document.getElementById('username')) document.getElementById('username').value = '';
+                if (document.getElementById('email')) document.getElementById('email').value = '';
+                if (document.getElementById('content')) document.getElementById('content').value = '';
+                // 重新加载留言
+                loadComments();
+            } else {
+                throw new Error(result.error || '提交失败');
+            }
+        } catch (error) {
+            alert('提交失败: ' + error.message);
+            console.error('提交错误:', error);
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 发布留言';
+            }
+        }
+    }
+
+    // ========== 工具函数 ==========
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // ========== 页面初始化 ==========
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('留言板初始化...');
+        
+        // 加载留言
+        loadComments();
+        
+        // 添加事件监听（备用）
+        const submitBtn = document.getElementById('submitBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+        
+        if (submitBtn) {
+            submitBtn.addEventListener('click', submitComment);
+        }
+        
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', loadComments);
+        }
+        
+        // 快捷键支持
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                submitComment();
             }
         });
-    </script>
+    });
+
+    // ========== 全局导出 ==========
+    window.loadComments = loadComments;
+    window.submitComment = submitComment;
+    
+    console.log('留言板脚本加载完成');
+</script>
 </body>
 </html>
