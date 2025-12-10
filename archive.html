@@ -738,11 +738,17 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // 页面加载完成后执行
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('文章数据:', allArticles); // 在控制台检查数据
-            renderArchive();
-        });
+// 在页面加载完成后执行
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. 先渲染归档页面
+    renderArchive();
+    
+    // 2. 然后检查URL参数，自动筛选
+    // 稍加延迟，确保筛选按钮已渲染到页面上
+    setTimeout(() => {
+        autoFilterFromUrl();
+    }, 100);
+});
     </script>
 </body>
 </html>
