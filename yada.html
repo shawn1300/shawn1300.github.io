@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>保险箱说明书 - Yada图集</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        /* 返回按钮 */
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            box-shadow: 0 2px 5px rgba(52, 152, 219, 0.2);
+        }
+        
+        .back-btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+        }
+        
+        .back-btn i {
+            margin-right: 8px;
+        }
+        
+        /* 页面标题 */
+        .page-title {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .page-subtitle {
+            color: #7f8c8d;
+            margin-bottom: 25px;
+            font-size: 1rem;
+        }
+        
+        /* 图片查看器容器 */
+        .viewer-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        
+        /* 主图区域 */
+        .main-image-area {
+            position: relative;
+            background-color: #f8f9fa;
+            min-height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .main-image {
+            max-width: 100%;
+            max-height: 65vh;
+            object-fit: contain;
+            border-radius: 5px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 图片导航按钮 */
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(52, 152, 219, 0.8);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .nav-btn:hover {
+            background-color: #3498db;
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .prev-btn {
+            left: 20px;
+        }
+        
+        .next-btn {
+            right: 20px;
+        }
+        
+        /* 图片信息 */
+        .image-info {
+            padding: 15px 20px;
+            background-color: white;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .image-title {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .image-counter {
+            color: #7f8c8d;
+            font-size: 0.95rem;
+        }
+        
+        /* 缩略图区域 */
+        .thumbnails {
+            display: flex;
+            padding: 15px;
+            background-color: #f8f9fa;
+            overflow-x: auto;
+            gap: 10px;
+        }
+        
+        .thumbnail {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        
+        .thumbnail:hover {
+            transform: scale(1.05);
+            border-color: rgba(52, 152, 219, 0.5);
+        }
+        
+        .thumbnail.active {
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        /* 操作提示 */
+        .instructions {
+            margin-top: 15px;
+            padding: 12px 15px;
+            background-color: #e8f4fc;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: #2c3e50;
+            border-left: 4px solid #3498db;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .main-image-area {
+                min-height: 300px;
+            }
+            
+            .nav-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+            
+            .prev-btn {
+                left: 10px;
+            }
+            
+            .next-btn {
+                right: 10px;
+            }
+            
+            .page-title {
+                font-size: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
+            }
+            
+            .main-image-area {
+                min-height: 250px;
+                padding: 15px;
+            }
+            
+            .thumbnails {
+                padding: 10px;
+            }
+            
+            .thumbnail {
+                width: 70px;
+                height: 50px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 返回按钮 -->
+    <a href="index.html" class="back-btn">
+        <i class="fas fa-arrow-left"></i> 返回首页
+    </a>
+    
+    <!-- 页面标题 -->
+    <h1 class="page-title">保险箱说明书图集</h1>
+    <p class="page-subtitle">Yada系列图片，共8张。点击缩略图或使用左右箭头切换</p>
+    
+    <!-- 图片查看器 -->
+    <div class="viewer-container">
+        <!-- 图片信息 -->
+        <div class="image-info">
+            <div class="image-title" id="imageTitle">封面</div>
+            <div class="image-counter" id="imageCounter">1 / 8</div>
+        </div>
+        
+        <!-- 主图区域 -->
+        <div class="main-image-area">
+            <button class="nav-btn prev-btn" id="prevBtn">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            
+            <img src="images/yada/yada.cover.jpg" alt="保险箱说明书" class="main-image" id="mainImage">
+            
+            <button class="nav-btn next-btn" id="nextBtn">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+        
+        <!-- 缩略图区域 -->
+        <div class="thumbnails" id="thumbnailsContainer">
+            <!-- 缩略图将由JavaScript动态生成 -->
+        </div>
+    </div>
+    
+    <!-- 操作提示 -->
+    <div class="instructions">
+        <i class="fas fa-info-circle"></i> 使用提示：点击缩略图切换图片，或使用键盘左右方向键浏览。按ESC键可快速返回首页。
+    </div>
+
+    <script>
+        // 图片数据
+        const images = [
+            { src: "images/yada/yada.cover.jpg", title: "封面", desc: "保险箱说明书封面" },
+            { src: "images/yada/yada.contents.jpg", title: "目录", desc: "说明书目录页" },
+            { src: "images/yada/yada_01.jpg", title: "图1", desc: "保险箱外观与部件说明" },
+            { src: "images/yada/yada_02.jpg", title: "图2", desc: "开箱与初始设置步骤" },
+            { src: "images/yada/yada_03.jpg", title: "图3", desc: "密码设置与修改方法" },
+            { src: "images/yada/yada_04.jpg", title: "图4", desc: "使用操作指南" },
+            { src: "images/yada/yada_05.jpg", title: "图5", desc: "故障排除与维护" },
+            { src: "images/yada/yada_06.jpg", title: "图6", desc: "安全注意事项" }
+        ];
+        
+        // DOM元素
+        const mainImage = document.getElementById('mainImage');
+        const imageTitle = document.getElementById('imageTitle');
+        const imageCounter = document.getElementById('imageCounter');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const thumbnailsContainer = document.getElementById('thumbnailsContainer');
+        
+        let currentIndex = 0;
+        
+        // 初始化缩略图
+        function initThumbnails() {
+            images.forEach((image, index) => {
+                const thumbnail = document.createElement('img');
+                thumbnail.src = image.src;
+                thumbnail.alt = image.title;
+                thumbnail.className = 'thumbnail';
+                if (index === currentIndex) {
+                    thumbnail.classList.add('active');
+                }
+                
+                thumbnail.addEventListener('click', () => {
+                    setCurrentImage(index);
+                });
+                
+                thumbnailsContainer.appendChild(thumbnail);
+            });
+        }
+        
+        // 设置当前显示的图片
+        function setCurrentImage(index) {
+            currentIndex = index;
+            const image = images[currentIndex];
+            
+            // 更新主图
+            mainImage.src = image.src;
+            mainImage.alt = image.title;
+            
+            // 更新标题和计数器
+            imageTitle.textContent = `${image.title} - ${image.desc}`;
+            imageCounter.textContent = `${currentIndex + 1} / ${images.length}`;
+            
+            // 更新激活的缩略图
+            document.querySelectorAll('.thumbnail').forEach((thumb, idx) => {
+                if (idx === currentIndex) {
+                    thumb.classList.add('active');
+                } else {
+                    thumb.classList.remove('active');
+                }
+            });
+            
+            // 预加载相邻图片以提升体验
+            preloadAdjacentImages();
+        }
+        
+        // 预加载相邻图片
+        function preloadAdjacentImages() {
+            const preloadIndices = [
+                (currentIndex - 1 + images.length) % images.length,
+                (currentIndex + 1) % images.length
+            ];
+            
+            preloadIndices.forEach(index => {
+                const img = new Image();
+                img.src = images[index].src;
+            });
+        }
+        
+        // 显示下一张图片
+        function nextImage() {
+            currentIndex = (currentIndex + 1) % images.length;
+            setCurrentImage(currentIndex);
+        }
+        
+        // 显示上一张图片
+        function prevImage() {
+            currentIndex = (currentIndex - 1 + images.length) % images.length;
+            setCurrentImage(currentIndex);
+        }
+        
+        // 初始化
+        function init() {
+            // 设置初始图片
+            setCurrentImage(0);
+            
+            // 初始化缩略图
+            initThumbnails();
+            
+            // 按钮事件
+            prevBtn.addEventListener('click', prevImage);
+            nextBtn.addEventListener('click', nextImage);
+            
+            // 键盘快捷键
+            document.addEventListener('keydown', (e) => {
+                switch(e.key) {
+                    case 'ArrowLeft':
+                        prevImage();
+                        break;
+                    case 'ArrowRight':
+                        nextImage();
+                        break;
+                    case 'Escape':
+                        window.location.href = 'index.html';
+                        break;
+                }
+            });
+            
+            // 主图点击放大效果（可选）
+            mainImage.addEventListener('click', () => {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                } else {
+                    mainImage.requestFullscreen().catch(err => {
+                        console.log(`全屏请求失败: ${err.message}`);
+                    });
+                }
+            });
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
