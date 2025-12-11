@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>从上海到宇治：一日穿越京都的雨与夜 | Shawn's Blog</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 基础样式 - 与首页保持一致 */
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #f9f9f9;
+            --dark-color: #333;
+            --gray-color: #ecf0f1;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --border-radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 导航栏 */
+        header {
+            background-color: white;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        /* 文章头部 */
+        .article-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #4a6491 100%);
+            color: white;
+            padding: 60px 0;
+            margin-bottom: 40px;
+            text-align: center;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+        }
+
+        .article-title {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+
+        .article-meta {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .article-category {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 30px;
+        }
+
+        /* 文章内容 */
+        .article-content {
+            background-color: white;
+            padding: 50px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 50px;
+        }
+
+        .article-content h2 {
+            color: var(--primary-color);
+            margin: 30px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--gray-color);
+        }
+
+        .article-content p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .article-content blockquote {
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 20px;
+            margin: 30px 0;
+            color: #666;
+            font-style: italic;
+        }
+
+        .article-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .photo-caption {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: -15px;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .divination-result {
+            background-color: #f8f9fa;
+            border-left: 4px solid #ff9800;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        }
+
+        .divination-result h3 {
+            color: #e67e22;
+            margin-bottom: 15px;
+        }
+
+        .divination-item {
+            margin-bottom: 10px;
+        }
+
+        .divination-item strong {
+            color: #2c3e50;
+        }
+
+        /* 文章页脚 */
+        .article-footer {
+            border-top: 1px solid #eee;
+            padding-top: 30px;
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .article-tags span {
+            display: inline-block;
+            background-color: var(--gray-color);
+            padding: 5px 15px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        /* 导航按钮 */
+        .article-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin: 40px 0;
+        }
+
+        .nav-btn {
+            padding: 12px 25px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            color: var(--dark-color);
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            max-width: 45%;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            color: var(--secondary-color);
+        }
+
+        .nav-btn i {
+            margin: 0 10px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .article-title {
+                font-size: 2rem;
+            }
+            .article-content {
+                padding: 30px;
+            }
+            .article-navigation {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .nav-btn {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <a href="../index.html" class="logo">
+                    <i class="fas fa-arrow-left"></i> 返回首页
+                </a>
+                <div style="display: flex; gap: 20px;">
+                    <a href="#search" style="text-decoration: none; color: var(--dark-color);">
+                        <i class="fas fa-search"></i> 搜索
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 文章头部 -->
+    <div class="article-header">
+        <div class="container">
+            <h1 class="article-title">从上海到宇治：一日穿越京都的雨与夜</h1>
+            <div class="article-meta">
+                <span><i class="far fa-calendar"></i> 发布日期：2025年12月11日</span>
+                <span><i class="far fa-clock"></i> 阅读时间：约8分钟</span>
+                <span class="article-category">分类：<strong>旅行</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文章内容 -->
+    <div class="container">
+        <article class="article-content">
+            <p>从上海浦东机场起飞，三小时后降落在关西国际机场。下午的阳光透过航站楼玻璃，洒在匆匆而过的旅客身上。我没有直接前往京都，而是先乘JR线到了木幡站——为了看一眼京阿尼（京都动画）的本社。</p>
+            
+            <p>那栋普通的办公楼静静立在居民区中，我在门口静默地站了一会儿，什么也没说，便转身离开。</p>
+            
+            <h2>🌙 初见宇治：夜爬大吉山</h2>
+            <p>从木幡站到宇治不过十分钟车程。傍晚时分，宇治川泛着淡金色的光，穿过安静的街道往大吉山步道走时，两旁茶屋已陆续打烊，只余抹茶的淡香融在暮色里。</p>
+            
+            <img src="/images/uji/daikichi.jpg" alt="大吉山夜景">
+            <div class="photo-caption">大吉山展望台的京都夜色</div>
+            
+            <p>登山步道比想象中幽静。石阶被路灯染成暖黄色，两旁树影深深，偶尔传来虫鸣。大约二十分钟后抵达展望台——京都的夜色在眼前温柔铺开。远处零星灯火如星辰落地，宇治川成了一道深色的绸带，平等院的轮廓隐约可辨。山风拂过，忽然觉得这一日的奔波都静了下来。</p>
+            
+            <p>那晚宿在京都一家普通酒店，窗外的城市灯火明明灭灭，为第二日的雨中之行积蓄着力量。</p>
+            
+            <h2>🍃 清晨大雨：贵船神社与小吉之签</h2>
+            <p>清晨被雨声唤醒。前往贵船神社时，大雨已倾盆。叡山电铁穿行在绿意浓得化不开的山间，车窗被雨水织成流动的画。神社参道两侧朱红的献灯在雨中格外沉静，水气弥漫，恍如走入绿野与神域的交界。</p>
+            
+            <img src="/images/uji/kibune.jpg" alt="贵船神社雨中景色">
+            <div class="photo-caption">大雨中的贵船神社献灯参道</div>
+            
+            <p>在"水占卜"处求了一签。纸签浸入水中，墨迹缓缓浮现——竟是<strong>小吉</strong>。</p>
+            
+            <div class="divination-result">
+                <h3>🪷 贵船神社水占卜结果：小吉</h3>
+                <div class="divination-item"><strong>愿　　望：</strong>多多助人，则有望得贵人相助而成。</div>
+                <div class="divination-item"><strong>恋　　爱：</strong>须隐忍，不要把脾气发出来。</div>
+                <div class="divination-item"><strong>旅　　行：</strong>近处尤为吉。</div>
+                <div class="divination-item"><strong>学　　业：</strong>危险，须尽全力。</div>
+                <div class="divination-item"><strong>方　　位：</strong>正东与正南吉。</div>
+                <p style="margin-top: 15px; font-size: 0.95rem; color: #666;">雨中读签，忽觉这趟临时起意的京都近郊之行，仿佛被温柔地呼应了。签文说"近处尤为吉"——是啊，这一日不过在京都市郊流转，却仿佛走过山川、雨晴、晨昏。</p>
+            </div>
+            
+            <h2>☔️ 琉璃光院与三千院：雨丝间的静默</h2>
+            <p>午后雨势转小，成了细密的雨丝。<strong>琉璃光院</strong>的琉璃之庭在雨季更是绿得层次分明，倒影在光洁桌面上流淌成一片梦境。窗框如画框，将苔藓、枫树与细雨尽收其中。</p>
+            
+            <img src="/images/uji/ruri.jpg" alt="琉璃光院">
+            <div class="photo-caption">琉璃光院的倒影之庭</div>
+            
+            <p>转往<strong>三千院</strong>时，小雨未停。苔庭像被反复濡染的宋画，青苔饱满得仿佛能掐出水来。坐在宸殿廊下听雨声穿林打叶，手中微温的抹茶与团子，成了此刻最好的慰藉。</p>
+            
+            <blockquote>
+                京都的庭院在雨中仿佛获得了另一种生命——色彩更加饱和，声音更加清晰，连时光的流逝都变得可以感知。
+            </blockquote>
+            
+            <h2>🌅 再访宇治：平等院、久美子椅与午后时光</h2>
+            <p>傍晚时分重回宇治。<strong>平等院凤凰堂</strong>倒映在阿字池中，云影移动，恍如凤凰展翅。殿内大佛静穆低眉，时间在这里慢了下来。</p>
+            
+            <p>随后，我特意寻到那张在《吹响吧！上低音号》中出现过的<strong>"久美子椅"</strong>。坐在上面望向宇治川，午后阳光斜照，对岸的茶屋轮廓温柔。我在宇治桥边静静待了一会儿，看游客来来往往，本地人骑着自行车缓缓而过，生活与故事在此交织。</p>
+            
+            <h2>🌇 再登大吉山：从日暮到夜晚</h2>
+            <p>趁天光未暗，我再次走向大吉山。白天的步道是另一番面貌——绿荫浓密，透过叶隙可望见宇治川闪闪发光。登顶后，见夕阳正从云隙间洒向京都，与昨夜同一片风景，却因晨昏各异而气质迥然。</p>
+            
+            <p>我在山顶待到了天色完全暗下，看着京都的灯火一盏盏亮起，如同大地上的星空。从日暮到夜晚的渐变，是一天中最温柔的时刻。</p>
+            
+            <h2>🌉 在宇治桥上奔跑呼喊</h2>
+            <p>最后来到宇治桥。想起《吹响吧！上低音号》中久美子在此奔跑的场景，心中蓦然涌起冲动——"就这一次吧"。</p>
+            
+            <p>沿着桥面跑起来，风灌满衣衫，对岸的灯火在视线中微微摇晃。我朝夜色中的宇治川大喊：</p>
+            
+            <blockquote style="text-align: center; font-size: 1.2rem; border-left: none; border-right: none; padding: 20px; background-color: #f8f9fa; font-style: normal;">
+                <strong>"上手くなりたい！"</strong><br>
+                <span style="font-size: 0.9rem; color: #666;">（想要变得更好！）</span>
+            </blockquote>
+            
+            <p>声音散进风里。那一刻，仿佛不只是模仿一个动画场景，而是把旅途中的所有感受——雨中的清醒、签文的启示、古寺前的敬畏、夕阳下的宁静——都化作这句呼喊。</p>
+            
+            <h2>✨ 旅行尾声</h2>
+            <p>回程的电车上，衣服还带着山间的凉气，相机里存满光影，心里却异常轻盈。京都与宇治，像一本读不完的书，这一章写满雨水、夜色与奔跑的风。</p>
+            
+            <p>而旅行最美的部分，或许正是这些瞬间：你与风景忽然产生了私密的共鸣，并在其中看见自己的倒影——那个在雨中清醒、在夜色中勇敢、在桥上奔跑呼喊的自己。</p>
+            
+            <p>贵船神社的签文说"近处尤为吉"。我想我懂了：重要的不是去了多远的地方，而是你以多近的距离，看见了自己。</p>
+            
+            <!-- 文章页脚 -->
+            <div class="article-footer">
+                <div class="article-tags">
+                    <strong>标签：</strong>
+                    <span>日本旅行</span>
+                    <span>京都</span>
+                    <span>宇治</span>
+                    <span>动画圣地巡礼</span>
+                    <span>贵船神社</span>
+                    <span>大吉山</span>
+                    <span>上低音号</span>
+                </div>
+                <div style="color: #888; font-size: 0.9rem;">
+                    最后更新：2025年12月11日
+                </div>
+            </div>
+        </article>
+
+        <!-- 导航按钮
+        <div class="article-navigation">
+            <a href="previous-article.html" class="nav-btn">
+                <i class="fas fa-chevron-left"></i>
+                <div>
+                    <div style="font-size: 0.8rem; color: #888;">上一篇</div>
+                    <div>东京咖啡店巡礼：藏在巷弄里的六家小店</div>
+                </div>
+            </a>
+            <a href="next-article.html" class="nav-btn" style="text-align: right;">
+                <div>
+                    <div style="font-size: 0.8rem; color: #888;">下一篇</div>
+                    <div>北海道冬日：雪原、温泉与流冰之旅</div>
+                </div>
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+ -->
+    </div>
+
+    <script>
+        // 更新阅读时间功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 计算文章字数与阅读时间
+            const articleContent = document.querySelector('.article-content');
+            const text = articleContent.textContent || articleContent.innerText;
+            const wordCount = text.trim().split(/\s+/).length;
+            
+            // 假设平均阅读速度：中文约300字/分钟
+            const readingTime = Math.ceil(wordCount / 300);
+            
+            // 更新阅读时间显示
+            const readingTimeElement = document.querySelector('.article-meta span:nth-child(2)');
+            if (readingTimeElement && readingTime > 0) {
+                readingTimeElement.innerHTML = `<i class="far fa-clock"></i> 阅读时间：约${readingTime}分钟`;
+            }
+            
+            // 高亮占卜结果中的关键词
+            const divinationItems = document.querySelectorAll('.divination-item');
+            divinationItems.forEach(item => {
+                const html = item.innerHTML;
+                item.innerHTML = html.replace(/：(.*)/, '：<strong>$1</strong>');
+            });
+        });
+    </script>
+</body>
+</html>
