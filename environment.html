@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>环境监测仪表板</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .device-selector {
+            margin: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="device-selector">
+        <select id="deviceSelect">
+            <option value="home-01">家里</option>
+            <option value="office-01">公司</option>
+        </select>
+    </div>
+    
+    <div class="dashboard">
+        <div class="card">
+            <h3>🌡️ 温度</h3>
+            <div class="value" id="temp">-- °C</div>
+        </div>
+        <div class="card">
+            <h3>💧 湿度</h3>
+            <div class="value" id="humidity">-- %</div>
+        </div>
+        <div class="card">
+            <h3>😷 PM2.5</h3>
+            <div class="value" id="pm25">-- μg/m³</div>
+            <div class="quality" id="airQuality"></div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h3>📈 历史趋势</h3>
+        <canvas id="chart"></canvas>
+    </div>
+
+    <script>
+        const SUPABASE_URL = '你的Supabase URL';
+        const SUPABASE_KEY = '你的anon key';
+        let currentDevice = 'home-01';
+        
+        async function fetchLatestData() {
+            const response = await fetch(
+                `${SUPABASE_URL}/rest/v1/sensor_data?device_id=eq.${currentDevice}&order=created_at.desc&limit=1`,
+                {
+                    headers: { 'apikey': SUPABASE_KEY }
+                }
+            );
+            const data = await response.json();
+            updateDisplay(data[0]);
+        }
+        
+        async function fetchHistory() {
+            const response = await fetch(
+                `${SUPABASE_URL}/rest/v1/sensor_data?device_id=eq.${currentDevice}&order=created_at.desc&limit=50`,
+                { headers: { 'apikey': SUPABASE_KEY } }
+            );
+            return await response.json();
+        }
+        
+        function updateDisplay(data) {
+            if (!data) return;
+            
+            document.getElementById('temp').textContent = `${data.temperature.toFixed(1)} °C`;
+            document.getElementById('humidity').textContent = `${data.humidity.toFixed(1)} %`;
+            document.getElementById('pm25').textContent = `${data.pm25.toFixed(1)} μg/m³`;
+            
+            // 空气质量评级
+            const quality = getAirQuality(data.pm25);
+            document.getElementById('airQuality').textContent = quality;
+            document.getElementById('airQuality').className = `quality ${quality.toLowerCase()}`;
+        }
+        
+        function getAirQuality(pm25) {
+            if (pm25 <= 35) return '优 👍';
+            if (pm25 <= 75) return '良 👌';
+            if (pm25 <= 115) return '轻度污染 😷';
+            return '污染严重 ⚠️';
+        }
+        
+        // 图表初始化
+        const ctx = document.getElementById('chart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [
+                    { label: '温度', borderColor: 'red', data: [] },
+                    { label: 'PM2.5', borderColor: 'blue', data: [] }
+                ]
+            },
+            options: { responsive: true }
+        });
+        
+        // 定时更新
+        setInterval(fetchLatestData, 30000);
+        
+        // 设备切换
+        document.getElementById('deviceSelect').addEventListener('change', (e) => {
+            currentDevice = e.target.value;
+            fetchLatestData();
+            updateChart();
+        });
+        
+        // 初始化
+        fetchLatestData();
+    </script>
+</body>
+</html>
