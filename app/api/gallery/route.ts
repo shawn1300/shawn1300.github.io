@@ -9,10 +9,10 @@ export async function GET() {
   try {
     const supabase = await createServiceClient();
 
-    // 列出 blog-images bucket 中的所有文件
+    // 列出 gallery bucket 中的所有文件
     const { data: files, error } = await supabase
       .storage
-      .from("blog-images")
+      .from("gallery")
       .list();
 
     if (error) {
@@ -37,7 +37,7 @@ export async function GET() {
     const images = imageFiles.map((f) => {
       const { data: urlData } = supabase
         .storage
-        .from("blog-images")
+        .from("gallery")
         .getPublicUrl(f.name);
       return {
         name: f.name,
