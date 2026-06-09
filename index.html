@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shawn's Blog | 思考与记录</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 基础样式 */
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #f9f9f9;
+            --dark-color: #333;
+            --gray-color: #ecf0f1;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 导航栏 */
+        header {
+            background-color: white;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark-color);
+            font-weight: 500;
+            transition: var(--transition);
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+        .nav-links a:hover {
+            color: var(--secondary-color);
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .nav-links a.active {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        /* 英雄区域 */
+        .hero {
+            background: linear-gradient(135deg, #2c3e50 0%, #4a6491 100%);
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+            margin-bottom: 60px;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            opacity: 0.9;
+        }
+
+        .hero-btns {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+        }
+
+        /* 文章分类 */
+        .section-title {
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+            color: var(--primary-color);
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title:after {
+            content: '';
+            display: block;
+            width: 70px;
+            height: 4px;
+            background-color: var(--secondary-color);
+            margin: 15px auto 0;
+            border-radius: 2px;
+        }
+
+        .category-filter {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 50px;
+        }
+
+        .category-btn {
+            padding: 10px 25px;
+            background-color: white;
+            border: 2px solid var(--gray-color);
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .category-btn:hover {
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
+        }
+
+        .category-btn.active {
+            background-color: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+
+        /* 文章网格 */
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 80px;
+        }
+
+        .article-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .article-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .article-img {
+            height: 200px;
+            width: 100%;
+            background-color: #ddd;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .article-content {
+            padding: 25px;
+        }
+
+        .article-category {
+            display: inline-block;
+            padding: 5px 15px;
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--secondary-color);
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .article-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        .article-excerpt {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+
+        .article-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #888;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .read-more {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .read-more:hover {
+            color: var(--primary-color);
+        }
+
+        /* 友链区域 */
+        .friends-section {
+            margin-bottom: 80px;
+        }
+
+        .friends-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 25px;
+        }
+
+        .friend-card {
+            background-color: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .friend-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .friend-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #ddd;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .friend-info h4 {
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .friend-info p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* 关于区域 */
+        .about-section {
+            background-color: white;
+            padding: 60px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 80px;
+            display: flex;
+            align-items: center;
+            gap: 50px;
+        }
+
+        .about-img {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background-color: #ddd;
+            flex-shrink: 0;
+        }
+
+        .about-content h3 {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .about-content p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            background-color: var(--gray-color);
+            border-radius: 50%;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            transition: var(--transition);
+        }
+
+        .social-links a:hover {
+            background-color: var(--secondary-color);
+            color: white;
+            transform: translateY(-5px);
+        }
+
+        /* 页脚 */
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 60px 0 30px;
+            text-align: center;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 40px;
+            margin-bottom: 50px;
+        }
+
+        .footer-section {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .footer-section h4 {
+            font-size: 1.3rem;
+            margin-bottom: 25px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .footer-section h4:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -10px;
+            width: 40px;
+            height: 3px;
+            background-color: var(--secondary-color);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: #ddd;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--secondary-color);
+            padding-left: 5px;
+        }
+
+        .copyright {
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        /* 侧边工具栏 */
+        .tools-sidebar {
+            position: fixed;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            transition: var(--transition);
+        }
+
+        .tools-toggle {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 20px 0 0 20px;
+            padding: 12px 15px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+        }
+
+        .tools-toggle:hover {
+            background-color: #2980b9;
+            width: 60px;
+        }
+
+        .tools-toggle i {
+            transition: transform 0.3s ease;
+        }
+
+        .tools-toggle.active i {
+            transform: rotate(180deg);
+        }
+
+        .tools-menu {
+            background-color: white;
+            border-radius: 10px 0 0 10px;
+            box-shadow: -2px 0 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            margin-top: 10px;
+            width: 0;
+            overflow: hidden;
+        }
+
+        .tools-menu.active {
+            max-height: 400px;
+            opacity: 1;
+            width: 200px;
+        }
+
+        .tool-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: var(--dark-color);
+            transition: var(--transition);
+            border-bottom: 1px solid #f0f0f0;
+            white-space: nowrap;
+        }
+
+        .tool-item:last-child {
+            border-bottom: none;
+        }
+
+        .tool-item:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--secondary-color);
+            padding-left: 25px;
+        }
+
+        .tool-item i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .tool-label {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            .about-section {
+                flex-direction: column;
+                text-align: center;
+                padding: 40px;
+            }
+            
+            .hero h1 {
+                font-size: 2.8rem;
+            }
+            
+            .tools-sidebar {
+                top: auto;
+                bottom: 20px;
+                transform: none;
+            }
+            
+            .tools-menu {
+                position: absolute;
+                bottom: 100%;
+                right: 0;
+                margin-bottom: 10px;
+                border-radius: 10px;
+            }
+            
+            .tools-menu.active {
+                width: 180px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .nav-links {
+                gap: 15px;
+            }
+            
+            .hero {
+                padding: 70px 0;
+            }
+            
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+            
+            .articles-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero-btns {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .tools-menu.active {
+                width: 160px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .category-filter {
+                gap: 10px;
+            }
+            
+            .category-btn {
+                padding: 8px 18px;
+                font-size: 0.9rem;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+            }
+            
+            .tools-toggle {
+                width: 45px;
+                height: 45px;
+                padding: 10px;
+            }
+            
+            .tools-menu.active {
+                width: 140px;
+            }
+            
+            .tool-item {
+                padding: 12px 15px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 侧边工具栏 -->
+    <div class="tools-sidebar">
+        <button class="tools-toggle" id="toolsToggle">
+            <i class="fas fa-tools"></i>
+        </button>
+        <div class="tools-menu" id="toolsMenu">
+            <a href="barcode.html" class="tool-item">
+                <i class="fas fa-barcode"></i>
+                <span class="tool-label">条形码生成</span>
+            </a>
+            <a href="ase.html" class="tool-item">
+                <i class="fas fa-lock"></i>
+                <span class="tool-label">AES加密工具</span>
+            </a>
+            <a href="environment.html" class="tool-item">
+                <i class="fas fa-tint"></i>
+                <span class="tool-label">环境监测</span>
+            </a>            
+            <!-- 可以继续添加更多工具链接
+            <a href="#" class="tool-item">
+                <i class="fas fa-calculator"></i>
+                <span class="tool-label">计算工具</span>
+            </a>
+            <a href="#" class="tool-item">
+                <i class="fas fa-palette"></i>
+                <span class="tool-label">颜色选择器</span>
+            </a>
+             -->
+        </div>
+    </div>
+
+    <!-- 导航栏 -->
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <a href="#" class="logo">
+                    <i class="fas fa-blog"></i> Shawn's Blog
+                </a>
+                <ul class="nav-links">
+                    <li><a href="#" class="active">首页</a></li>
+                    <li><a href="#articles">文章</a></li>
+                    <li><a href="archive.html">归档</a></li>
+                    <li><a href="#friends">友链</a></li>
+                    <li><a href="guestbook.html">留言板</a></li>
+                    <li><a href="#about">关于</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 英雄区域 -->
+    <section class="hero">
+        <div class="container">
+            <h1>探索、思考与记录</h1>
+            <p>这里是Shawn的博客空间，分享技术思考、旅行见闻与生活随笔。每一段旅程都值得被记录，每一个想法都值得被分享。</p>
+            <div class="hero-btns">
+                <a href="#articles" class="btn btn-primary">浏览文章</a>
+                <a href="#about" class="btn btn-secondary">关于我</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 文章分类与列表 -->
+    <section class="container" id="articles">
+        <h2 class="section-title">最新文章</h2>
+        
+        <div class="category-filter">
+            <button class="category-btn active" data-category="all">全部</button>
+            <button class="category-btn" data-category="travel">旅行</button>
+            <button class="category-btn" data-category="essay">随笔</button>
+            <button class="category-btn" data-category="tech">技术</button>
+            <button class="category-btn" data-category="reading">阅读</button>
+        </div>
+        
+        <div class="articles-grid">
+            <!-- 文章卡片 1 -->
+            <div class="article-card" data-category="travel">
+                <div class="article-img" style="background-image: url('images/250717.jpg');"></div>
+                <div class="article-content">
+                    <span class="article-category">旅行</span>
+                    <h3 class="article-title">在京都的夏日里，与“想要变得更好”的自己相遇</h3>
+                    <p class="article-excerpt">在京都动漫般的夏日里，我带着贵船神社的“小吉”签文，走过琉璃光院的绿、三千院的静，最终在宇治桥上迎着夜风奔跑呼喊。这是一场身体的远行，也是一次向着内心期待的靠近。</p>
+                    <div class="article-meta">
+                        <span><i class="far fa-calendar"></i> 2025年12月11日</span>
+                        <a href="articles/travel-001.html" class="read-more">阅读全文 <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>   
+
+            <!-- 文章卡片 2 -->
+            <div class="article-card" data-category="tech">
+                <div class="article-img" style="background-image: url('images/blogscreenshot.png');"></div>
+                <div class="article-content">
+                    <span class="article-category">技术</span>
+                    <h3 class="article-title">我的静态博客诞生手记</h3>
+                    <p class="article-excerpt">我的静态博客是如何诞生的呢？</p>
+                    <div class="article-meta">
+                        <span><i class="far fa-calendar"></i> 2025年12月8日</span>
+                        <a href="articles/tech-001.html" class="read-more">阅读全文 <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 友链区域 -->
+    <section class="container" id="friends">
+        <h2 class="section-title">鸽子们</h2>
+        <div class="friends-grid">
+            <div class="friend-card">
+                <img src="images/alex.jpg" alt="给橙" class="friend-avatar">
+                <div class="friend-info">
+                    <a href="https://www.nerocats.com" target="_blank">
+                        <h4>橙子🍊</h4>
+                        <p>重庆小王子，给橙，热爱探索新技术</p>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="friend-card">
+                <img src="images/mengxin.jpg" alt="莽新" class="friend-avatar">
+                <div class="friend-info">
+                    <a href="https://infinitentrophy.nloln.cn" target="_blank">
+                        <h4>萌新</h4>
+                        <p>经典社畜，金融巨鳄</p>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="friends-grid">
+            <div class="friend-card">
+                <img src="images/baobao.jpg" alt="天线宝宝" class="friend-avatar">
+                <div class="friend-info">
+                    <a href="https://www.yourwit.top" target="_blank">
+                        <h4>宝宝</h4>
+                        <p>群友的万能"资源"库</p>
+                    </a>
+                </div>
+            </div>
+                
+        </div>
+    </section>
+
+    <!-- 关于区域 -->
+    <section class="container" id="about">
+        <div class="about-section">
+            <img src="images/shawn.jpg" alt="Shawn的头像" class="about-img">
+            <div class="about-content">
+                <h3>关于Shawn</h3>
+                <p>你好！我是Shawn，一名对世界充满好奇心的探索者。白天与技术为伴，夜晚与文字共舞。在这里记录我的思考、旅行见闻与技术学习心得。(好吧，其实这是Ai生成的...)</p>
+                <p>相信生活不止眼前的代码，还有远方的山水与书中的智慧。希望这个博客空间能成为思想碰撞的小小角落，也期待与你交流。(不过这段说的不赖，还是留着吧！)</p>
+                <div class="social-links">
+                    <a href="https://github.com/shawn1300" target="_blank" title="GitHub">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a href="https://space.bilibili.com/4790056" target="_blank" title="B站">
+                        <i class="fab fa-bilibili"></i>
+                    </a>
+                    <a href="mailto:shawn_1300@outlook.com" title="发送邮件">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>博客分类</h4>
+                    <ul class="footer-links">
+                        <li><a href="archive.html?category=travel">旅行日记</a></li>
+                        <li><a href="archive.html?category=essay">生活随笔</a></li>
+                        <li><a href="archive.html?category=tech">技术分享</a></li>
+                        <li><a href="archive.html?category=reading">阅读笔记</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>快速链接</h4>
+                    <ul class="footer-links">
+                        <li><a href="archive.html">文章归档</a></li>
+                        <li><a href="index.html#friends">友情链接</a></li>
+                        <li><a href="index.html#about">关于本站</a></li>
+                        <li><a href="mailto:shawn_1300@outlook.com">联系我</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>联系信息</h4>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-envelope"></i> shawn_1300@outlook.com</li>
+                        <li><i class="fas fa-map-marker-alt"></i> 中国(世界) · 浙江(义乌)</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>© 2025 Shawn's Blog. 基于 GitHub Pages 构建 | 托管于 <a href="https://shawn1300.github.io" style="color:#3498db;">shawn1300.github.io</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 侧边工具栏功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const toolsToggle = document.getElementById('toolsToggle');
+            const toolsMenu = document.getElementById('toolsMenu');
+            
+            // 切换侧边栏显示/隐藏
+            toolsToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toolsMenu.classList.toggle('active');
+                toolsToggle.classList.toggle('active');
+            });
+            
+            // 点击页面其他地方关闭侧边栏
+            document.addEventListener('click', function(e) {
+                if (!toolsToggle.contains(e.target) && !toolsMenu.contains(e.target)) {
+                    toolsMenu.classList.remove('active');
+                    toolsToggle.classList.remove('active');
+                }
+            });
+            
+            // 阻止侧边栏内点击事件冒泡
+            toolsMenu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            // 文章分类过滤功能
+            const filterButtons = document.querySelectorAll('.category-btn');
+            const articleCards = document.querySelectorAll('.article-card');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // 更新按钮状态
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const filterValue = this.getAttribute('data-category');
+                    
+                    // 过滤文章卡片
+                    articleCards.forEach(card => {
+                        if (filterValue === 'all' || card.getAttribute('data-category') === filterValue) {
+                            card.style.display = 'block';
+                            setTimeout(() => {
+                                card.style.opacity = '1';
+                                card.style.transform = 'translateY(0)';
+                            }, 10);
+                        } else {
+                            card.style.opacity = '0';
+                            card.style.transform = 'translateY(20px)';
+                            setTimeout(() => {
+                                card.style.display = 'none';
+                            }, 300);
+                        }
+                    });
+                });
+            });
+            
+            // 平滑滚动到锚点
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+                        
+                        // 关闭侧边栏（如果是移动端）
+                        if (window.innerWidth <= 992) {
+                            toolsMenu.classList.remove('active');
+                            toolsToggle.classList.remove('active');
+                        }
+                    }
+                });
+            });
+            
+            // 导航栏滚动效果
+            window.addEventListener('scroll', function() {
+                const header = document.querySelector('header');
+                if (window.scrollY > 100) {
+                    header.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                } else {
+                    header.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

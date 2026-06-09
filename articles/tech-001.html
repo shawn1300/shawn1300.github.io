@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章标题 | Shawn's Blog</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 基础样式 - 与首页保持一致 */
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #f9f9f9;
+            --dark-color: #333;
+            --gray-color: #ecf0f1;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --border-radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 导航栏 */
+        header {
+            background-color: white;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        /* 文章头部 */
+        .article-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #4a6491 100%);
+            color: white;
+            padding: 60px 0;
+            margin-bottom: 40px;
+            text-align: center;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+        }
+
+        .article-title {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+
+        .article-meta {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .article-category {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 30px;
+        }
+
+        /* 文章内容 */
+        .article-content {
+            background-color: white;
+            padding: 50px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 50px;
+        }
+
+        .article-content h2 {
+            color: var(--primary-color);
+            margin: 30px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--gray-color);
+        }
+
+        .article-content p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .article-content blockquote {
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 20px;
+            margin: 30px 0;
+            color: #666;
+            font-style: italic;
+        }
+
+        .article-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+        }
+
+        /* 文章页脚 */
+        .article-footer {
+            border-top: 1px solid #eee;
+            padding-top: 30px;
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .article-tags span {
+            display: inline-block;
+            background-color: var(--gray-color);
+            padding: 5px 15px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        /* 导航按钮 */
+        .article-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin: 40px 0;
+        }
+
+        .nav-btn {
+            padding: 12px 25px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            color: var(--dark-color);
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            max-width: 45%;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            color: var(--secondary-color);
+        }
+
+        .nav-btn i {
+            margin: 0 10px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .article-title {
+                font-size: 2rem;
+            }
+            .article-content {
+                padding: 30px;
+            }
+            .article-navigation {
+                flex-direction: column;
+                gap: 15px;
+        }
+            .nav-btn {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <a href="../index.html" class="logo">
+                    <i class="fas fa-arrow-left"></i> 返回首页
+                </a>
+                <div style="display: flex; gap: 20px;">
+                    <a href="#search" style="text-decoration: none; color: var(--dark-color);">
+                        <i class="fas fa-search"></i> 搜索
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 文章头部 -->
+    <div class="article-header">
+        <div class="container">
+            <h1 class="article-title">我的静态博客诞生手记</h1>
+            <div class="article-meta">
+                <span><i class="far fa-calendar"></i> 发布日期：2025年12月8日</span>
+                <span><i class="far fa-clock"></i> 阅读时间：约5分钟</span>
+                <span class="article-category">分类：<strong>旅行</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文章内容 -->
+    <div class="container">
+    <article>
+        <div class="article-content">
+            <p>前几天群友分享了一个免费域名网站，突然我萌生了拥有一个完全属于自己的网络角落的想法。厌倦了社交媒体的算法推荐，我想要一个能自由表达、随意折腾的小天地。就这样，我开始了搭建个人博客的旅程。</p>
+            
+            <h2>为什么选择 GitHub Pages？</h2>
+            
+            <p>在众多方案中，我选择了 GitHub Pages。原因很纯粹：它免费、稳定，而且与我熟悉的网页开发技术无缝衔接。创建一个名为 <code>用户名.github.io</code> 的仓库，几秒钟后，互联网上就有了我的专属地址。</p>
+            
+            <blockquote>
+                拥有自己的域名，就像在数字世界里拥有了一小片土地。你可以在上面建造任何你想要的东西，完全按照自己的心意。
+            </blockquote>
+            
+            <h2>从空白页面开始</h2>
+            
+            <p>我没有选择现成的博客框架，而是决定从最基础的 HTML 和 CSS 写起。第一个版本简单得有些简陋——一个标题，一段自我介绍，几行文字。但当我通过自己的域名访问到这个页面时，那种“我在互联网上安家了”的成就感，是任何第三方平台都无法给予的。</p>
+            
+            <h2>逐步添砖加瓦</h2>
+            
+            <p>好的博客需要清晰的导航。我设计了四个主要部分：展示精选文章的<strong>首页</strong>，按时间排列所有文字的<strong>归档</strong>，存放朋友们博客链接的<strong>友链</strong>，以及讲述博客故事的<strong>关于</strong>。</p>
+            
+            <p>每部分我都反复调整。文章卡片如何布局更舒适？配色用什么方案更耐看？如何在手机和电脑上都有好体验？这些问题没有标准答案，只能不断尝试、预览、修改。</p>
+            
+            <h2>内容管理的小技巧</h2>
+            
+            <p>静态博客没有数据库，文章多了怎么管理？我在归档页面维护了一个“文章索引”——一个包含所有文章信息的 JavaScript 数组。这样，每写一篇新文章，我只需更新这个数组，所有相关页面都会自动同步。</p>
+            
+            <h2>不只是技术，更是表达</h2>
+            
+            <p>搭建博客的过程让我明白，技术只是工具，真正的价值在于表达。每一行代码、每一个设计选择，都在传达我的思考和审美。这个博客不仅是文章的容器，更是我数字人格的延伸。</p>
+            
+            <p>现在，当我在自己的博客上发布这篇文章时，我感受到的是一种完整的循环：用自己建造的工具，记录自己建造工具的过程。这种自给自足的快乐，或许就是独立博客最大的魅力所在。</p>
+            
+            <h2>写在最后</h2>
+
+            <p>搭建这个博客的这两天里，我经历了兴奋、挫败、突破和满足。这个过程有点像园艺：你播种、浇水、除草，然后看着自己的小花园慢慢生长。
+
+GitHub Pages静态博客可能不是最强大的选择，但它给了我完全的控制权和学习的乐趣。每一行代码都是我自己写的，每一个设计决策都是我自己做的，这种创造的感觉令人上瘾。
+
+如果你也在考虑开始自己的博客，我的建议很简单：Just start. 从创建一个GitHub仓库开始，从写一个简单的“Hello World”开始，从分享一个小小的想法开始。
+
+互联网原本就是由一个个独立的网站组成的，我们每个人都可以拥有自己的一小片天地。我的这片天地叫 shawn1300.github.io，你的呢？</p>
+
+           <p><em>后记：</em><i>这篇文章就是在我的新博客上撰写并发布的。当我点击“推送”按钮，看着变更同步到GitHub，然后自动部署到全球CDN，几分钟后任何人 anywhere in the world 都能访问到这些文字时——我仍然觉得这是数字时代最酷的魔法之一。</i></p>
+            
+        </div>
+    </article>
+
+        <!-- 导航按钮
+        <div class="article-navigation">
+            <a href="previous-article.html" class="nav-btn">
+                <i class="fas fa-chevron-left"></i>
+                <div>
+                    <div style="font-size: 0.8rem; color: #888;">上一篇</div>
+                    <div>上一篇文章标题</div>
+                </div>
+            </a>
+            <a href="next-article.html" class="nav-btn" style="text-align: right;">
+                <div>
+                    <div style="font-size: 0.8rem; color: #888;">下一篇</div>
+                    <div>下一篇文章标题</div>
+                </div>
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+         -->
+    </div>
+
+    <script>
+        // 你可以在这里添加文章特定的JavaScript代码
+        document.addEventListener('DOMContentLoaded', function() {
+            // 示例：更新最后阅读时间
+            const lastUpdated = document.querySelector('.article-footer div:nth-child(2)');
+            if (lastUpdated) {
+                // 这里可以添加动态更新逻辑
+            }
+        });
+    </script>
+</body>
+</html>

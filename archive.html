@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章归档 | Shawn's Blog</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #f9f9f9;
+            --dark-color: #333;
+            --gray-color: #ecf0f1;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --border-radius: 8px;
+            --travel-color: #3498db;
+            --essay-color: #9b59b6;
+            --tech-color: #2ecc71;
+            --reading-color: #e67e22;
+            --life-color: #e74c3c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 导航栏 */
+        header {
+            background-color: white;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 25px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark-color);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+        .nav-links a:hover {
+            color: var(--secondary-color);
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .nav-links a.active {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        /* 页面标题 */
+        .page-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #4a6491 100%);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+            margin-bottom: 50px;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+        }
+
+        .page-header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+        }
+
+        .page-header p {
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
+            opacity: 0.9;
+        }
+
+        /* 分类筛选 */
+        .category-filters {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 50px;
+        }
+
+        .filter-btn {
+            padding: 12px 25px;
+            background-color: white;
+            border: 2px solid var(--gray-color);
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        .filter-btn.active {
+            color: white;
+            border-color: transparent;
+        }
+
+        .filter-btn[data-category="all"] { background-color: var(--primary-color); }
+        .filter-btn[data-category="travel"] { background-color: var(--travel-color); }
+        .filter-btn[data-category="essay"] { background-color: var(--essay-color); }
+        .filter-btn[data-category="tech"] { background-color: var(--tech-color); }
+        .filter-btn[data-category="reading"] { background-color: var(--reading-color); }
+        .filter-btn[data-category="life"] { background-color: var(--life-color); }
+
+        /* 年份分组 */
+        .year-group {
+            margin-bottom: 60px;
+        }
+
+        .year-title {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            border-bottom: 3px solid var(--secondary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .year-count {
+            background: var(--secondary-color);
+            color: white;
+            padding: 4px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* 文章网格 */
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .article-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border: 1px solid #eee;
+        }
+
+        .article-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .article-img {
+            height: 180px;
+            width: 100%;
+            background-size: cover;
+            background-position: center;
+            background-color: #f0f0f0; /* 默认背景色 */
+        }
+
+        .article-content {
+            padding: 20px;
+        }
+
+        .article-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .article-date {
+            color: #666;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .article-category {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .category-travel { background-color: var(--travel-color); }
+        .category-essay { background-color: var(--essay-color); }
+        .category-tech { background-color: var(--tech-color); }
+        .category-reading { background-color: var(--reading-color); }
+        .category-life { background-color: var(--life-color); }
+
+        .article-title {
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .article-excerpt {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .article-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .read-time {
+            color: #888;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .read-more {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .read-more:hover {
+            color: var(--primary-color);
+            gap: 8px;
+        }
+
+        /* 空状态提示 */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        /* 错误提示 */
+        .error-message {
+            background: #ffe6e6;
+            border-left: 4px solid #e74c3c;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            color: #c0392b;
+            display: none;
+        }
+
+        /* 页脚 */
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+            margin-top: 80px;
+        }
+
+        .copyright {
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .page-header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .articles-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo">
+                    <i class="fas fa-book-open"></i> Shawn's Blog
+                </a>
+                <ul class="nav-links">
+                    <li><a href="index.html">首页</a></li>
+                    <li><a href="archive.html" class="active">归档</a></li>
+                    <li><a href="index.html#friends">友链</a></li>
+                    <li><a href="index.html#about">关于</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 页面标题 -->
+    <div class="page-header">
+        <div class="container">
+            <h1><i class="far fa-calendar-alt"></i> 文章归档</h1>
+            <p>按分类和时间顺序呈现所有思考与记录</p>
+        </div>
+    </div>
+
+    <!-- 错误提示区域 -->
+    <div class="container">
+        <div id="error-message" class="error-message"></div>
+    </div>
+
+    <!-- 分类筛选 -->
+    <div class="container">
+        <div class="category-filters">
+            <button class="filter-btn active" data-category="all">
+                <i class="fas fa-layer-group"></i> 全部文章
+            </button>
+            <button class="filter-btn" data-category="travel">
+                <i class="fas fa-plane"></i> 旅行
+            </button>
+            <button class="filter-btn" data-category="essay">
+                <i class="fas fa-pen-fancy"></i> 随笔
+            </button>
+            <button class="filter-btn" data-category="tech">
+                <i class="fas fa-code"></i> 技术
+            </button>
+            <button class="filter-btn" data-category="reading">
+                <i class="fas fa-book"></i> 阅读
+            </button>
+            <button class="filter-btn" data-category="life">
+                <i class="fas fa-heart"></i> 生活
+            </button>
+        </div>
+
+        <!-- 文章归档列表 -->
+        <div id="archive-container" class="container">
+            <div class="loading" style="text-align:center; padding:40px;">
+                <i class="fas fa-spinner fa-spin"></i> 正在加载文章列表...
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <div class="copyright">
+                <p>© 2024 Shawn's Blog. 基于 GitHub Pages 构建 | 托管于 <a href="https://shawn1300.github.io" style="color:#3498db;">shawn1300.github.io</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ============================================
+        // 文章数据配置区（你只需要修改这里！）
+        // ============================================
+        const allArticles = [
+    {
+        title: "在京都的夏日里，与“想要变得更好”的自己相遇",
+        date: "2025-12-11",
+        category: "travel-001",
+        excerpt: "在京都动漫般的夏日里，我带着贵船神社的“小吉”签文，走过琉璃光院的绿、三千院的静，最终在宇治桥上迎着夜风奔跑呼喊。这是一场身体的远行，也是一次向着内心期待的靠近。",
+        url: "articles/travel-001.html",
+        readTime: "8分钟",
+        image: "images/250717.jpg"
+    },
+    {
+        title: "我的静态博客诞生手记",
+        date: "2025-12-08",
+        category: "tech",
+        excerpt: "我的静态博客是如何诞生的呢？",
+        url: "articles/tech-001.html",
+        readTime: "3分钟",
+        image: "images/blogscreenshot.png"
+    }
+];
+
+            // 添加新文章时，复制上面的格式，注意每个对象用逗号分隔
+            // {
+            //     title: "新文章标题",
+            //     date: "2024-12-08",
+            //     category: "life",
+            //     excerpt: "文章摘要...",
+            //     url: "articles/new-article.html",
+            //     readTime: "5分钟",
+            //     image: "images/new-image.jpg"
+            // },
+        // ============================================
+        // 数据配置结束
+        // ============================================
+
+        // 工具函数
+        function getYearFromDate(dateStr) {
+            try {
+                return dateStr.split('-')[0];
+            } catch (e) {
+                console.error('日期格式错误:', dateStr);
+                return '未知年份';
+            }
+        }
+
+        function formatDate(dateStr) {
+            try {
+                const date = new Date(dateStr);
+                const month = date.getMonth() + 1;
+                const day = date.getDate();
+                return `${month}月${day}日`;
+            } catch (e) {
+                return dateStr;
+            }
+        }
+
+        function getCategoryName(category) {
+            const map = {
+                'travel': '旅行',
+                'essay': '随笔',
+                'tech': '技术',
+                'reading': '阅读',
+                'life': '生活'
+            };
+            return map[category] || category;
+        }
+
+        function getCategoryIcon(category) {
+            const map = {
+                'travel': 'fa-plane',
+                'essay': 'fa-pen-fancy',
+                'tech': 'fa-code',
+                'reading': 'fa-book',
+                'life': 'fa-heart'
+            };
+            return map[category] || 'fa-file-alt';
+        }
+
+        // 渲染归档页面
+        function renderArchive() {
+            const container = document.getElementById('archive-container');
+            const errorEl = document.getElementById('error-message');
+            
+            try {
+                // 验证数据
+                if (!Array.isArray(allArticles)) {
+                    throw new Error('文章数据格式错误：allArticles 必须是数组');
+                }
+
+                if (allArticles.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="far fa-calendar-times"></i>
+                            <h3>暂无文章</h3>
+                            <p>还没有发布任何文章，快去写一篇吧！</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // 按日期排序
+                const sortedArticles = [...allArticles].sort((a, b) => {
+                    try {
+                        return new Date(b.date) - new Date(a.date);
+                    } catch (e) {
+                        return 0;
+                    }
+                });
+
+                // 按年份分组
+                const articlesByYear = {};
+                sortedArticles.forEach((article, index) => {
+                    try {
+                        const year = getYearFromDate(article.date);
+                        if (!articlesByYear[year]) {
+                            articlesByYear[year] = [];
+                        }
+                        articlesByYear[year].push(article);
+                    } catch (e) {
+                        console.error(`第 ${index} 篇文章数据有问题:`, article);
+                    }
+                });
+
+                // 生成HTML
+                let archiveHTML = '';
+                const years = Object.keys(articlesByYear).sort((a, b) => b - a);
+
+                years.forEach(year => {
+                    const articles = articlesByYear[year];
+                    
+                    archiveHTML += `
+                        <div class="year-group" data-year="${year}">
+                            <div class="year-title">
+                                <span><i class="far fa-calendar"></i> ${year} 年</span>
+                                <span class="year-count">${articles.length} 篇</span>
+                            </div>
+                            <div class="articles-grid">
+                    `;
+                    
+                    articles.forEach(article => {
+                        const categoryName = getCategoryName(article.category);
+                        const categoryClass = `category-${article.category}`;
+                        const imageUrl = article.image || 'images/default-thumb.jpg';
+                        
+                        archiveHTML += `
+                            <div class="article-card" data-category="${article.category}">
+                                <div class="article-img" style="background-image: url('${imageUrl}');"></div>
+                                <div class="article-content">
+                                    <div class="article-meta">
+                                        <span class="article-date">
+                                            <i class="far fa-calendar"></i> ${formatDate(article.date)}
+                                        </span>
+                                        <span class="article-category ${categoryClass}">
+                                            ${categoryName}
+                                        </span>
+                                    </div>
+                                    <h3 class="article-title">${article.title}</h3>
+                                    <p class="article-excerpt">${article.excerpt}</p>
+                                    <div class="article-footer">
+                                        <span class="read-time">
+                                            <i class="far fa-clock"></i> ${article.readTime || '3分钟'}
+                                        </span>
+                                        <a href="${article.url}" class="read-more">
+                                            阅读全文 <i class="fas fa-arrow-right"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    archiveHTML += `
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = archiveHTML;
+                setupFilterButtons();
+                // ========================================
+// URL参数处理：自动筛选功能
+// ========================================
+
+function getUrlParameter(name) {
+    // 获取URL中的参数值
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+}
+
+function autoFilterFromUrl() {
+    const category = getUrlParameter('category');
+    
+    if (category) {
+        // 找到对应的筛选按钮
+        const targetButton = document.querySelector(`.filter-btn[data-category="${category}"]`);
+        
+        if (targetButton) {
+            // 等待页面加载完成后自动点击按钮
+            setTimeout(() => {
+                targetButton.click();
+                
+                // 更新页面标题和描述，显示筛选状态
+                updatePageTitleForCategory(category);
+                
+                // 滚动到筛选区域（可选）
+                document.querySelector('.category-filters').scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }, 300); // 稍微延迟，确保DOM已加载
+        }
+    }
+}
+
+function updatePageTitleForCategory(category) {
+    if (category !== 'all') {
+        const categoryName = getCategoryName(category);
+        const pageTitle = document.querySelector('.page-header h1');
+        const pageDesc = document.querySelector('.page-header p');
+        
+        if (pageTitle && pageDesc) {
+            const iconMap = {
+                'travel': 'fa-plane',
+                'essay': 'fa-pen-fancy',
+                'tech': 'fa-code',
+                'reading': 'fa-book',
+                'life': 'fa-heart'
+            };
+            
+            const icon = iconMap[category] || 'fa-filter';
+            pageTitle.innerHTML = `<i class="fas ${icon}"></i> ${categoryName} 分类`;
+            pageDesc.textContent = `以下为 ${categoryName} 相关的所有文章`;
+        }
+    }
+}
+
+// 在页面加载完成后执行
+document.addEventListener('DOMContentLoaded', function() {
+    // 先渲染归档页面
+    renderArchive();
+    
+    // 然后检查URL参数，自动筛选
+    setTimeout(() => {
+        autoFilterFromUrl();
+    }, 100);
+});
+                
+            } catch (error) {
+                console.error('渲染归档页面时出错:', error);
+                errorEl.textContent = `加载文章列表时出错: ${error.message}`;
+                errorEl.style.display = 'block';
+                
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>加载文章列表失败</h3>
+                        <p>请检查文章数据格式是否正确，然后刷新页面重试。</p>
+                        <p style="font-size:0.9rem; margin-top:10px;">错误信息: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 设置分类筛选功能
+        function setupFilterButtons() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const articleCards = document.querySelectorAll('.article-card');
+            const yearGroups = document.querySelectorAll('.year-group');
+
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const category = this.getAttribute('data-category');
+                    
+                    // 更新按钮状态
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 筛选文章
+                    articleCards.forEach(card => {
+                        const cardCategory = card.getAttribute('data-category');
+                        if (category === 'all' || cardCategory === category) {
+                            card.style.display = 'block';
+                            setTimeout(() => {
+                                card.style.opacity = '1';
+                                card.style.transform = 'translateY(0)';
+                            }, 10);
+                        } else {
+                            card.style.opacity = '0';
+                            card.style.transform = 'translateY(20px)';
+                            setTimeout(() => {
+                                card.style.display = 'none';
+                            }, 300);
+                        }
+                    });
+                    
+                    // 更新年份组显示状态
+                    yearGroups.forEach(group => {
+                        const yearCards = group.querySelectorAll('.article-card');
+                        const hasVisibleCards = Array.from(yearCards).some(card => 
+                            card.style.display !== 'none'
+                        );
+                        group.style.display = hasVisibleCards ? 'block' : 'none';
+                    });
+                });
+            });
+        }
+
+// 在页面加载完成后执行
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. 先渲染归档页面
+    renderArchive();
+    
+    // 2. 然后检查URL参数，自动筛选
+    // 稍加延迟，确保筛选按钮已渲染到页面上
+    setTimeout(() => {
+        autoFilterFromUrl();
+    }, 100);
+});
+    </script>
+</body>
+</html>
