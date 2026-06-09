@@ -1,9 +1,9 @@
 export function Footer() {
   return (
     <footer className="border-t border-border/40">
-      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-6">
-        <p className="text-xs text-muted-foreground">
-          &copy; {new Date().getFullYear()} Shawn. Built with curiosity.
+      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
+        <p className="text-[11px] sm:text-xs text-muted-foreground">
+          &copy; {new Date().getFullYear()} Shawn.
         </p>
         <a
           href="https://github.com/shawn1300"

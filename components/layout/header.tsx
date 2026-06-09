@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -16,14 +17,41 @@ const navItems = [
 
 export function Header() {
   const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const NavLinks = ({ onClick }: { onClick?: () => void }) => (
+    <>
+      {navItems.map((item) => {
+        const isActive =
+          item.href === "/"
+            ? pathname === "/"
+            : pathname.startsWith(item.href);
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={onClick}
+            className={cn(
+              "text-sm transition-colors",
+              isActive
+                ? "text-foreground font-medium"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {item.label}
+          </Link>
+        );
+      })}
+    </>
+  );
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
+      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-2.5 text-sm font-medium tracking-tight text-foreground/90 hover:text-foreground transition-colors"
+          className="flex items-center gap-2.5 text-sm font-medium tracking-tight text-foreground/90 hover:text-foreground transition-colors shrink-0"
         >
           <img
             src="/shawn.jpg"
@@ -33,31 +61,45 @@ export function Header() {
           Shawn
         </Link>
 
-        {/* Nav */}
-        <nav className="flex items-center gap-6">
-          {navItems.map((item) => {
-            const isActive =
-              item.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "text-sm transition-colors",
-                  isActive
-                    ? "text-foreground font-medium"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
+        {/* Desktop nav */}
+        <nav className="hidden sm:flex items-center gap-6">
+          <NavLinks />
           <ThemeToggle />
         </nav>
+
+        {/* Mobile: theme toggle + hamburger */}
+        <div className="flex items-center gap-2 sm:hidden">
+          <ThemeToggle />
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="h-8 w-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="菜单"
+          >
+            <svg
+              className={cn("h-4 w-4 transition-transform", menuOpen && "rotate-90")}
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              {menuOpen ? (
+                <path d="M4 4l8 8M12 4l-8 8" />
+              ) : (
+                <path d="M2 4h12M2 8h12M2 12h12" />
+              )}
+            </svg>
+          </button>
+        </div>
       </div>
+
+      {/* Mobile dropdown menu */}
+      {menuOpen && (
+        <nav className="sm:hidden border-t border-border/40 bg-background/95 backdrop-blur">
+          <div className="flex flex-col px-4 py-3 space-y-1">
+            <NavLinks onClick={() => setMenuOpen(false)} />
+          </div>
+        </nav>
+      )}
     </header>
   );
 }

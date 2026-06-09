@@ -37,7 +37,7 @@ export default function GalleryPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-5xl px-6 py-16 sm:py-24">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 py-12 sm:py-24">
         <div className="mb-12 space-y-2">
           <h1 className="text-sm font-medium tracking-tight text-foreground">
             相册
@@ -53,7 +53,7 @@ export default function GalleryPage() {
 
   if (images.length === 0) {
     return (
-      <div className="mx-auto max-w-5xl px-6 py-16 sm:py-24">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 py-12 sm:py-24">
         <div className="mb-12 space-y-2">
           <h1 className="text-sm font-medium tracking-tight text-foreground">
             相册
@@ -75,7 +75,7 @@ export default function GalleryPage() {
   const current = images[index];
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-16 sm:py-24">
+    <div className="mx-auto max-w-5xl px-4 sm:px-6 py-12 sm:py-24">
       <div className="mb-12 space-y-2">
         <h1 className="text-sm font-medium tracking-tight text-foreground">
           相册
@@ -87,7 +87,7 @@ export default function GalleryPage() {
 
       <div
         onClick={nextImage}
-        className="w-[90vw] max-w-5xl aspect-[3/2] rounded-lg overflow-hidden border border-border/40 hover:border-border cursor-pointer transition-colors bg-muted/30"
+        className="w-[92vw] max-w-5xl aspect-square sm:aspect-[3/2] rounded-lg overflow-hidden border border-border/40 hover:border-border cursor-pointer transition-colors bg-muted/30"
       >
         <img
           src={current.url}

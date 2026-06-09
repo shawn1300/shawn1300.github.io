@@ -39,7 +39,7 @@ export default async function ArchivePage() {
   ];
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-16 sm:py-24">
+    <div className="mx-auto max-w-2xl px-4 sm:px-6 py-12 sm:py-24">
       <div className="mb-12 space-y-2">
         <h1 className="text-sm font-medium tracking-tight text-foreground">
           归档
@@ -55,7 +55,7 @@ export default async function ArchivePage() {
         <div className="space-y-10">
           {years.map((year) => (
             <div key={year}>
-              <h2 className="text-2xl font-bold text-foreground/20 mb-6 tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground/20 mb-4 sm:mb-6 tracking-tight">
                 {year}
               </h2>
               <div className="space-y-8">

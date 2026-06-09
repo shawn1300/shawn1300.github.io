@@ -32,13 +32,16 @@ export function ImageUpload({ onInsert }: ImageUploadProps) {
     setUploading(true);
 
     try {
+      const { compressImage } = await import("@/lib/compress");
+      const toUpload = await compressImage(file);
+
       const supabase = createClient();
       const ext = file.name.split(".").pop() || "png";
       const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from("blog-images")
-        .upload(fileName, file, {
+        .upload(fileName, toUpload, {
           cacheControl: "31536000",
           upsert: false,
         });

@@ -47,8 +47,11 @@ export default function AdminGalleryPage() {
 
     setUploading(true);
     try {
+      const { compressImage } = await import("@/lib/compress");
+      const toUpload = await compressImage(file);
+
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", toUpload);
 
       const res = await fetch("/api/gallery", { method: "POST", body: formData });
       const json = await res.json();

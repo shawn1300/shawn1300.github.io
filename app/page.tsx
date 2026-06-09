@@ -7,7 +7,7 @@ export default async function HomePage() {
   const posts = await getPublishedPosts({ limit: 50 });
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-16 sm:py-24">
+    <div className="mx-auto max-w-2xl px-4 sm:px-6 py-12 sm:py-24">
       {/* Page header */}
       <div className="mb-12 space-y-2">
         <h1 className="text-sm font-medium tracking-tight text-foreground">
