@@ -1,0 +1,72 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createServiceClient } from "@/lib/supabase/server";
+
+/**
+ * POST /api/posts
+ * 创建新文章（需登录 — 通过 service client 绕过 RLS）
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { title, slug, content, excerpt, cover_image, category_id, tags, status } = body;
+
+    if (!title?.trim() || !slug?.trim()) {
+      return NextResponse.json(
+        { success: false, error: "标题和 slug 为必填项" },
+        { status: 400 }
+      );
+    }
+
+    const supabase = await createServiceClient();
+
+    // 获取当前登录用户
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "请先登录" },
+        { status: 401 }
+      );
+    }
+
+    // 创建文章
+    const { data: post, error } = await supabase
+      .from("posts")
+      .insert({
+        title: title.trim(),
+        slug: slug.trim(),
+        content: content || "",
+        excerpt: excerpt?.trim() || "",
+        cover_image: cover_image || null,
+        category_id: category_id || null,
+        status: status || "draft",
+        author_id: user.id,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === "23505") {
+        return NextResponse.json(
+          { success: false, error: "该 slug 已存在，请更换 URL 标识" },
+          { status: 409 }
+        );
+      }
+      throw error;
+    }
+
+    // 关联标签
+    if (tags && Array.isArray(tags) && tags.length > 0) {
+      await supabase.from("post_tags").insert(
+        tags.map((tagId: string) => ({ post_id: post.id, tag_id: tagId }))
+      );
+    }
+
+    return NextResponse.json({ success: true, data: post }, { status: 201 });
+  } catch (error) {
+    console.error("POST /api/posts error:", error);
+    return NextResponse.json(
+      { success: false, error: "创建文章失败" },
+      { status: 500 }
+    );
+  }
+}
