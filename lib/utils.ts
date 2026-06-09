@@ -8,12 +8,12 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * 格式化日期为 "2024年1月15日" 格式
+ * 格式化日期，默认 "2024年1月15日" 格式，可传入自定义格式
  */
-export function formatDate(dateStr: string): string {
+export function formatDate(dateStr: string, fmt = "yyyy年M月d日"): string {
   try {
     const date = parseISO(dateStr)
-    return format(date, "yyyy年M月d日", { locale: zhCN })
+    return format(date, fmt, { locale: zhCN })
   } catch {
     return dateStr
   }

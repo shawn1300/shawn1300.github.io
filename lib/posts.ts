@@ -113,6 +113,39 @@ export async function getCategories(): Promise<Category[]> {
 }
 
 /**
+ * 获取所有分类（含文章数量）
+ */
+export async function getCategoriesWithCount(): Promise<(Category & { count: number })[]> {
+  const supabase = await createServerSupabase();
+  const { data, error } = await supabase
+    .from("categories")
+    .select("*")
+    .order("name");
+
+  if (error || !data) return [];
+
+  const categoriesWithCount = await Promise.all(
+    data.map(async (cat) => {
+      const { count } = await supabase
+        .from("posts")
+        .select("*", { count: "exact", head: true })
+        .eq("category_id", cat.id)
+        .eq("status", "published");
+      return { ...cat, count: count || 0 };
+    })
+  );
+
+  return categoriesWithCount;
+}
+
+/**
+ * 获取所有已发布文章（用于归档，不分页）
+ */
+export async function getAllPublishedPosts(): Promise<Post[]> {
+  return getPublishedPosts({ limit: 500 });
+}
+
+/**
  * 获取所有标签
  */
 export async function getTags(): Promise<Tag[]> {
