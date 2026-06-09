@@ -1,26 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient, createServerSupabase } from "@/lib/supabase/server";
-import { createHmac } from "crypto";
 
-const SECRET = process.env.SUPABASE_SERVICE_ROLE_KEY || "fallback-secret";
-
-function signDeleteToken(commentId: string): string {
-  const hmac = createHmac("sha256", SECRET);
-  hmac.update(commentId);
-  return `${commentId}:${hmac.digest("hex").slice(0, 24)}`;
-}
-
-function verifyDeleteToken(token: string): string | null {
-  const idx = token.indexOf(":");
-  if (idx === -1) return null;
-  const commentId = token.slice(0, idx);
-  const expected = signDeleteToken(commentId);
-  return expected === token ? commentId : null;
+/**
+ * 从请求中提取客户端 IP
+ */
+function getClientIP(request: NextRequest): string {
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+  const realIP = request.headers.get("x-real-ip");
+  if (realIP) return realIP;
+  return "unknown";
 }
 
 /**
  * GET /api/comments?post_id=<uuid>
- * 获取指定文章的评论列表（公开）
+ * 获取指定文章的评论列表（公开，不暴露敏感字段）
  */
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -37,7 +31,7 @@ export async function GET(request: NextRequest) {
     const supabase = await createServiceClient();
     const { data, error } = await supabase
       .from("comments")
-      .select("*")
+      .select("id, post_id, author_name, author_email, content, created_at")
       .eq("post_id", postId)
       .order("created_at", { ascending: true });
 
@@ -55,8 +49,7 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/comments
- * 提交新评论（公开，无需登录）
- * Body: { post_id, author_name?, author_email?, content }
+ * 提交新评论，记录 IP 并生成删除令牌
  * Response: { success: true, data: Comment, deleteToken: string }
  */
 export async function POST(request: NextRequest) {
@@ -79,6 +72,8 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createServiceClient();
+    const deleteToken = crypto.randomUUID();
+    const ip = getClientIP(request);
 
     const { data, error } = await supabase
       .from("comments")
@@ -87,13 +82,13 @@ export async function POST(request: NextRequest) {
         author_name: author_name?.trim() || "匿名",
         author_email: author_email?.trim() || null,
         content: content.trim(),
+        delete_token: deleteToken,
+        ip_address: ip,
       })
-      .select()
+      .select("id, post_id, author_name, author_email, content, created_at")
       .single();
 
     if (error) throw error;
-
-    const deleteToken = signDeleteToken(data.id);
 
     return NextResponse.json(
       { success: true, data, deleteToken },
@@ -125,35 +120,49 @@ export async function DELETE(request: NextRequest) {
   }
 
   try {
-    // 验证管理员身份
+    const supabase = await createServiceClient();
+
+    // 管理员登录 → 直接删
     const serverSupabase = await createServerSupabase();
     const { data: { user } } = await serverSupabase.auth.getUser();
 
-    // 验证删除令牌（匿名用户）
-    if (!user && token) {
-      const validId = verifyDeleteToken(token);
-      if (validId !== id) {
+    if (user) {
+      const { error } = await supabase.from("comments").delete().eq("id", id);
+      if (error) throw error;
+      return NextResponse.json({ success: true });
+    }
+
+    // 匿名用户 → 验证 delete_token
+    if (token) {
+      const { data: comment, error: fetchError } = await supabase
+        .from("comments")
+        .select("delete_token")
+        .eq("id", id)
+        .single();
+
+      if (fetchError || !comment) {
+        return NextResponse.json(
+          { success: false, error: "评论不存在" },
+          { status: 404 }
+        );
+      }
+
+      if (comment.delete_token !== token) {
         return NextResponse.json(
           { success: false, error: "删除令牌无效" },
           { status: 403 }
         );
       }
+
+      const { error } = await supabase.from("comments").delete().eq("id", id);
+      if (error) throw error;
+      return NextResponse.json({ success: true });
     }
 
-    // 既不是管理员也没有有效令牌
-    if (!user && !token) {
-      return NextResponse.json(
-        { success: false, error: "无权删除" },
-        { status: 403 }
-      );
-    }
-
-    const supabase = await createServiceClient();
-    const { error } = await supabase.from("comments").delete().eq("id", id);
-
-    if (error) throw error;
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json(
+      { success: false, error: "无权删除" },
+      { status: 403 }
+    );
   } catch (error) {
     console.error("DELETE /api/comments error:", error);
     return NextResponse.json(
