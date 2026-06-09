@@ -13,6 +13,7 @@ const navItems = [
   { href: "/admin/posts", label: "文章管理" },
   { href: "/admin/posts/new", label: "写文章" },
   { href: "/admin/categories", label: "分类与标签" },
+  { href: "/admin/gallery", label: "相册管理" },
 ];
 
 export function AdminSidebar() {
