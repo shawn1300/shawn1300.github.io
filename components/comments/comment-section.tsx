@@ -50,6 +50,18 @@ export function CommentSection({ postId }: CommentSectionProps) {
           setComments((prev) => [...prev, payload.new as Comment]);
         }
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "comments",
+          filter: `post_id=eq.${postId}`,
+        },
+        (payload) => {
+          setComments((prev) => prev.filter((c) => c.id !== payload.old.id));
+        }
+      )
       .subscribe();
 
     return () => {
@@ -58,12 +70,14 @@ export function CommentSection({ postId }: CommentSectionProps) {
   }, [postId]);
 
   const handleCommentAdded = useCallback((comment: Comment) => {
-    // 乐观更新（API 返回的 comment 加入列表）
-    // 如果 Realtime 也推送了，去重
     setComments((prev) => {
       if (prev.some((c) => c.id === comment.id)) return prev;
       return [...prev, comment];
     });
+  }, []);
+
+  const handleCommentDeleted = useCallback((id: string) => {
+    setComments((prev) => prev.filter((c) => c.id !== id));
   }, []);
 
   return (
@@ -80,7 +94,11 @@ export function CommentSection({ postId }: CommentSectionProps) {
           </p>
         ) : (
           comments.map((comment) => (
-            <CommentItem key={comment.id} comment={comment} />
+            <CommentItem
+              key={comment.id}
+              comment={comment}
+              onDeleted={handleCommentDeleted}
+            />
           ))
         )}
       </div>

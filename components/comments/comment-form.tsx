@@ -7,10 +7,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import type { Comment } from "@/types";
 
+const TOKENS_KEY = "comment_delete_tokens";
+
 interface CommentFormProps {
   postId: string;
   onCommentAdded: (comment: Comment) => void;
 }
+
+function saveDeleteToken(commentId: string, token: string) {
+  try {
+    const raw = localStorage.getItem(TOKENS_KEY);
+    const tokens: Record<string, string> = raw ? JSON.parse(raw) : {};
+    tokens[commentId] = token;
+    localStorage.setItem(TOKENS_KEY, JSON.stringify(tokens));
+  } catch { /* ignore */ }
+}
+
+export { saveDeleteToken };
 
 export function CommentForm({ postId, onCommentAdded }: CommentFormProps) {
   const [authorName, setAuthorName] = useState("");
@@ -45,6 +58,11 @@ export function CommentForm({ postId, onCommentAdded }: CommentFormProps) {
       if (!json.success) {
         toast.error(json.error || "评论提交失败");
         return;
+      }
+
+      // 保存删除令牌到 localStorage
+      if (json.deleteToken) {
+        saveDeleteToken(json.data.id, json.deleteToken);
       }
 
       onCommentAdded(json.data);

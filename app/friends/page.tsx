@@ -16,7 +16,7 @@ interface FriendLink {
 const friends: FriendLink[] = [
   {
     name: "橙子🍊",
-    url: "https://www.nerocats.com/archives.html",
+    url: "https://www.nerocats.com",
     description: "重庆小王子，热爱探索新技术",
     avatar: "/alex.jpg",
   },
