@@ -1,49 +1,64 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceClient } from "@/lib/supabase/server";
+
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN || "";
+const REPO = "shawn1300/shawn1300.github.io";
+const BRANCH = "main";
+const GALLERY_PATH = "public/gallery";
+const API_BASE = "https://api.github.com";
+
+const IMG_EXTS = ["jpg", "jpeg", "png", "gif", "webp", "svg"];
+
+interface GitHubFile {
+  name: string;
+  path: string;
+  sha: string;
+  download_url: string;
+}
+
+function ghHeaders() {
+  return {
+    Authorization: `Bearer ${GITHUB_TOKEN}`,
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+  };
+}
 
 /**
  * GET /api/gallery
- * 获取 Supabase Storage 中所有可公开访问的图片
+ * 列出 public/gallery/ 下的所有图片
  */
 export async function GET() {
+  if (!GITHUB_TOKEN) {
+    return NextResponse.json(
+      { success: false, error: "未配置 GITHUB_TOKEN" },
+      { status: 500 }
+    );
+  }
+
   try {
-    const supabase = await createServiceClient();
+    const res = await fetch(
+      `${API_BASE}/repos/${REPO}/contents/${GALLERY_PATH}?ref=${BRANCH}`,
+      { headers: ghHeaders(), next: { revalidate: 60 } }
+    );
 
-    // 列出 gallery bucket 中的所有文件
-    const { data: files, error } = await supabase
-      .storage
-      .from("gallery")
-      .list();
-
-    if (error) {
-      console.error("GET /api/gallery error:", error);
-      return NextResponse.json(
-        { success: false, error: "获取图片列表失败" },
-        { status: 500 }
-      );
+    if (!res.ok) {
+      if (res.status === 404) {
+        return NextResponse.json({ success: true, data: [] });
+      }
+      throw new Error(`GitHub API: ${res.status}`);
     }
 
-    if (!files || files.length === 0) {
-      return NextResponse.json({ success: true, data: [] });
-    }
-
-    // 过滤掉文件夹，只保留图片文件
-    const imageFiles = files.filter((f) => {
-      const ext = f.name.split(".").pop()?.toLowerCase();
-      return ext && ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext);
-    });
-
-    // 生成公开访问 URL
-    const images = imageFiles.map((f) => {
-      const { data: urlData } = supabase
-        .storage
-        .from("gallery")
-        .getPublicUrl(f.name);
-      return {
+    const files: GitHubFile[] = await res.json();
+    const images = files
+      .filter((f) => {
+        const ext = f.name.split(".").pop()?.toLowerCase();
+        return ext && IMG_EXTS.includes(ext);
+      })
+      .map((f) => ({
         name: f.name,
-        url: urlData.publicUrl,
-      };
-    });
+        url: `/gallery/${f.name}`,
+        sha: f.sha,
+      }));
 
     return NextResponse.json({ success: true, data: images });
   } catch (error) {
@@ -56,10 +71,30 @@ export async function GET() {
 }
 
 /**
+ * 获取文件 SHA（用于更新或删除）
+ */
+async function getFileSha(fileName: string): Promise<string | null> {
+  const res = await fetch(
+    `${API_BASE}/repos/${REPO}/contents/${GALLERY_PATH}/${fileName}?ref=${BRANCH}`,
+    { headers: ghHeaders() }
+  );
+  if (!res.ok) return null;
+  const file: GitHubFile = await res.json();
+  return file.sha;
+}
+
+/**
  * POST /api/gallery
- * 上传图片到 gallery 桶（仅认证用户）
+ * 上传图片到 public/gallery/（通过 GitHub API）
  */
 export async function POST(request: NextRequest) {
+  if (!GITHUB_TOKEN) {
+    return NextResponse.json(
+      { success: false, error: "未配置 GITHUB_TOKEN" },
+      { status: 500 }
+    );
+  }
+
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
@@ -71,42 +106,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!file.type.startsWith("image/")) {
-      return NextResponse.json(
-        { success: false, error: "仅支持图片文件" },
-        { status: 400 }
-      );
+    // 生成文件名
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
+
+    // 文件转 base64
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const content = buffer.toString("base64");
+
+    // 上传到 GitHub
+    const uploadRes = await fetch(
+      `${API_BASE}/repos/${REPO}/contents/${GALLERY_PATH}/${fileName}`,
+      {
+        method: "PUT",
+        headers: ghHeaders(),
+        body: JSON.stringify({
+          message: `📷 上传相册图片: ${fileName}`,
+          content,
+          branch: BRANCH,
+        }),
+      }
+    );
+
+    if (!uploadRes.ok) {
+      const err = await uploadRes.json();
+      throw new Error(err.message || `GitHub API: ${uploadRes.status}`);
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      return NextResponse.json(
-        { success: false, error: "图片大小不能超过 10MB" },
-        { status: 400 }
-      );
-    }
-
-    const supabase = await createServiceClient();
-    const ext = file.name.split(".").pop() || "png";
-    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-
-    const { error } = await supabase.storage
-      .from("gallery")
-      .upload(fileName, file, {
-        cacheControl: "31536000",
-        upsert: false,
-      });
-
-    if (error) throw error;
-
-    const { data: urlData } = supabase.storage
-      .from("gallery")
-      .getPublicUrl(fileName);
-
-    return NextResponse.json({ success: true, data: { name: fileName, url: urlData.publicUrl } });
-  } catch (error) {
+    return NextResponse.json({
+      success: true,
+      data: { name: fileName, url: `/gallery/${fileName}` },
+    });
+  } catch (error: any) {
     console.error("POST /api/gallery error:", error);
     return NextResponse.json(
-      { success: false, error: "上传失败" },
+      { success: false, error: error.message || "上传失败" },
       { status: 500 }
     );
   }
@@ -114,9 +148,16 @@ export async function POST(request: NextRequest) {
 
 /**
  * DELETE /api/gallery?name=xxx
- * 从 gallery 桶删除图片（仅认证用户）
+ * 从 public/gallery/ 删除图片
  */
 export async function DELETE(request: NextRequest) {
+  if (!GITHUB_TOKEN) {
+    return NextResponse.json(
+      { success: false, error: "未配置 GITHUB_TOKEN" },
+      { status: 500 }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const name = searchParams.get("name");
@@ -128,16 +169,37 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const supabase = await createServiceClient();
-    const { error } = await supabase.storage.from("gallery").remove([name]);
+    const sha = await getFileSha(name);
+    if (!sha) {
+      return NextResponse.json(
+        { success: false, error: "文件不存在" },
+        { status: 404 }
+      );
+    }
 
-    if (error) throw error;
+    const deleteRes = await fetch(
+      `${API_BASE}/repos/${REPO}/contents/${GALLERY_PATH}/${name}`,
+      {
+        method: "DELETE",
+        headers: ghHeaders(),
+        body: JSON.stringify({
+          message: `🗑️ 删除相册图片: ${name}`,
+          sha,
+          branch: BRANCH,
+        }),
+      }
+    );
+
+    if (!deleteRes.ok) {
+      const err = await deleteRes.json();
+      throw new Error(err.message || `GitHub API: ${deleteRes.status}`);
+    }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error("DELETE /api/gallery error:", error);
     return NextResponse.json(
-      { success: false, error: "删除失败" },
+      { success: false, error: error.message || "删除失败" },
       { status: 500 }
     );
   }
