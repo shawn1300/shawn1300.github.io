@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>ESP32监测</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { 
+            font-family: Arial; 
+            padding: 20px; 
+            max-width: 800px; 
+            margin: 0 auto; 
+        }
+        .device-selector { 
+            margin-bottom: 20px; 
+            padding: 10px; 
+            background: #f0f0f0; 
+            border-radius: 5px; 
+        }
+        .sensor-data { 
+            margin-bottom: 20px; 
+        }
+        .data-item { 
+            margin: 10px 0; 
+            padding: 10px; 
+            background: #f9f9f9; 
+            border-radius: 5px; 
+        }
+        .aqi-table { 
+            margin: 15px 0; 
+            width: 100%; 
+            border-collapse: collapse; 
+        }
+        .aqi-table th, .aqi-table td { 
+            border: 1px solid #ddd; 
+            padding: 8px; 
+            text-align: center; 
+        }
+        .aqi-table th { 
+            background: #f2f2f2; 
+        }
+        .china-standards { background: #e6f3ff; }
+        .us-standards { background: #fff0e6; }
+        .controls { 
+            margin: 15px 0; 
+        }
+        button { 
+            padding: 8px 15px; 
+            margin-right: 10px; 
+            cursor: pointer; 
+        }
+        .status { 
+            margin-top: 10px; 
+            padding: 5px; 
+            border-radius: 3px; 
+        }
+        .status.good { background: #d4edda; }
+        .status.bad { background: #f8d7da; }
+        .chart-container { 
+            margin-top: 20px; 
+        }
+        .device-id { 
+            font-weight: bold; 
+            color: #0066cc; 
+        }
+    </style>
+</head>
+<body>
+    <h1>ESP32环境监测</h1>
+    
+    <div class="device-selector">
+        <label>选择设备: </label>
+        <select id="deviceSelect">
+            <option value="esp32_01">ESP32_01</option>
+            <option value="esp32_02">ESP32_02</option>
+            <option value="esp32_03">ESP32_03</option>
+        </select>
+        <button onclick="fetchData()">获取数据</button>
+    </div>
+    
+    <div class="sensor-data">
+        <div class="data-item">
+            <div>设备: <span id="deviceId" class="device-id">--</span></div>
+            <div>温度: <span id="temperature">--</span> °C</div>
+            <div>湿度: <span id="humidity">--</span> %</div>
+            <div>PM2.5: <span id="pm25">--</span> μg/m³</div>
+            <div>更新时间: <span id="updateTime">--</span></div>
+        </div>
+            
+            <div class="current-aqi">
+                <h4>当前PM2.5空气质量</h4>
+                <div>国标(中国): <span id="chinaAQI" class="aqi-result">--</span></div>
+                <div>美标(美国): <span id="usAQI" class="aqi-result">--</span></div>
+                <div id="aqiNote"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button onclick="fetchData()">刷新数据</button>
+        <button onclick="toggleAutoRefresh()">自动刷新: <span id="autoRefreshStatus">开启</span></button>
+        <button onclick="fetchHistoryData()">获取历史数据</button>
+    </div>
+    
+    <div class="status" id="status">正在连接...</div>
+    
+    <div class="chart-container">
+        <h3>历史数据</h3>
+        <canvas id="historyChart" width="800" height="300"></canvas>
+    </div>
+    
+        <div class="aqi-standards">
+            <h3>空气质量标准对比</h3>
+            <table class="aqi-table">
+                <tr>
+                    <th>标准</th>
+                    <th>等级</th>
+                    <th>颜色</th>
+                    <th>PM2.5范围(μg/m³)</th>
+                </tr>
+                <tr class="china-standards">
+                    <td rowspan="6">国标(中国)</td>
+                    <td>优</td>
+                    <td style="background:#00e400"></td>
+                    <td>0-50</td>
+                </tr>
+                <tr class="china-standards">
+                    <td>良</td>
+                    <td style="background:#ffff00"></td>
+                    <td>50-100</td>
+                </tr>
+                <tr class="china-standards">
+                    <td>轻度污染</td>
+                    <td style="background:#ff7e00"></td>
+                    <td>101-150</td>
+                </tr>
+                <tr class="china-standards">
+                    <td>中度污染</td>
+                    <td style="background:#ff0000"></td>
+                    <td>151-200</td>
+                </tr>
+                <tr class="china-standards">
+                    <td>重度污染</td>
+                    <td style="background:#99004c"></td>
+                    <td>201-300</td>
+                </tr>
+                <tr class="china-standards">
+                    <td>严重污染</td>
+                    <td style="background:#7e0023"></td>
+                    <td>300-500</td>
+                </tr>
+                
+                <tr class="us-standards">
+                    <td rowspan="6">美标(美国)</td>
+                    <td>优(Good)</td>
+                    <td style="background:#00e400"></td>
+                    <td>0-15.4</td>
+                </tr>
+                <tr class="us-standards">
+                    <td>中等(Moderate)</td>
+                    <td style="background:#ffff00"></td>
+                    <td>15.4-40.4</td>
+                </tr>
+                <tr class="us-standards">
+                    <td>敏感人群不健康<br>(Unhealthy for Sensitive Groups)</td>
+                    <td style="background:#ff7e00"></td>
+                    <td>40.5-65.4</td>
+                </tr>
+                <tr class="us-standards">
+                    <td>不健康(Unhealthy)</td>
+                    <td style="background:#ff0000"></td>
+                    <td>65.5-150.4</td>
+                </tr>
+                <tr class="us-standards">
+                    <td>非常不健康(Very Unhealthy)</td>
+                    <td style="background:#99004c"></td>
+                    <td>150.5-250.4</td>
+                </tr>
+                <tr class="us-standards">
+                    <td>有害(Hazardous)</td>
+                    <td style="background:#7e0023"></td>
+                    <td>250.5-500.4</td>
+                </tr>
+            </table>
+
+    <script>
+        // 配置
+        const SUPABASE_URL = 'https://wewhpfoxhktpsgogikhu.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indld2hwZm94aGt0cHNnb2dpa2h1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwNDUxMjksImV4cCI6MjA4MTYyMTEyOX0.SSFNbVPaeNOACkwMdhGjz_N0tZQukHQCcuCnt_96fnk';
+        const TABLE_NAME = 'sensor_readings';
+        
+        // 全局变量
+        let chart = null;
+        let autoRefresh = true;
+        let autoRefreshInterval = null;
+        let currentDevice = 'esp32_01';
+        
+        // 页面加载
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置设备选择变化监听
+            document.getElementById('deviceSelect').addEventListener('change', function() {
+                currentDevice = this.value;
+                fetchData();
+            });
+            
+            // 初始化图表
+            initChart();
+            
+            // 获取初始数据
+            fetchData();
+            
+            // 设置自动刷新
+            setupAutoRefresh();
+        });
+        
+        // 初始化图表
+        function initChart() {
+            const ctx = document.getElementById('historyChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: '温度 (°C)',
+                            data: [],
+                            borderColor: '#ff6b6b',
+                            backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                            fill: true
+                        },
+                        {
+                            label: '湿度 (%)',
+                            data: [],
+                            borderColor: '#4d96ff',
+                            backgroundColor: 'rgba(77, 150, 255, 0.1)',
+                            fill: true
+                        },
+                        {
+                            label: 'PM2.5',
+                            data: [],
+                            borderColor: '#6bcf7f',
+                            backgroundColor: 'rgba(107, 207, 127, 0.1)',
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+        
+        // 获取最新数据
+        async function fetchData() {
+            try {
+                updateStatus('正在获取数据...');
+                
+                const url = `${SUPABASE_URL}/rest/v1/${TABLE_NAME}?device_id=eq.${currentDevice}&order=created_at.desc&limit=1`;
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('网络错误');
+                
+                const data = await response.json();
+                
+                if (data.length > 0) {
+                    updateDisplay(data[0]);
+                    updateStatus('数据获取成功');
+                } else {
+                    updateStatus('暂无数据');
+                }
+            } catch (error) {
+                console.error('获取数据失败:', error);
+                updateStatus('连接失败');
+            }
+        }
+        
+        // 获取历史数据
+        async function fetchHistoryData() {
+            try {
+                updateStatus('正在获取历史数据...');
+                
+                const url = `${SUPABASE_URL}/rest/v1/${TABLE_NAME}?device_id=eq.${currentDevice}&order=created_at.desc&limit=20`;
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('获取历史数据失败');
+                
+                const data = await response.json();
+                updateChart(data.reverse());
+                updateStatus('历史数据获取成功');
+            } catch (error) {
+                console.error('获取历史数据失败:', error);
+                updateStatus('历史数据获取失败');
+            }
+        }
+        
+        // 更新显示
+        function updateDisplay(data) {
+            // 基本信息
+            document.getElementById('deviceId').textContent = data.device_id;
+            document.getElementById('temperature').textContent = data.temperature.toFixed(1);
+            document.getElementById('humidity').textContent = data.humidity.toFixed(1);
+            document.getElementById('pm25').textContent = data.pm25;
+            
+            // 更新时间
+            const updateTime = new Date(data.created_at).toLocaleString('zh-CN');
+            document.getElementById('updateTime').textContent = updateTime;
+            
+            // 计算并显示空气质量
+            const pm25 = data.pm25;
+            const chinaAQI = getChinaAQI(pm25);
+            const usAQI = getUSAQI(pm25);
+            
+            document.getElementById('chinaAQI').textContent = chinaAQI.name + ` (${chinaAQI.range})`;
+            document.getElementById('usAQI').textContent = usAQI.name + ` (${usAQI.range})`;
+            
+            // 显示差异说明
+            const note = document.getElementById('aqiNote');
+            if (chinaAQI.level !== usAQI.level) {
+                note.innerHTML = `<strong>注意:</strong> 当前PM2.5值 ${pm25}，按照国标属于"${chinaAQI.name}"，按照美标属于"${usAQI.name}"。`;
+                note.style.color = '#ff6600';
+            } else {
+                note.innerHTML = `国标和美标评价一致: "${chinaAQI.name}"`;
+                note.style.color = '#009900';
+            }
+        }
+        
+        // 国标(中国)空气质量计算
+        function getChinaAQI(pm25) {
+            if (pm25 <= 50) return { name: '优', level: 1, range: '0-50' };
+            if (pm25 <= 100) return { name: '良', level: 2, range: '50-100' };
+            if (pm25 <= 150) return { name: '轻度污染', level: 3, range: '101-150' };
+            if (pm25 <= 200) return { name: '中度污染', level: 4, range: '151-200' };
+            if (pm25 <= 300) return { name: '重度污染', level: 5, range: '201-300' };
+            return { name: '严重污染', level: 6, range: '301-500' };
+        }
+        
+        // 美标(美国)空气质量计算
+        function getUSAQI(pm25) {
+            if (pm25 <= 15.4) return { name: '优(Good)', level: 1, range: '0-15.4' };
+            if (pm25 <= 40.4) return { name: '中等(Moderate)', level: 2, range: '15.5-40.4' };
+            if (pm25 <= 65.4) return { name: '敏感人群不健康', level: 3, range: '40.5-65.4' };
+            if (pm25 <= 150.4) return { name: '不健康(Unhealthy)', level: 4, range: '65.5-150.4' };
+            if (pm25 <= 250.4) return { name: '非常不健康', level: 5, range: '150.5-250.4' };
+            return { name: '有害(Hazardous)', level: 6, range: '250.5-500.4' };
+        }
+        
+        // 更新图表
+        function updateChart(data) {
+            if (!chart || data.length === 0) return;
+            
+            const labels = data.map(item => {
+                const date = new Date(item.created_at);
+                return `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+            });
+            
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = data.map(item => item.temperature);
+            chart.data.datasets[1].data = data.map(item => item.humidity);
+            chart.data.datasets[2].data = data.map(item => item.pm25);
+            
+            chart.update();
+        }
+        
+        // 更新状态
+        function updateStatus(message) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = 'status ' + (message.includes('失败') ? 'bad' : 'good');
+        }
+        
+        // 设置自动刷新
+        function setupAutoRefresh() {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            
+            if (autoRefresh) {
+                autoRefreshInterval = setInterval(fetchData, 10000); // 10秒
+            }
+        }
+        
+        // 切换自动刷新
+        function toggleAutoRefresh() {
+            autoRefresh = !autoRefresh;
+            const statusEl = document.getElementById('autoRefreshStatus');
+            
+            if (autoRefresh) {
+                statusEl.textContent = '开启';
+                setupAutoRefresh();
+                updateStatus('自动刷新已开启');
+            } else {
+                statusEl.textContent = '关闭';
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+                updateStatus('自动刷新已关闭');
+            }
+        }
+    </script>
+</body>
+</html>
