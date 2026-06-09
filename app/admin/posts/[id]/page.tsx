@@ -1,55 +1,80 @@
-import { notFound } from "next/navigation";
-import { createServerSupabase } from "@/lib/supabase/server";
-import { getCategories, getTags } from "@/lib/posts";
-import { PostEditor } from "@/components/admin/post-editor";
-import type { Post } from "@/types";
+"use client";
 
-export const dynamic = "force-dynamic";
+import { useEffect, useState, use } from "react";
+import { notFound } from "next/navigation";
+import { PostEditor } from "@/components/admin/post-editor";
+import type { Post, Category, Tag } from "@/types";
 
 interface EditPostPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function EditPostPage({ params }: EditPostPageProps) {
-  const { id } = await params;
-  const supabase = await createServerSupabase();
+export default function EditPostPage({ params }: EditPostPageProps) {
+  const { id } = use(params);
+  const [post, setPost] = useState<Post | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  // 获取文章
-  const { data: post, error } = await supabase
-    .from("posts")
-    .select(`
-      *,
-      category:categories(*)
-    `)
-    .eq("id", id)
-    .single();
+  useEffect(() => {
+    async function fetchAll() {
+      try {
+        const [metaRes, postRes] = await Promise.all([
+          fetch("/api/admin-meta"),
+          fetch(`/api/posts/${id}`),
+        ]);
+
+        const metaJson = await metaRes.json();
+        const postJson = await postRes.json();
+
+        if (metaJson.success) {
+          setCategories(metaJson.data.categories);
+          setTags(metaJson.data.tags);
+        }
+
+        if (postJson.success) {
+          setPost(postJson.data);
+        } else {
+          setError(true);
+        }
+      } catch {
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAll();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="h-5 w-20 bg-muted/50 rounded animate-pulse" />
+          <div className="flex gap-2">
+            <div className="h-8 w-16 bg-muted/50 rounded animate-pulse" />
+            <div className="h-8 w-12 bg-muted/50 rounded animate-pulse" />
+          </div>
+        </div>
+        <div className="space-y-3 p-4 border border-border rounded-lg bg-muted/50">
+          <div className="h-9 bg-muted/30 rounded animate-pulse" />
+          <div className="flex gap-3">
+            <div className="h-8 flex-1 bg-muted/30 rounded animate-pulse" />
+            <div className="h-8 flex-1 bg-muted/30 rounded animate-pulse" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="h-[60vh] bg-muted/30 rounded animate-pulse" />
+          <div className="h-[60vh] bg-muted/30 rounded animate-pulse" />
+        </div>
+      </div>
+    );
+  }
 
   if (error || !post) {
     notFound();
   }
 
-  // 获取标签关联
-  const { data: tagRelations } = await supabase
-    .from("post_tags")
-    .select("tag_id")
-    .eq("post_id", id);
-
-  let tags: Post["tags"] = [];
-  if (tagRelations && tagRelations.length > 0) {
-    const { data: tagData } = await supabase
-      .from("tags")
-      .select("*")
-      .in("id", tagRelations.map((t) => t.tag_id));
-    tags = tagData || [];
-  }
-
-  const [categories, allTags] = await Promise.all([getCategories(), getTags()]);
-
-  return (
-    <PostEditor
-      post={{ ...post, tags } as Post}
-      categories={categories}
-      tags={allTags}
-    />
-  );
+  return <PostEditor post={post} categories={categories} tags={tags} />;
 }

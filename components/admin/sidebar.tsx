@@ -14,6 +14,7 @@ const navItems = [
   { href: "/admin/posts/new", label: "写文章" },
   { href: "/admin/categories", label: "分类与标签" },
   { href: "/admin/gallery", label: "相册管理" },
+  { href: "/admin/comments", label: "评论管理" },
 ];
 
 export function AdminSidebar() {

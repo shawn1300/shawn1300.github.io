@@ -2,6 +2,59 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 
 /**
+ * GET /api/posts/[id]
+ * 获取单篇文章（含标签，仅供后台）
+ */
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const supabase = await createServiceClient();
+
+    const { data: post, error } = await supabase
+      .from("posts")
+      .select("*, category:categories(*)")
+      .eq("id", id)
+      .single();
+
+    if (error || !post) {
+      return NextResponse.json(
+        { success: false, error: "文章不存在" },
+        { status: 404 }
+      );
+    }
+
+    // 获取标签
+    const { data: tagRelations } = await supabase
+      .from("post_tags")
+      .select("tag_id")
+      .eq("post_id", id);
+
+    let tags: { id: string; name: string; slug: string }[] = [];
+    if (tagRelations && tagRelations.length > 0) {
+      const { data: tagData } = await supabase
+        .from("tags")
+        .select("*")
+        .in(
+          "id",
+          tagRelations.map((t) => t.tag_id)
+        );
+      tags = tagData || [];
+    }
+
+    return NextResponse.json({ success: true, data: { ...post, tags } });
+  } catch (error) {
+    console.error("GET /api/posts/[id] error:", error);
+    return NextResponse.json(
+      { success: false, error: "获取文章失败" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
  * PUT /api/posts/[id]
  * 更新文章
  */
