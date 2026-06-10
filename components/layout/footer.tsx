@@ -5,6 +5,9 @@ export function Footer() {
         <p className="text-[11px] sm:text-xs text-muted-foreground">
           &copy; {new Date().getFullYear()} Shawn.
         </p>
+        <p className="text-[11px] sm:text-xs text-muted-foreground italic tracking-wide">
+          もう、何も怖くない！
+        </p>
         <a
           href="https://github.com/shawn1300"
           target="_blank"

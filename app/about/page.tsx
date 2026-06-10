@@ -27,6 +27,13 @@ export default function AboutPage() {
           Supabase，部署在 Vercel 上。双主题（暖白 / 暗黑）自由切换，
           支持 Markdown 写作、实时评论。
         </p>
+        <p>
+          值得一提的是，这个博客的每一行代码都是在 AI 的辅助下完成的——
+          从架构设计、数据库建模、页面布局，到功能实现、bug 修复、部署调试，
+          全程在 VS Code 中与 Claude Code 结对编程（DeepSeek API）。
+          对于不懂编程的人来说，这是一个很有趣的实验：
+          证明在今天，只要你有想法和审美，AI 可以帮你把想法变成现实。
+        </p>
 
         <div className="pt-4 space-y-2">
           <h2 className="text-sm font-medium text-foreground">联系方式</h2>
