@@ -12,6 +12,17 @@ export async function getPublishedPosts(options?: {
   const supabase = await createServerSupabase();
   const { categorySlug, limit = 20, offset = 0 } = options || {};
 
+  // 按 slug 查分类 id
+  let categoryId: string | null = null;
+  if (categorySlug) {
+    const { data: cat } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("slug", categorySlug)
+      .single();
+    categoryId = cat?.id || null;
+  }
+
   let query = supabase
     .from("posts")
     .select(`
@@ -22,8 +33,8 @@ export async function getPublishedPosts(options?: {
     .order("published_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
-  if (categorySlug) {
-    query = query.eq("categories.slug", categorySlug);
+  if (categoryId) {
+    query = query.eq("category_id", categoryId);
   }
 
   const { data, error } = await query;

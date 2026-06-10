@@ -1,18 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- 左耳（后面那只） -->
-  <path d="M12 15 C12 8 11 2 13 0.5 C14 -0.5 15.5 0 15.5 3 C15.5 7 15 12 15 15Z" fill="#111"/>
-  <!-- 右耳（前面那只） -->
-  <path d="M16 14 C16 7 17 1 18.5 0 C19.8 -0.8 21.5 0 21.5 3 C21.5 7 20 12 19 14Z" fill="#111"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
   <!-- 身体 -->
-  <path d="M5 17 C5 12 8 10 14 10 C18 10 22 10 26 12 C28 13 29 17 28 21 C27 25 24 28 20 28 C16 28 11 28 7 26 C4 25 3 22 4 19Z" fill="#111"/>
+  <ellipse cx="14" cy="22" rx="7" ry="8" fill="#0a0a0a"/>
+  <!-- 头 -->
+  <circle cx="19" cy="14" r="5.5" fill="#0a0a0a"/>
+  <!-- 脖子连接 -->
+  <rect x="14" y="14" width="5" height="6" fill="#0a0a0a"/>
+  <!-- 左耳（后面） -->
+  <ellipse cx="17" cy="5" rx="1.8" ry="5" fill="#0a0a0a" transform="rotate(15 17 5)"/>
+  <!-- 右耳（前面） -->
+  <ellipse cx="21" cy="5.5" rx="1.8" ry="5.5" fill="#0a0a0a" transform="rotate(10 21 5.5)"/>
   <!-- 尾巴 -->
-  <circle cx="5" cy="20" r="2.5" fill="#111"/>
+  <circle cx="7" cy="20" r="2.5" fill="#0a0a0a"/>
   <!-- 前腿 -->
-  <ellipse cx="14" cy="27" rx="2.5" ry="2" fill="#111"/>
+  <ellipse cx="21" cy="24" rx="2" ry="3" fill="#0a0a0a"/>
   <!-- 后腿 -->
-  <ellipse cx="24" cy="26" rx="2.5" ry="2.5" fill="#111"/>
-  <!-- 眼睛 -->
-  <circle cx="24" cy="14" r="1" fill="#fff"/>
+  <ellipse cx="10" cy="27" rx="3" ry="3" fill="#0a0a0a"/>
+  <!-- 眼睛（白色圆点） -->
+  <circle cx="21.5" cy="13" r="1" fill="#fafafa"/>
   <!-- 鼻子 -->
-  <circle cx="27.5" cy="16" r="0.6" fill="#fff"/>
+  <circle cx="24" cy="15" r="0.7" fill="#fafafa"/>
 </svg>
