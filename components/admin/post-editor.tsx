@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ImageUpload } from "@/components/admin/image-upload";
 import { MarkdownRenderer } from "@/components/posts/markdown-renderer";
 import { toast } from "sonner";
 import type { Post, Category, Tag } from "@/types";
@@ -87,11 +86,6 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
     },
     [content]
   );
-
-  // 插入图片 URL
-  const handleImageInsert = (url: string, alt?: string) => {
-    insertMarkdown(`![${alt || "image"}](${url})`);
-  };
 
   // 保存
   const handleSave = async (publishStatus?: "draft" | "published") => {
@@ -287,7 +281,6 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
               >
                 &lt;/&gt;
               </button>
-              <ImageUpload onInsert={handleImageInsert} />
             </div>
           </div>
           <Textarea
