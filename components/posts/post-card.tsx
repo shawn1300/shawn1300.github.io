@@ -22,6 +22,8 @@ export function PostCard({ post }: PostCardProps) {
           <img
             src={post.cover_image!}
             alt=""
+            referrerPolicy="no-referrer"
+            crossOrigin="anonymous"
             className="absolute inset-0 h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
           {/* 暗色渐变遮罩 */}

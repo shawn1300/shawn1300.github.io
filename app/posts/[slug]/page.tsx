@@ -81,6 +81,8 @@ export default async function PostPage({ params }: PostPageProps) {
             <img
               src={post.cover_image}
               alt={post.title}
+              referrerPolicy="no-referrer"
+              crossOrigin="anonymous"
               className="w-full rounded-lg"
             />
           </div>
