@@ -12,6 +12,8 @@ const navItems = [
   { href: "/admin", label: "概览", exact: true },
   { href: "/admin/posts", label: "文章管理" },
   { href: "/admin/posts/new", label: "写文章" },
+  { href: "/admin/diaries", label: "日记管理" },
+  { href: "/admin/diaries/new", label: "写日记" },
   { href: "/admin/categories", label: "分类与标签" },
   { href: "/admin/gallery", label: "相册管理" },
   { href: "/admin/comments", label: "评论管理" },

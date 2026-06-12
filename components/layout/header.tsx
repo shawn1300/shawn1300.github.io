@@ -10,6 +10,7 @@ const navItems = [
   { href: "/", label: "首页" },
   { href: "/categories", label: "分类" },
   { href: "/archive", label: "归档" },
+  { href: "/diaries", label: "日记" },
   { href: "/gallery", label: "相册" },
   { href: "/friends", label: "友链" },
   { href: "/about", label: "关于" },

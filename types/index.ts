@@ -48,6 +48,24 @@ export interface Comment {
   created_at: string
 }
 
+// ── 日记 ──
+
+export interface Diary {
+  id: string
+  title: string
+  slug: string
+  content: string
+  author_id: string
+  created_at: string
+  updated_at: string
+}
+
+export interface DiaryFormData {
+  title: string
+  slug: string
+  content: string
+}
+
 // ── 表单提交类型 ──
 
 export interface CommentFormData {
