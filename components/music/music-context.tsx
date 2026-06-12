@@ -18,6 +18,7 @@ export type Track = {
   title: string;
   artist: string;
   src: string;
+  coverUrl?: string;
 };
 
 type MusicState = {
@@ -42,16 +43,18 @@ type MusicContextValue = MusicState & MusicActions & { tracks: Track[] };
 
 const TRACKS: Track[] = [
   {
-    id: "where-wind-whispers",
-    title: "Where Wind Whispers",
-    artist: "Wuthering Waves & jkinss",
-    src: "/music/Wuthering Waves & jkinss - Where Wind Whispers.mp3",
-  },
-  {
     id: "yume-to-hazakura",
     title: "夢と葉桜",
     artist: "初音ミク, 青木月光",
     src: "/music/初音ミク,青木月光 - 夢と葉桜.mp3",
+    coverUrl: "/music/yume-to-hazakura-cover.jpg",
+  },
+  {
+    id: "where-wind-whispers",
+    title: "Where Wind Whispers",
+    artist: "Wuthering Waves & jkinss",
+    src: "/music/Wuthering Waves & jkinss - Where Wind Whispers.mp3",
+    coverUrl: "/music/where-wind-whispers-cover.jpg",
   },
 ];
 

@@ -35,6 +35,7 @@ export function MusicPanel({
   } = useMusic();
 
   const currentTrack = tracks[currentTrackIndex];
+  const coverUrl = currentTrack.coverUrl;
   const progressPercent =
     duration > 0 ? Math.min((currentTime / duration) * 100, 100) : 0;
 
@@ -69,19 +70,26 @@ export function MusicPanel({
         <X className="size-3.5" />
       </button>
 
-      {/* Rotating disc */}
+      {/* Rotating disc / album cover */}
       <div className="flex justify-center mt-2 mb-4">
         <div
           className={cn(
-            "w-20 h-20 rounded-full",
-            "bg-gradient-to-br from-muted via-secondary to-muted",
+            "w-20 h-20 rounded-full overflow-hidden",
             "border-2 border-border",
             "flex items-center justify-center",
-            "shadow-inner",
-            isPlaying && "[animation:spin-slow_3s_linear_infinite]"
+            isPlaying && "[animation:spin-slow_3s_linear_infinite]",
+            !coverUrl && "bg-gradient-to-br from-muted via-secondary to-muted shadow-inner"
           )}
         >
-          <div className="w-5 h-5 rounded-full bg-popover border border-border" />
+          {coverUrl ? (
+            <img
+              src={coverUrl}
+              alt={currentTrack.title}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-5 h-5 rounded-full bg-popover border border-border" />
+          )}
         </div>
       </div>
 

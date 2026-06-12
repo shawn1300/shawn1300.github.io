@@ -1,6 +1,6 @@
 "use client";
 
-import { Music } from "lucide-react";
+import { MusicIcon } from "./music-icon";
 import { cn } from "@/lib/utils";
 import { useMusic } from "./music-context";
 
@@ -18,7 +18,7 @@ export function MusicNote({ onClick }: { onClick: () => void }) {
       aria-label="音乐播放器"
       title="音乐播放器"
     >
-      <Music className="size-4" />
+      <MusicIcon className="size-4" />
     </button>
   );
 }
