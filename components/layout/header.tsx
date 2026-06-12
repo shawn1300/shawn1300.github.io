@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { MusicPlayer } from "@/components/music/music-player";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -65,11 +66,15 @@ export function Header() {
         {/* Desktop nav */}
         <nav className="hidden sm:flex items-center gap-6">
           <NavLinks />
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <MusicPlayer />
+            <ThemeToggle />
+          </div>
         </nav>
 
         {/* Mobile: theme toggle + hamburger */}
         <div className="flex items-center gap-2 sm:hidden">
+          <MusicPlayer />
           <ThemeToggle />
           <button
             onClick={() => setMenuOpen(!menuOpen)}

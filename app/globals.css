@@ -180,3 +180,8 @@
   background: var(--primary);
   color: var(--primary-foreground);
 }
+
+/* ── Music player spin animation ── */
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}

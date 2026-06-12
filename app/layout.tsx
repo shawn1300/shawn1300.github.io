@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { MusicProvider } from "@/components/music/music-context";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { ThemeToaster } from "@/components/theme-toaster";
@@ -38,10 +39,12 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <ThemeProvider>
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <ThemeToaster />
+          <MusicProvider>
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+            <ThemeToaster />
+          </MusicProvider>
         </ThemeProvider>
       </body>
     </html>
