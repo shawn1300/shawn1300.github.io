@@ -77,7 +77,7 @@ export function MusicPanel({
             "w-20 h-20 rounded-full overflow-hidden",
             "border-2 border-border",
             "flex items-center justify-center",
-            isPlaying && "[animation:spin-slow_3s_linear_infinite]",
+            isPlaying && "[animation:spin-slow_8s_linear_infinite]",
             !coverUrl && "bg-gradient-to-br from-muted via-secondary to-muted shadow-inner"
           )}
         >
