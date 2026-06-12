@@ -4,7 +4,9 @@
  * 扫描 public/music/ 下的所有 .mp3 文件，自动：
  *   1. 读取 ID3 标签获取标题和艺术家
  *   2. 提取嵌入式唱片封面（如果有）
- *   3. 生成 components/music/tracks.ts
+ *   3. 更新 components/music/tracks.ts
+ *
+ * 保留已有曲目的手动排序和编辑 —— 新歌追加到末尾。
  *
  * 用法：node scripts/sync-music.js
  */
@@ -66,75 +68,45 @@ function extractCover(mp3Path, coverPath) {
   }
 }
 
-// ── Main ──
+// ── Parse existing tracks.ts ──
 
-function main() {
-  console.log("🎵 同步音乐文件...\n");
+function parseExistingTracks() {
+  if (!fs.existsSync(TRACKS_OUTPUT)) return [];
 
-  if (!fs.existsSync(MUSIC_DIR)) {
-    console.error(`❌ 音乐目录不存在: ${MUSIC_DIR}`);
-    process.exit(1);
-  }
+  const content = fs.readFileSync(TRACKS_OUTPUT, "utf-8");
 
-  const files = fs
-    .readdirSync(MUSIC_DIR)
-    .filter((f) => f.toLowerCase().endsWith(".mp3"))
-    .sort();
-
-  if (files.length === 0) {
-    console.log("⚠️  没有找到 .mp3 文件");
-    const tracks = `// 自动生成 — 运行 node scripts/sync-music.js 重新生成
-export const TRACKS: Track[] = [];
-`;
-    fs.writeFileSync(TRACKS_OUTPUT, tracks, "utf-8");
-    console.log(`✅ 已生成空曲目列表: ${TRACKS_OUTPUT}`);
-    return;
-  }
+  // Extract the array portion between [ and ];
+  const match = content.match(/export const TRACKS[^=]*=\s*\[([\s\S]*)\];/);
+  if (!match) return [];
 
   const tracks = [];
+  const entries = match[1].split("},");
+  for (const entry of entries) {
+    if (!entry.trim()) continue;
 
-  for (const file of files) {
-    const mp3Path = path.join(MUSIC_DIR, file);
-    const basename = path.basename(file, ".mp3");
-    const coverFile = `${basename}-cover.jpg`;
-    const coverPath = path.join(MUSIC_DIR, coverFile);
-    const id = toId(file);
+    const idMatch = entry.match(/id:\s*"([^"]*)"/);
+    const titleMatch = entry.match(/title:\s*"([^"]*)"/);
+    const artistMatch = entry.match(/artist:\s*"([^"]*)"/);
+    const srcMatch = entry.match(/src:\s*"([^"]*)"/);
+    const coverMatch = entry.match(/coverUrl:\s*"([^"]*)"/);
 
-    process.stdout.write(`  📀 ${file} ... `);
-
-    const meta = readMetadata(mp3Path);
-    console.log(`"${meta.title}" — ${meta.artist}`);
-
-    // Extract cover if available and not already extracted
-    if (meta.hasCover && !fs.existsSync(coverPath)) {
-      const ok = extractCover(mp3Path, coverPath);
-      if (ok) {
-        console.log(`     🖼️  封面已提取: ${coverFile}`);
-      } else {
-        console.log(`     ⚠️  封面提取失败`);
-      }
-    } else if (meta.hasCover) {
-      console.log(`     🖼️  封面已存在: ${coverFile}`);
-    } else {
-      console.log(`     ℹ️  无嵌入式封面`);
+    if (srcMatch) {
+      tracks.push({
+        id: idMatch ? idMatch[1] : "",
+        title: titleMatch ? titleMatch[1] : "",
+        artist: artistMatch ? artistMatch[1] : "",
+        src: srcMatch[1],
+        coverUrl: coverMatch ? coverMatch[1] : undefined,
+      });
     }
-
-    const coverField = meta.hasCover
-      ? `\n    coverUrl: "/music/${coverFile}",`
-      : "";
-
-    tracks.push({
-      id,
-      title: meta.title,
-      artist: meta.artist,
-      src: `/music/${file}`,
-      hasCover: meta.hasCover,
-      coverField,
-    });
   }
 
-  // ── Generate tracks.ts ──
+  return tracks;
+}
 
+// ── Generate tracks.ts ──
+
+function generateTracksFile(tracks) {
   const lines = [
     `// 自动生成于 ${new Date().toISOString().split("T")[0]} — 运行 node scripts/sync-music.js 重新生成`,
     `// 如需调整曲目顺序，直接编辑下方数组即可`,
@@ -153,9 +125,9 @@ export const TRACKS: Track[] = [];
     lines.push(`    id: "${t.id}",`);
     lines.push(`    title: "${escapedTitle}",`);
     lines.push(`    artist: "${escapedArtist}",`);
-    lines.push(`    src: "/music/${t.src.split("/").pop()}",`);
-    if (t.hasCover) {
-      lines.push(`    coverUrl: "/music/${t.src.split("/").pop()?.replace(".mp3", "")}-cover.jpg",`);
+    lines.push(`    src: "${t.src}",`);
+    if (t.coverUrl) {
+      lines.push(`    coverUrl: "${t.coverUrl}",`);
     }
     lines.push(`  },`);
   }
@@ -164,10 +136,101 @@ export const TRACKS: Track[] = [];
   lines.push("");
 
   fs.writeFileSync(TRACKS_OUTPUT, lines.join("\n"), "utf-8");
+}
 
-  console.log(`\n✅ 已生成曲目配置: ${TRACKS_OUTPUT}`);
-  console.log(`   共 ${tracks.length} 首曲目`);
-  console.log(`   封面图片位于: public/music/`);
+// ── Main ──
+
+function main() {
+  console.log("🎵 同步音乐文件...\n");
+
+  if (!fs.existsSync(MUSIC_DIR)) {
+    console.error(`❌ 音乐目录不存在: ${MUSIC_DIR}`);
+    process.exit(1);
+  }
+
+  // Parse existing tracks (preserve order and manual edits)
+  const existing = parseExistingTracks();
+  const existingBySrc = new Map(existing.map((t) => [t.src, t]));
+
+  // Scan current MP3 files
+  const mp3Files = fs
+    .readdirSync(MUSIC_DIR)
+    .filter((f) => f.toLowerCase().endsWith(".mp3"))
+    .sort();
+
+  if (mp3Files.length === 0) {
+    console.log("⚠️  没有找到 .mp3 文件");
+    generateTracksFile([]);
+    console.log("✅ 已生成空曲目列表");
+    return;
+  }
+
+  // Detect removed tracks
+  const currentSrcs = new Set(mp3Files.map((f) => `/music/${f}`));
+  const removed = existing.filter((t) => !currentSrcs.has(t.src));
+  for (const t of removed) {
+    console.log(`  🗑️  已删除: ${path.basename(t.src)}`);
+  }
+
+  // Build merged track list: preserve existing, append new
+  const merged = [];
+  const seen = new Set();
+
+  // Phase 1: existing tracks whose MP3s still exist
+  for (const t of existing) {
+    if (currentSrcs.has(t.src)) {
+      merged.push(t);
+      seen.add(t.src);
+    }
+  }
+
+  // Phase 2: new MP3s not in existing tracks
+  const newCount = { value: 0 };
+
+  for (const file of mp3Files) {
+    const src = `/music/${file}`;
+    if (seen.has(src)) continue; // already in list
+
+    const mp3Path = path.join(MUSIC_DIR, file);
+    const basename = path.basename(file, ".mp3");
+    const coverFile = `${basename}-cover.jpg`;
+    const coverPath = path.join(MUSIC_DIR, coverFile);
+    const id = toId(file);
+
+    process.stdout.write(`  🆕 ${file} ... `);
+
+    const meta = readMetadata(mp3Path);
+    console.log(`"${meta.title}" — ${meta.artist}`);
+
+    // Extract cover if available and not already extracted
+    if (meta.hasCover && !fs.existsSync(coverPath)) {
+      const ok = extractCover(mp3Path, coverPath);
+      if (ok) {
+        console.log(`     🖼️  封面已提取: ${coverFile}`);
+      } else {
+        console.log(`     ⚠️  封面提取失败`);
+      }
+    } else if (meta.hasCover) {
+      console.log(`     🖼️  封面已存在: ${coverFile}`);
+    } else {
+      console.log(`     ℹ️  无嵌入式封面`);
+    }
+
+    merged.push({
+      id,
+      title: meta.title,
+      artist: meta.artist,
+      src,
+      coverUrl: meta.hasCover ? `/music/${coverFile}` : undefined,
+    });
+    newCount.value++;
+  }
+
+  // Write output
+  generateTracksFile(merged);
+
+  console.log(`\n✅ 曲目配置已更新: ${TRACKS_OUTPUT}`);
+  console.log(`   保留 ${merged.length - newCount.value} 首 | 新增 ${newCount.value} 首 | 移除 ${removed.length} 首`);
 }
 
 main();
