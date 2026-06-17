@@ -19,10 +19,17 @@ export async function getDiaries(options?: {
 /** 根据 slug 获取单篇日记 */
 export async function getDiaryBySlug(slug: string): Promise<Diary | null> {
   const supabase = await createServerSupabase();
+  // URL 中的中文 slug 可能未被 Next.js 自动解码，手动兜底
+  let decodedSlug = slug;
+  try {
+    decodedSlug = decodeURIComponent(slug);
+  } catch {
+    // 已解码或无百分号编码，用原始值
+  }
   const { data } = await supabase
     .from("diaries")
     .select("*")
-    .eq("slug", slug)
+    .eq("slug", decodedSlug)
     .single();
   return (data as Diary) || null;
 }
