@@ -150,6 +150,9 @@ export async function DELETE(
       );
     }
 
+    // 先删除标签关联
+    await supabase.from("post_tags").delete().eq("post_id", id);
+
     const { error } = await supabase.from("posts").delete().eq("id", id);
 
     if (error) throw error;

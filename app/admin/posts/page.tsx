@@ -3,6 +3,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
+import { DeletePostButton } from "@/components/admin/delete-post-button";
 
 export const dynamic = "force-dynamic";
 
@@ -57,6 +58,9 @@ export default async function AdminPostsPage() {
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground text-xs hidden md:table-cell">
                   更新于
                 </th>
+                <th className="text-right px-4 py-3 font-medium text-muted-foreground text-xs w-24">
+                  操作
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -86,6 +90,9 @@ export default async function AdminPostsPage() {
                   </td>
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">
                     {formatDate(post.updated_at)}
+                  </td>
+                  <td className="px-4 py-2 text-right">
+                    <DeletePostButton id={post.id} title={post.title || "无标题"} />
                   </td>
                 </tr>
               ))}
