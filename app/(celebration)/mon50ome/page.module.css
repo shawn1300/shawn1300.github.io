@@ -1,0 +1,624 @@
+.shell {
+  position: relative;
+  min-height: 100svh;
+  overflow-x: hidden;
+  isolation: isolate;
+  color: #fff5dc;
+  background:
+    linear-gradient(120deg, rgba(151, 216, 255, 0.12) 0, rgba(151, 216, 255, 0) 26%),
+    linear-gradient(132deg, rgba(255, 225, 158, 0.12) 0, rgba(255, 225, 158, 0) 38%),
+    linear-gradient(180deg, #4f0712 0%, #8d0c18 34%, #a71320 62%, #5d0713 100%);
+  font-family: var(--font-geist-sans), "Microsoft YaHei", "PingFang SC", sans-serif;
+}
+
+.shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(135deg, rgba(255, 231, 178, 0.045) 0, rgba(255, 231, 178, 0.045) 1px, transparent 1px, transparent 18px),
+    linear-gradient(180deg, rgba(255, 246, 222, 0.08), rgba(255, 246, 222, 0));
+}
+
+.fireworksCanvas {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100vw;
+  height: 100svh;
+  pointer-events: none;
+}
+
+.backgroundWash {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(35, 0, 8, 0.74), rgba(102, 7, 21, 0.36) 52%, rgba(35, 0, 8, 0)),
+    linear-gradient(115deg, rgba(255, 224, 150, 0.16), rgba(255, 224, 150, 0) 42%),
+    linear-gradient(70deg, rgba(151, 216, 255, 0.09), rgba(151, 216, 255, 0) 32%);
+  opacity: 0.7;
+}
+
+.page {
+  position: relative;
+  z-index: 3;
+  width: min(100%, 760px);
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1.4rem, 6svh, 3rem) 1.25rem calc(2rem + env(safe-area-inset-bottom));
+  overflow: hidden;
+}
+
+.heroStage {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 42rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.ribbon {
+  position: absolute;
+  z-index: 1;
+  width: clamp(13rem, 58%, 28rem);
+  height: clamp(2.2rem, 10%, 4.6rem);
+  border-radius: 999px;
+  border: 1px solid rgba(255, 228, 159, 0.2);
+  background: linear-gradient(90deg, rgba(255, 241, 203, 0), rgba(255, 215, 121, 0.26), rgba(255, 241, 203, 0));
+  animation: ribbonFloat 5200ms ease-in-out infinite;
+}
+
+.ribbonTop {
+  top: 8%;
+  left: -9rem;
+  transform: rotate(-22deg);
+}
+
+.ribbonBottom {
+  right: -10rem;
+  bottom: 12%;
+  transform: rotate(24deg);
+  animation-delay: 900ms;
+}
+
+.star {
+  position: absolute;
+  z-index: 1;
+  color: rgba(255, 238, 184, 0.88);
+  line-height: 1;
+  text-shadow: 0 0 1.4rem rgba(255, 218, 115, 0.58);
+  animation: starPulse 3600ms ease-in-out infinite;
+}
+
+.starOne {
+  top: 15%;
+  right: 14%;
+  font-size: 1.7rem;
+}
+
+.starTwo {
+  left: 9%;
+  bottom: 24%;
+  font-size: 1.35rem;
+  animation-delay: 700ms;
+}
+
+.starThree {
+  right: 18%;
+  bottom: 10%;
+  color: rgba(151, 216, 255, 0.82);
+  font-size: 1.1rem;
+  animation-delay: 1400ms;
+}
+
+.heroBadge {
+  margin: 0 0 0.9rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 227, 154, 0.34);
+  background: rgba(255, 247, 225, 0.08);
+  color: #ffe4a3;
+  font-size: 0.86rem;
+  line-height: 1.3;
+}
+
+.heroTitleWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.heroName {
+  margin: 0;
+  color: #fff9ea;
+  font-size: 1.75rem;
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-shadow: 0 0.5rem 1.8rem rgba(44, 0, 7, 0.26);
+}
+
+.heroTitle {
+  margin: 0.35rem 0 0;
+  color: #ffe2a0;
+  font-size: 2.1rem;
+  font-weight: 760;
+  line-height: 1.16;
+  letter-spacing: 0;
+  text-shadow: 0 0.6rem 1.9rem rgba(44, 0, 7, 0.28);
+}
+
+.ageMark {
+  position: relative;
+  width: clamp(12rem, 52%, 18rem);
+  aspect-ratio: 1;
+  margin: clamp(1rem, 5svh, 2.2rem) 0 clamp(0.9rem, 4svh, 1.9rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.ageRing {
+  position: absolute;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.ageRingOuter {
+  inset: 0;
+  border: 1px solid rgba(255, 225, 148, 0.56);
+  box-shadow: 0 0 2.6rem rgba(255, 217, 119, 0.22), inset 0 0 0 1.1rem rgba(255, 247, 223, 0.05);
+  animation: ringBreath 4200ms ease-in-out infinite;
+}
+
+.ageRingInner {
+  inset: 1.4rem;
+  border: 1px solid rgba(255, 246, 218, 0.28);
+}
+
+.ageNumber {
+  position: relative;
+  z-index: 1;
+  color: #ffe69f;
+  font-size: 6.3rem;
+  font-weight: 780;
+  line-height: 0.95;
+  text-shadow: 0 0.85rem 2.1rem rgba(52, 0, 8, 0.32);
+}
+
+.ageLabel {
+  position: relative;
+  z-index: 1;
+  margin-top: 0.45rem;
+  color: rgba(255, 248, 226, 0.9);
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+.heroQuote {
+  max-width: 36rem;
+  margin: 0;
+  color: rgba(255, 248, 230, 0.94);
+  font-size: 1.05rem;
+  line-height: 1.72;
+}
+
+.heroButton,
+.replayButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.heroButton {
+  width: min(100%, 13rem);
+  min-height: 3.2rem;
+  margin-top: 1.35rem;
+  color: #67100e;
+  background: linear-gradient(180deg, #fff1c9 0%, #f5c864 100%);
+  box-shadow: 0 1.1rem 2.4rem rgba(61, 0, 7, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  animation: buttonBreath 2800ms ease-in-out infinite;
+}
+
+.heroButton:hover,
+.replayButton:hover {
+  transform: translateY(-1px);
+}
+
+.heroButton:focus-visible,
+.replayButton:focus-visible {
+  outline: 2px solid #97d8ff;
+  outline-offset: 4px;
+}
+
+.section {
+  position: relative;
+  z-index: 1;
+  padding: 2.8rem 1.25rem;
+  scroll-margin-top: 1rem;
+}
+
+.wishesSection {
+  padding-top: 2.2rem;
+}
+
+.sectionHeader {
+  max-width: 42rem;
+  margin: 0 auto 1.1rem;
+}
+
+.sectionEyebrow {
+  margin: 0;
+  color: #ffd47d;
+  font-size: 0.84rem;
+  line-height: 1.3;
+}
+
+.sectionTitle {
+  margin: 0.35rem 0 0;
+  color: #fff4d8;
+  font-size: 1.6rem;
+  font-weight: 760;
+  line-height: 1.28;
+  letter-spacing: 0;
+}
+
+.blessingCard {
+  position: relative;
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: clamp(1.35rem, 5%, 2.1rem);
+  border-radius: 8px;
+  color: #68101d;
+  background: linear-gradient(180deg, rgba(255, 250, 235, 0.98), rgba(255, 238, 207, 0.96));
+  border: 1px solid rgba(255, 228, 170, 0.72);
+  box-shadow: 0 1.25rem 3.4rem rgba(53, 0, 7, 0.18);
+}
+
+.blessingLine {
+  margin: 0 0 0.68rem;
+  font-size: 1.03rem;
+  line-height: 1.92;
+}
+
+.blessingLine:last-child {
+  margin-bottom: 0;
+}
+
+.wishList {
+  max-width: 42rem;
+  margin: 0 auto;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.wishCard {
+  position: relative;
+  min-height: 5.9rem;
+  padding: 1.05rem 1.1rem 1.05rem 4.25rem;
+  border-radius: 8px;
+  background: rgba(255, 247, 223, 0.1);
+  border: 1px solid rgba(255, 230, 168, 0.24);
+  box-shadow: 0 1rem 2.4rem rgba(51, 0, 6, 0.12);
+}
+
+.wishIndex {
+  position: absolute;
+  top: 1.1rem;
+  left: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  color: #711016;
+  background: #ffe4a4;
+  font-size: 0.9rem;
+  font-weight: 760;
+}
+
+.wishTitle {
+  margin: 0;
+  color: #fff1c9;
+  font-size: 1.18rem;
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+.wishDesc {
+  margin: 0.4rem 0 0;
+  color: rgba(255, 247, 225, 0.9);
+  font-size: 0.98rem;
+  line-height: 1.72;
+}
+
+.closingSection {
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.25rem calc(3.4rem + env(safe-area-inset-bottom));
+}
+
+.closingCard {
+  width: 100%;
+  max-width: 42rem;
+  padding: clamp(1.5rem, 6%, 2.6rem) clamp(1.25rem, 5%, 2rem) clamp(1.4rem, 5%, 2.3rem);
+  border-radius: 8px;
+  text-align: center;
+  color: #fff6df;
+  background: linear-gradient(180deg, rgba(255, 246, 222, 0.13), rgba(255, 246, 222, 0.07));
+  border: 1px solid rgba(255, 228, 165, 0.28);
+  box-shadow: 0 1.4rem 3.4rem rgba(47, 0, 7, 0.16);
+}
+
+.closingEyebrow {
+  margin: 0;
+  color: #ffd886;
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.closingTitle {
+  margin: 0.8rem 0 0;
+  color: #fff8e4;
+  font-size: 1.6rem;
+  font-weight: 760;
+  line-height: 1.34;
+  letter-spacing: 0;
+}
+
+.closingAccent {
+  margin: 0.2rem 0 0;
+  color: #ffe29c;
+  font-size: 1.5rem;
+  font-weight: 760;
+  line-height: 1.34;
+}
+
+.closingDesc {
+  margin: 1.1rem 0 0;
+  color: rgba(255, 248, 226, 0.92);
+  font-size: 1rem;
+  line-height: 1.82;
+  text-align: left;
+}
+
+.closingWishList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-top: 1.1rem;
+}
+
+.closingWishItem {
+  min-height: 3.25rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.72rem 0.55rem;
+  border-radius: 8px;
+  color: #ffe7aa;
+  background: rgba(255, 238, 191, 0.1);
+  border: 1px solid rgba(255, 226, 154, 0.22);
+  font-size: 0.88rem;
+  line-height: 1.38;
+}
+
+.closingDivider {
+  width: 6.4rem;
+  height: 1px;
+  margin: 1.35rem auto 1rem;
+  background: linear-gradient(90deg, rgba(255, 230, 168, 0), rgba(255, 230, 168, 1), rgba(255, 230, 168, 0));
+}
+
+.closingSign {
+  margin: 0;
+  color: #ffe6a4;
+  font-size: 1.12rem;
+  line-height: 1.4;
+}
+
+.replayButton {
+  min-width: 10rem;
+  min-height: 3rem;
+  margin-top: 1.1rem;
+  color: #fff7e6;
+  background: rgba(255, 241, 210, 0.12);
+  border: 1px solid rgba(255, 226, 154, 0.32);
+}
+
+@media (max-width: 360px) {
+  .heroName {
+    font-size: 1.55rem;
+  }
+
+  .heroTitle {
+    font-size: 1.82rem;
+  }
+
+  .ageNumber {
+    font-size: 5.55rem;
+  }
+
+  .closingWishList {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-height: 700px) {
+  .hero {
+    padding-top: 1.25rem;
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  }
+
+  .heroBadge {
+    margin-bottom: 0.55rem;
+  }
+
+  .ageMark {
+    width: clamp(10.5rem, 42%, 14rem);
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .ageNumber {
+    font-size: 5.35rem;
+  }
+
+  .heroButton {
+    min-height: 2.8rem;
+    margin-top: 1rem;
+  }
+
+  .closingSection {
+    padding-top: 2rem;
+    padding-bottom: calc(2.4rem + env(safe-area-inset-bottom));
+  }
+
+  .closingDesc {
+    margin-top: 0.8rem;
+    line-height: 1.66;
+  }
+}
+
+@media (min-width: 768px) {
+  .page {
+    width: min(calc(100% - 3rem), 760px);
+  }
+
+  .hero,
+  .section {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  .heroName {
+    font-size: 2.8rem;
+  }
+
+  .heroTitle {
+    font-size: 3.25rem;
+  }
+
+  .ageNumber {
+    font-size: 8.6rem;
+  }
+
+  .heroQuote {
+    font-size: 1.14rem;
+  }
+
+  .sectionTitle,
+  .closingTitle {
+    font-size: 2.35rem;
+  }
+
+  .closingAccent {
+    font-size: 2.2rem;
+  }
+
+  .wishList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wishCard {
+    min-height: 11rem;
+    padding-left: 1.2rem;
+    padding-top: 4.15rem;
+  }
+
+  .wishIndex {
+    top: 1.2rem;
+    left: 1.2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ribbon,
+  .star,
+  .ageRingOuter,
+  .heroButton {
+    animation: none;
+  }
+
+  .heroButton:hover,
+  .replayButton:hover {
+    transform: none;
+  }
+}
+
+@keyframes ribbonFloat {
+  0%,
+  100% {
+    opacity: 0.62;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes starPulse {
+  0%,
+  100% {
+    opacity: 0.42;
+    transform: scale(0.9);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.14);
+  }
+}
+
+@keyframes ringBreath {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.035);
+  }
+}
+
+@keyframes buttonBreath {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 1.1rem 2.4rem rgba(61, 0, 7, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  }
+
+  50% {
+    transform: scale(1.018);
+    box-shadow: 0 1.35rem 3rem rgba(255, 206, 95, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  }
+}
