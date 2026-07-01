@@ -19,6 +19,41 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+function ViewToggle({
+  view,
+  onSwitchView,
+}: {
+  view: ViewMode;
+  onSwitchView: (mode: ViewMode) => void;
+}) {
+  return (
+    <div className="flex items-center gap-1 border border-border/60 rounded-md p-0.5">
+      <button
+        onClick={() => onSwitchView("single")}
+        className={cn(
+          "px-3 py-1 rounded text-xs transition-colors",
+          view === "single"
+            ? "bg-muted text-foreground"
+            : "text-muted-foreground hover:text-foreground"
+        )}
+      >
+        大图
+      </button>
+      <button
+        onClick={() => onSwitchView("masonry")}
+        className={cn(
+          "px-3 py-1 rounded text-xs transition-colors",
+          view === "masonry"
+            ? "bg-muted text-foreground"
+            : "text-muted-foreground hover:text-foreground"
+        )}
+      >
+        图库
+      </button>
+    </div>
+  );
+}
+
 export default function GalleryPage() {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [index, setIndex] = useState(0);
@@ -107,34 +142,6 @@ export default function GalleryPage() {
     );
   }
 
-  // ── 视图切换按钮 ──
-  const ViewToggle = () => (
-    <div className="flex items-center gap-1 border border-border/60 rounded-md p-0.5">
-      <button
-        onClick={() => switchView("single")}
-        className={cn(
-          "px-3 py-1 rounded text-xs transition-colors",
-          view === "single"
-            ? "bg-muted text-foreground"
-            : "text-muted-foreground hover:text-foreground"
-        )}
-      >
-        大图
-      </button>
-      <button
-        onClick={() => switchView("masonry")}
-        className={cn(
-          "px-3 py-1 rounded text-xs transition-colors",
-          view === "masonry"
-            ? "bg-muted text-foreground"
-            : "text-muted-foreground hover:text-foreground"
-        )}
-      >
-        图库
-      </button>
-    </div>
-  );
-
   const current = images[index];
 
   return (
@@ -148,7 +155,7 @@ export default function GalleryPage() {
               : `${masonryImages.length} / ${images.length} 张  ·  点击放大`}
           </p>
         </div>
-        <ViewToggle />
+        <ViewToggle view={view} onSwitchView={switchView} />
       </div>
 
       {/* 大图模式 */}

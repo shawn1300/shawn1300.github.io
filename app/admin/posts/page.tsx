@@ -4,8 +4,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
 import { DeletePostButton } from "@/components/admin/delete-post-button";
+import type { Post } from "@/types";
 
 export const dynamic = "force-dynamic";
+
+type AdminPost = Post & {
+  category: { name: string } | null;
+};
 
 export default async function AdminPostsPage() {
   const supabase = await createServerSupabase();
@@ -27,13 +32,15 @@ export default async function AdminPostsPage() {
     );
   }
 
+  const adminPosts = posts as AdminPost[] | null;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-sm font-semibold text-foreground">文章管理</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            共 {posts?.length || 0} 篇文章
+            共 {adminPosts?.length || 0} 篇文章
           </p>
         </div>
         <Link href="/admin/posts/new">
@@ -42,7 +49,7 @@ export default async function AdminPostsPage() {
       </div>
 
       <div className="border border-border/40 rounded-lg overflow-hidden">
-        {posts && posts.length > 0 ? (
+        {adminPosts && adminPosts.length > 0 ? (
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted">
@@ -64,7 +71,7 @@ export default async function AdminPostsPage() {
               </tr>
             </thead>
             <tbody>
-              {posts.map((post) => (
+              {adminPosts.map((post) => (
                 <tr
                   key={post.id}
                   className="border-b border-border last:border-b-0 hover:bg-muted/50 transition-colors"
@@ -86,7 +93,7 @@ export default async function AdminPostsPage() {
                     </Badge>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">
-                    {(post as any).category?.name || "—"}
+                    {post.category?.name || "—"}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">
                     {formatDate(post.updated_at)}

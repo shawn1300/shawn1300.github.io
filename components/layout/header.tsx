@@ -17,11 +17,14 @@ const navItems = [
   { href: "/about", label: "关于" },
 ];
 
-export function Header() {
-  const pathname = usePathname();
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const NavLinks = ({ onClick }: { onClick?: () => void }) => (
+function NavLinks({
+  pathname,
+  onClick,
+}: {
+  pathname: string;
+  onClick?: () => void;
+}) {
+  return (
     <>
       {navItems.map((item) => {
         const isActive =
@@ -46,6 +49,11 @@ export function Header() {
       })}
     </>
   );
+}
+
+export function Header() {
+  const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -65,7 +73,7 @@ export function Header() {
 
         {/* Desktop nav */}
         <nav className="hidden sm:flex items-center gap-6">
-          <NavLinks />
+          <NavLinks pathname={pathname} />
           <div className="flex items-center gap-2">
             <MusicPlayer />
             <ThemeToggle />
@@ -102,7 +110,7 @@ export function Header() {
       {menuOpen && (
         <nav className="sm:hidden border-t border-border/40 bg-background/95 backdrop-blur">
           <div className="flex flex-col px-4 py-3 space-y-1">
-            <NavLinks onClick={() => setMenuOpen(false)} />
+            <NavLinks pathname={pathname} onClick={() => setMenuOpen(false)} />
           </div>
         </nav>
       )}

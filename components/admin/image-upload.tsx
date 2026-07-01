@@ -9,6 +9,10 @@ interface ImageUploadProps {
   onInsert: (url: string, alt?: string) => void;
 }
 
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "上传失败";
+}
+
 export function ImageUpload({ onInsert }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -54,9 +58,9 @@ export function ImageUpload({ onInsert }: ImageUploadProps) {
 
       onInsert(publicUrl, file.name.replace(/\.[^.]+$/, ""));
       toast.success("图片上传成功");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Upload error:", error);
-      toast.error(error.message || "上传失败");
+      toast.error(getErrorMessage(error));
     } finally {
       setUploading(false);
       // 重置 input 以便再次上传同一文件

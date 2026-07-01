@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import type { Category, Tag } from "@/types";
 
 function slugify(str: string): string {
-  let s = str
+  const s = str
     .trim()
     .toLowerCase()
     .replace(/[\s/_.]+/g, "-")
@@ -30,15 +30,13 @@ export default function CategoriesPage() {
   const [newTag, setNewTag] = useState("");
   const [tagSlug, setTagSlug] = useState("");
 
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   // 实时预览 slug（用户未手动修改时跟随名称变化）
   const [catSlugManual, setCatSlugManual] = useState(false);
   const [tagSlugManual, setTagSlugManual] = useState(false);
 
-  useEffect(() => { loadData(); }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     const [catRes, tagRes] = await Promise.all([
       supabase.from("categories").select("*").order("name"),
@@ -47,7 +45,9 @@ export default function CategoriesPage() {
     if (catRes.data) setCategories(catRes.data);
     if (tagRes.data) setTags(tagRes.data);
     setLoading(false);
-  };
+  }, [supabase]);
+
+  useEffect(() => { loadData(); }, [loadData]);
 
   const addCategory = async () => {
     if (!newCategory.trim()) return;

@@ -23,6 +23,10 @@ function ghHeaders() {
   };
 }
 
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
 /**
  * GET /api/gallery
  * 列出 public/gallery/ 下的所有图片
@@ -137,10 +141,10 @@ export async function POST(request: NextRequest) {
       success: true,
       data: { name: fileName, url: `/gallery/${fileName}` },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("POST /api/gallery error:", error);
     return NextResponse.json(
-      { success: false, error: error.message || "上传失败" },
+      { success: false, error: getErrorMessage(error, "上传失败") },
       { status: 500 }
     );
   }
@@ -196,10 +200,10 @@ export async function DELETE(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("DELETE /api/gallery error:", error);
     return NextResponse.json(
-      { success: false, error: error.message || "删除失败" },
+      { success: false, error: getErrorMessage(error, "删除失败") },
       { status: 500 }
     );
   }
