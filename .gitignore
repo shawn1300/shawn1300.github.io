@@ -42,3 +42,6 @@ next-env.d.ts
 
 # dev scripts (may contain keys)
 scripts/
+
+# local isolated worktrees
+.worktrees/
