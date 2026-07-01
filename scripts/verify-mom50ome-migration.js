@@ -76,31 +76,46 @@ const checks = [
   {
     name: "birthday page route files exist",
     pass: () =>
-      exists("app/(celebration)/mon50ome/page.tsx") &&
-      exists("app/(celebration)/mon50ome/content.ts") &&
-      exists("app/(celebration)/mon50ome/birthday-card.tsx") &&
-      exists("app/(celebration)/mon50ome/fireworks-canvas.tsx") &&
-      exists("app/(celebration)/mon50ome/page.module.css") &&
-      exists("app/(celebration)/mon50ome/opengraph-image.tsx"),
+      exists("app/(celebration)/mom50ome/page.tsx") &&
+      exists("app/(celebration)/mom50ome/content.ts") &&
+      exists("app/(celebration)/mom50ome/birthday-card.tsx") &&
+      exists("app/(celebration)/mom50ome/fireworks-canvas.tsx") &&
+      exists("app/(celebration)/mom50ome/page.module.css") &&
+      exists("app/(celebration)/mom50ome/opengraph-image.tsx"),
+  },
+  {
+    name: "mistyped birthday route redirects to corrected URL",
+    pass: () => {
+      if (
+        exists("app/(celebration)/mon50ome/page.tsx") ||
+        !exists("app/(celebration)/mon50ome/route.ts")
+      ) {
+        return false;
+      }
+
+      const file = read("app/(celebration)/mon50ome/route.ts");
+      return file.includes("/mom50ome") && file.includes("permanentRedirect");
+    },
   },
   {
     name: "birthday metadata is private and route-specific",
     pass: () => {
-      if (!exists("app/(celebration)/mon50ome/page.tsx")) return false;
-      const file = read("app/(celebration)/mon50ome/page.tsx");
+      if (!exists("app/(celebration)/mom50ome/page.tsx")) return false;
+      const file = read("app/(celebration)/mom50ome/page.tsx");
       return (
         file.includes("虞小琴女士五十岁生日快乐") &&
         file.includes("noindex") &&
         file.includes("nofollow") &&
-        file.includes("/mon50ome")
+        file.includes("/mom50ome") &&
+        !file.includes("/mon50ome")
       );
     },
   },
   {
     name: "birthday content preserves mini program copy",
     pass: () => {
-      if (!exists("app/(celebration)/mon50ome/content.ts")) return false;
-      const file = read("app/(celebration)/mon50ome/content.ts");
+      if (!exists("app/(celebration)/mom50ome/content.ts")) return false;
+      const file = read("app/(celebration)/mom50ome/content.ts");
       return (
         file.includes("半生辛劳，半生光芒") &&
         file.includes("平安康健") &&
@@ -111,8 +126,8 @@ const checks = [
   {
     name: "birthday card is interactive client component",
     pass: () => {
-      if (!exists("app/(celebration)/mon50ome/birthday-card.tsx")) return false;
-      const file = read("app/(celebration)/mon50ome/birthday-card.tsx");
+      if (!exists("app/(celebration)/mom50ome/birthday-card.tsx")) return false;
+      const file = read("app/(celebration)/mom50ome/birthday-card.tsx");
       return (
         file.startsWith('"use client";') &&
         file.includes("scrollIntoView") &&
@@ -123,8 +138,8 @@ const checks = [
   {
     name: "fireworks use browser animation APIs safely",
     pass: () => {
-      if (!exists("app/(celebration)/mon50ome/fireworks-canvas.tsx")) return false;
-      const file = read("app/(celebration)/mon50ome/fireworks-canvas.tsx");
+      if (!exists("app/(celebration)/mom50ome/fireworks-canvas.tsx")) return false;
+      const file = read("app/(celebration)/mom50ome/fireworks-canvas.tsx");
       return (
         file.startsWith('"use client";') &&
         file.includes("requestAnimationFrame") &&
@@ -137,8 +152,8 @@ const checks = [
   {
     name: "birthday CSS is mobile-first and scoped",
     pass: () => {
-      if (!exists("app/(celebration)/mon50ome/page.module.css")) return false;
-      const file = read("app/(celebration)/mon50ome/page.module.css");
+      if (!exists("app/(celebration)/mom50ome/page.module.css")) return false;
+      const file = read("app/(celebration)/mom50ome/page.module.css");
       return (
         file.includes("100svh") &&
         file.includes("clamp(") &&
@@ -152,11 +167,11 @@ const checks = [
 const failed = checks.filter((check) => !check.pass());
 
 if (failed.length > 0) {
-  console.error("mon50ome migration verification failed:");
+  console.error("mom50ome migration verification failed:");
   for (const check of failed) {
     console.error(`- ${check.name}`);
   }
   process.exit(1);
 }
 
-console.log(`mon50ome migration verification passed (${checks.length} checks).`);
+console.log(`mom50ome migration verification passed (${checks.length} checks).`);

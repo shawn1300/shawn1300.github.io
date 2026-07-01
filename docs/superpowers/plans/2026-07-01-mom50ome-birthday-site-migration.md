@@ -1,10 +1,10 @@
-# mon50ome Birthday Site Migration Implementation Plan
+# mom50ome Birthday Site Migration Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build an independent mobile-first birthday card website at `/mon50ome` by migrating the existing WeChat mini program into this Next.js App Router project.
+**Goal:** Build an independent mobile-first birthday card website at `/mom50ome` by migrating the existing WeChat mini program into this Next.js App Router project.
 
-**Architecture:** Keep one thin top-level root layout for global HTML, fonts, and CSS. Move all existing blog UI routes into `app/(blog)` with the old blog shell, then place the birthday page under `app/(celebration)/mon50ome` so it renders without Header, Footer, MusicProvider, or ThemeProvider UI chrome.
+**Architecture:** Keep one thin top-level root layout for global HTML, fonts, and CSS. Move all existing blog UI routes into `app/(blog)` with the old blog shell, then place the birthday page under `app/(celebration)/mom50ome` so it renders without Header, Footer, MusicProvider, or ThemeProvider UI chrome.
 
 **Tech Stack:** Next.js 16.2.7 App Router, React 19.2.4, TypeScript, CSS Modules, browser Canvas API, existing Tailwind/shadcn global setup.
 
@@ -14,14 +14,14 @@
 
 Create:
 
-- `scripts/verify-mon50ome-migration.js` - local verification script for route isolation and birthday page invariants.
+- `scripts/verify-mom50ome-migration.js` - local verification script for route isolation and birthday page invariants.
 - `app/(blog)/layout.tsx` - existing blog shell moved out of the top-level root layout.
-- `app/(celebration)/mon50ome/page.tsx` - `/mon50ome` server page and metadata.
-- `app/(celebration)/mon50ome/content.ts` - birthday text and wish data.
-- `app/(celebration)/mon50ome/birthday-card.tsx` - client-rendered birthday page sections and scroll controls.
-- `app/(celebration)/mon50ome/fireworks-canvas.tsx` - client-rendered fireworks canvas.
-- `app/(celebration)/mon50ome/page.module.css` - isolated birthday page styling.
-- `app/(celebration)/mon50ome/opengraph-image.tsx` - route-specific share image.
+- `app/(celebration)/mom50ome/page.tsx` - `/mom50ome` server page and metadata.
+- `app/(celebration)/mom50ome/content.ts` - birthday text and wish data.
+- `app/(celebration)/mom50ome/birthday-card.tsx` - client-rendered birthday page sections and scroll controls.
+- `app/(celebration)/mom50ome/fireworks-canvas.tsx` - client-rendered fireworks canvas.
+- `app/(celebration)/mom50ome/page.module.css` - isolated birthday page styling.
+- `app/(celebration)/mom50ome/opengraph-image.tsx` - route-specific share image.
 
 Modify:
 
@@ -56,11 +56,11 @@ Keep top-level:
 ### Task 1: Add Migration Verification Script
 
 **Files:**
-- Create: `scripts/verify-mon50ome-migration.js`
+- Create: `scripts/verify-mom50ome-migration.js`
 
 - [ ] **Step 1: Create the verification script**
 
-Create `scripts/verify-mon50ome-migration.js` with this content:
+Create `scripts/verify-mom50ome-migration.js` with this content:
 
 ```js
 const fs = require("fs");
@@ -141,29 +141,29 @@ const checks = [
   {
     name: "birthday page route files exist",
     pass: () =>
-      exists("app/(celebration)/mon50ome/page.tsx") &&
-      exists("app/(celebration)/mon50ome/content.ts") &&
-      exists("app/(celebration)/mon50ome/birthday-card.tsx") &&
-      exists("app/(celebration)/mon50ome/fireworks-canvas.tsx") &&
-      exists("app/(celebration)/mon50ome/page.module.css") &&
-      exists("app/(celebration)/mon50ome/opengraph-image.tsx"),
+      exists("app/(celebration)/mom50ome/page.tsx") &&
+      exists("app/(celebration)/mom50ome/content.ts") &&
+      exists("app/(celebration)/mom50ome/birthday-card.tsx") &&
+      exists("app/(celebration)/mom50ome/fireworks-canvas.tsx") &&
+      exists("app/(celebration)/mom50ome/page.module.css") &&
+      exists("app/(celebration)/mom50ome/opengraph-image.tsx"),
   },
   {
     name: "birthday metadata is private and route-specific",
     pass: () => {
-      const file = read("app/(celebration)/mon50ome/page.tsx");
+      const file = read("app/(celebration)/mom50ome/page.tsx");
       return (
         file.includes("虞小琴女士五十岁生日快乐") &&
         file.includes("noindex") &&
         file.includes("nofollow") &&
-        file.includes("/mon50ome")
+        file.includes("/mom50ome")
       );
     },
   },
   {
     name: "birthday content preserves mini program copy",
     pass: () => {
-      const file = read("app/(celebration)/mon50ome/content.ts");
+      const file = read("app/(celebration)/mom50ome/content.ts");
       return (
         file.includes("半生辛劳，半生光芒") &&
         file.includes("平安康健") &&
@@ -174,7 +174,7 @@ const checks = [
   {
     name: "birthday card is interactive client component",
     pass: () => {
-      const file = read("app/(celebration)/mon50ome/birthday-card.tsx");
+      const file = read("app/(celebration)/mom50ome/birthday-card.tsx");
       return (
         file.startsWith('"use client";') &&
         file.includes("scrollIntoView") &&
@@ -185,7 +185,7 @@ const checks = [
   {
     name: "fireworks use browser animation APIs safely",
     pass: () => {
-      const file = read("app/(celebration)/mon50ome/fireworks-canvas.tsx");
+      const file = read("app/(celebration)/mom50ome/fireworks-canvas.tsx");
       return (
         file.startsWith('"use client";') &&
         file.includes("requestAnimationFrame") &&
@@ -198,7 +198,7 @@ const checks = [
   {
     name: "birthday CSS is mobile-first and scoped",
     pass: () => {
-      const file = read("app/(celebration)/mon50ome/page.module.css");
+      const file = read("app/(celebration)/mom50ome/page.module.css");
       return (
         file.includes("100svh") &&
         file.includes("clamp(") &&
@@ -212,14 +212,14 @@ const checks = [
 const failed = checks.filter((check) => !check.pass());
 
 if (failed.length > 0) {
-  console.error("mon50ome migration verification failed:");
+  console.error("mom50ome migration verification failed:");
   for (const check of failed) {
     console.error(`- ${check.name}`);
   }
   process.exit(1);
 }
 
-console.log(`mon50ome migration verification passed (${checks.length} checks).`);
+console.log(`mom50ome migration verification passed (${checks.length} checks).`);
 ```
 
 - [ ] **Step 2: Run the verification script and confirm it fails before implementation**
@@ -227,7 +227,7 @@ console.log(`mon50ome migration verification passed (${checks.length} checks).`)
 Run:
 
 ```powershell
-node scripts/verify-mon50ome-migration.js
+node scripts/verify-mom50ome-migration.js
 ```
 
 Expected: FAIL with several missing route group and birthday page checks.
@@ -237,8 +237,8 @@ Expected: FAIL with several missing route group and birthday page checks.
 Run:
 
 ```powershell
-git add scripts/verify-mon50ome-migration.js
-git commit -m "test: add mon50ome migration verification"
+git add scripts/verify-mom50ome-migration.js
+git commit -m "test: add mom50ome migration verification"
 ```
 
 Expected: commit succeeds. If the environment blocks `.git` writes, continue the implementation and report the commit blocker at the end.
@@ -374,7 +374,7 @@ Expected: blog URL paths remain unchanged because `(blog)` is a route group.
 Run:
 
 ```powershell
-node scripts/verify-mon50ome-migration.js
+node scripts/verify-mom50ome-migration.js
 ```
 
 Expected: FAIL only on birthday page files and birthday-specific checks.
@@ -405,22 +405,22 @@ Expected: commit succeeds. If `.git` writes are blocked, keep going and report t
 ### Task 3: Add Birthday Route Metadata and Static Content
 
 **Files:**
-- Create: `app/(celebration)/mon50ome/page.tsx`
-- Create: `app/(celebration)/mon50ome/content.ts`
+- Create: `app/(celebration)/mom50ome/page.tsx`
+- Create: `app/(celebration)/mom50ome/content.ts`
 
 - [ ] **Step 1: Create the birthday route directory**
 
 Run:
 
 ```powershell
-New-Item -ItemType Directory -Force -Path 'D:\AI\project\shawn1300\app\(celebration)\mon50ome'
+New-Item -ItemType Directory -Force -Path 'D:\AI\project\shawn1300\app\(celebration)\mom50ome'
 ```
 
-Expected: `app/(celebration)/mon50ome` exists.
+Expected: `app/(celebration)/mom50ome` exists.
 
 - [ ] **Step 2: Create the static birthday content module**
 
-Create `app/(celebration)/mon50ome/content.ts` with:
+Create `app/(celebration)/mom50ome/content.ts` with:
 
 ```ts
 export const blessingLines = [
@@ -486,7 +486,7 @@ export const birthdayCopy = {
 
 - [ ] **Step 3: Create the birthday page shell**
 
-Create `app/(celebration)/mon50ome/page.tsx` with:
+Create `app/(celebration)/mom50ome/page.tsx` with:
 
 ```tsx
 import type { Metadata } from "next";
@@ -499,7 +499,7 @@ export const metadata: Metadata = {
   },
   description: birthdayCopy.pageDescription,
   alternates: {
-    canonical: "/mon50ome",
+    canonical: "/mom50ome",
   },
   robots: {
     index: false,
@@ -509,13 +509,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: birthdayCopy.pageTitle,
     description: birthdayCopy.pageDescription,
-    url: "/mon50ome",
+    url: "/mom50ome",
     siteName: "Shawn's Blog",
     type: "website",
     locale: "zh_CN",
     images: [
       {
-        url: "/mon50ome/opengraph-image",
+        url: "/mom50ome/opengraph-image",
         width: 1200,
         height: 630,
         alt: birthdayCopy.pageTitle,
@@ -536,7 +536,7 @@ Expected: this references `BirthdayCard`, which will be created in Task 5.
 Run:
 
 ```powershell
-node scripts/verify-mon50ome-migration.js
+node scripts/verify-mom50ome-migration.js
 ```
 
 Expected: FAIL on missing `birthday-card.tsx`, `fireworks-canvas.tsx`, `page.module.css`, and `opengraph-image.tsx`.
@@ -546,8 +546,8 @@ Expected: FAIL on missing `birthday-card.tsx`, `fireworks-canvas.tsx`, `page.mod
 Run:
 
 ```powershell
-git add 'app/(celebration)/mon50ome/page.tsx' 'app/(celebration)/mon50ome/content.ts'
-git commit -m "feat: add mon50ome route metadata and copy"
+git add 'app/(celebration)/mom50ome/page.tsx' 'app/(celebration)/mom50ome/content.ts'
+git commit -m "feat: add mom50ome route metadata and copy"
 ```
 
 Expected: commit succeeds, unless `.git` writes are blocked.
@@ -557,11 +557,11 @@ Expected: commit succeeds, unless `.git` writes are blocked.
 ### Task 4: Add Fireworks Canvas Component
 
 **Files:**
-- Create: `app/(celebration)/mon50ome/fireworks-canvas.tsx`
+- Create: `app/(celebration)/mom50ome/fireworks-canvas.tsx`
 
 - [ ] **Step 1: Create the browser fireworks component**
 
-Create `app/(celebration)/mon50ome/fireworks-canvas.tsx` with:
+Create `app/(celebration)/mom50ome/fireworks-canvas.tsx` with:
 
 ```tsx
 "use client";
@@ -912,8 +912,8 @@ Expected: FAIL until `page.module.css` exists, or PASS if CSS is already present
 Run:
 
 ```powershell
-git add 'app/(celebration)/mon50ome/fireworks-canvas.tsx'
-git commit -m "feat: add mon50ome fireworks canvas"
+git add 'app/(celebration)/mom50ome/fireworks-canvas.tsx'
+git commit -m "feat: add mom50ome fireworks canvas"
 ```
 
 Expected: commit succeeds, unless `.git` writes are blocked.
@@ -923,12 +923,12 @@ Expected: commit succeeds, unless `.git` writes are blocked.
 ### Task 5: Add Birthday Card Component and Styles
 
 **Files:**
-- Create: `app/(celebration)/mon50ome/birthday-card.tsx`
-- Create: `app/(celebration)/mon50ome/page.module.css`
+- Create: `app/(celebration)/mom50ome/birthday-card.tsx`
+- Create: `app/(celebration)/mom50ome/page.module.css`
 
 - [ ] **Step 1: Create the birthday card component**
 
-Create `app/(celebration)/mon50ome/birthday-card.tsx` with:
+Create `app/(celebration)/mom50ome/birthday-card.tsx` with:
 
 ```tsx
 "use client";
@@ -962,7 +962,7 @@ export function BirthdayCard() {
       <div className={styles.backgroundWash} aria-hidden="true" />
 
       <main className={styles.page}>
-        <section className={styles.hero} aria-labelledby="mon50ome-title">
+        <section className={styles.hero} aria-labelledby="mom50ome-title">
           <div className={`${styles.ribbon} ${styles.ribbonTop}`} aria-hidden="true" />
           <div className={`${styles.ribbon} ${styles.ribbonBottom}`} aria-hidden="true" />
           <span className={`${styles.star} ${styles.starOne}`} aria-hidden="true">✦</span>
@@ -974,7 +974,7 @@ export function BirthdayCard() {
 
             <div className={styles.heroTitleWrap}>
               <p className={styles.heroName}>{birthdayCopy.heroName}</p>
-              <h1 id="mon50ome-title" className={styles.heroTitle}>
+              <h1 id="mom50ome-title" className={styles.heroTitle}>
                 {birthdayCopy.heroTitle}
               </h1>
             </div>
@@ -1057,7 +1057,7 @@ export function BirthdayCard() {
 
 - [ ] **Step 2: Create the scoped birthday CSS module**
 
-Create `app/(celebration)/mon50ome/page.module.css` with:
+Create `app/(celebration)/mom50ome/page.module.css` with:
 
 ```css
 .shell {
@@ -1634,7 +1634,7 @@ Create `app/(celebration)/mon50ome/page.module.css` with:
 Run:
 
 ```powershell
-node scripts/verify-mon50ome-migration.js
+node scripts/verify-mom50ome-migration.js
 ```
 
 Expected: FAIL only on missing `opengraph-image.tsx`.
@@ -1654,8 +1654,8 @@ Expected: PASS. If lint reports line-length or formatting concerns in the new fi
 Run:
 
 ```powershell
-git add 'app/(celebration)/mon50ome/birthday-card.tsx' 'app/(celebration)/mon50ome/page.module.css'
-git commit -m "feat: add mon50ome birthday card UI"
+git add 'app/(celebration)/mom50ome/birthday-card.tsx' 'app/(celebration)/mom50ome/page.module.css'
+git commit -m "feat: add mom50ome birthday card UI"
 ```
 
 Expected: commit succeeds, unless `.git` writes are blocked.
@@ -1665,11 +1665,11 @@ Expected: commit succeeds, unless `.git` writes are blocked.
 ### Task 6: Add Route-Specific Open Graph Image
 
 **Files:**
-- Create: `app/(celebration)/mon50ome/opengraph-image.tsx`
+- Create: `app/(celebration)/mom50ome/opengraph-image.tsx`
 
 - [ ] **Step 1: Create generated OG image**
 
-Create `app/(celebration)/mon50ome/opengraph-image.tsx` with:
+Create `app/(celebration)/mom50ome/opengraph-image.tsx` with:
 
 ```tsx
 import { ImageResponse } from "next/og";
@@ -1791,10 +1791,10 @@ export default function Image() {
 Run:
 
 ```powershell
-node scripts/verify-mon50ome-migration.js
+node scripts/verify-mom50ome-migration.js
 ```
 
-Expected: PASS with `mon50ome migration verification passed (12 checks).`
+Expected: PASS with `mom50ome migration verification passed (13 checks).`
 
 - [ ] **Step 3: Run lint**
 
@@ -1811,8 +1811,8 @@ Expected: PASS.
 Run:
 
 ```powershell
-git add 'app/(celebration)/mon50ome/opengraph-image.tsx'
-git commit -m "feat: add mon50ome open graph image"
+git add 'app/(celebration)/mom50ome/opengraph-image.tsx'
+git commit -m "feat: add mom50ome open graph image"
 ```
 
 Expected: commit succeeds, unless `.git` writes are blocked.
@@ -1849,7 +1849,7 @@ Expected: dev server starts on the default Next.js port, usually `http://localho
 Open:
 
 ```text
-http://localhost:3000/mon50ome
+http://localhost:3000/mom50ome
 ```
 
 Use a viewport around 390px wide.
@@ -1900,7 +1900,7 @@ Expected:
 Open a deterministic missing post route:
 
 ```text
-http://localhost:3000/posts/mon50ome-route-shell-check
+http://localhost:3000/posts/mom50ome-route-shell-check
 ```
 
 Expected:
@@ -1928,7 +1928,7 @@ Expected: no long-running dev session remains active.
 Run:
 
 ```powershell
-node scripts/verify-mon50ome-migration.js
+node scripts/verify-mom50ome-migration.js
 npm run lint
 npm run build
 ```
@@ -1954,8 +1954,8 @@ Expected: only intentional files from this migration are changed. Pre-existing u
 If any intended migration files are uncommitted, run:
 
 ```powershell
-git add scripts/verify-mon50ome-migration.js app docs/superpowers/specs/2026-07-01-mon50ome-birthday-site-migration-design.md docs/superpowers/plans/2026-07-01-mon50ome-birthday-site-migration.md
-git commit -m "feat: add mon50ome birthday page"
+git add scripts/verify-mom50ome-migration.js app docs/superpowers/specs/2026-07-01-mom50ome-birthday-site-migration-design.md docs/superpowers/plans/2026-07-01-mom50ome-birthday-site-migration.md
+git commit -m "feat: add mom50ome birthday page"
 ```
 
 Expected: commit succeeds. If `.git` writes are blocked, leave the working tree intact and report exactly which files changed.
@@ -1965,7 +1965,7 @@ Expected: commit succeeds. If `.git` writes are blocked, leave the working tree 
 Report:
 
 ```text
-https://shawn.cc.cd/mon50ome
+https://shawn.cc.cd/mom50ome
 ```
 
-Also report whether `/mon50ome` is intentionally excluded from `app/sitemap.ts` and marked `noindex, nofollow`.
+Also report whether `/mom50ome` is intentionally excluded from `app/sitemap.ts` and marked `noindex, nofollow`.

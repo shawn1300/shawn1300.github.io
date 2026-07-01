@@ -1,11 +1,11 @@
-# mon50ome Birthday Site Migration Design
+# mom50ome Birthday Site Migration Design
 
 ## 1. Goal
 
 Migrate the existing WeChat mini program birthday card from `D:\AI\miniprogram\project_miniprogram\miniprogram_1` into this Next.js blog project as an independent web page at:
 
 ```text
-https://shawn.cc.cd/mon50ome
+https://shawn.cc.cd/mom50ome
 ```
 
 The page is for celebrating the user's mother, Yu Xiaoqin, on her fiftieth birthday. The page must be mobile-first for QR-code access, while remaining polished and readable on desktop.
@@ -39,13 +39,13 @@ The web page should feel like a standalone digital birthday card, not a blog art
 
 User-visible requirements:
 
-- Visiting `/mon50ome` opens directly into the birthday card.
+- Visiting `/mom50ome` opens directly into the birthday card.
 - The page does not show the blog header, footer, theme toggle, navigation, or music player.
 - The first viewport establishes the celebration immediately.
 - The page works well on common phone widths from 360px to 430px.
 - Desktop visitors see a centered, composed card-like experience instead of a stretched mobile page.
 - All content remains readable without requiring zoom.
-- The page can be shared through a QR code pointing to `https://shawn.cc.cd/mon50ome`.
+- The page can be shared through a QR code pointing to `https://shawn.cc.cd/mom50ome`.
 
 Non-goals:
 
@@ -85,7 +85,7 @@ app/
     loading.tsx
     not-found.tsx
   (celebration)/
-    mon50ome/
+    mom50ome/
       page.tsx
       birthday-card.tsx
       fireworks-canvas.tsx
@@ -111,7 +111,7 @@ app/
 - Renders `Footer`.
 - Renders `ThemeToaster`.
 
-`app/(celebration)/mon50ome/page.tsx` is the public route for `/mon50ome`.
+`app/(celebration)/mom50ome/page.tsx` is the public route for `/mom50ome`.
 
 This structure preserves existing blog URLs because route group folder names are omitted from the URL.
 
@@ -129,7 +129,7 @@ Metadata:
 
 - `title.absolute`: `虞小琴女士五十岁生日快乐`
 - `description`: `一份送给妈妈的五十岁生日祝福`
-- `alternates.canonical`: `/mon50ome`
+- `alternates.canonical`: `/mom50ome`
 - `robots`: `noindex, nofollow`
 - `openGraph`: title, description, url, type, and route-specific image
 
@@ -218,12 +218,12 @@ Avoid:
 QR code target:
 
 ```text
-https://shawn.cc.cd/mon50ome
+https://shawn.cc.cd/mom50ome
 ```
 
 Default privacy posture:
 
-- Do not add `/mon50ome` to `app/sitemap.ts` in the first implementation.
+- Do not add `/mom50ome` to `app/sitemap.ts` in the first implementation.
 - Set page robots metadata to `noindex, nofollow`.
 - Direct URL and QR-code access still work normally.
 
@@ -245,14 +245,14 @@ Implementation is complete only after these checks pass:
 
 1. `npm run lint`
 2. `npm run build`
-3. Local manual check at `/mon50ome`
+3. Local manual check at `/mom50ome`
 4. Local manual check at `/`, `/about`, `/posts/[slug]` or another existing blog page
 5. Mobile viewport check around 390px wide
 6. Desktop viewport check around 1440px wide
 
 Expected results:
 
-- `/mon50ome` has no blog header, footer, theme toggle, or music player.
+- `/mom50ome` has no blog header, footer, theme toggle, or music player.
 - Blog routes still have the blog shell.
 - The birthday hero fits the first mobile viewport.
 - Buttons scroll correctly.

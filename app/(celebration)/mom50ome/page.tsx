@@ -10,19 +10,19 @@ export const metadata: Metadata = {
   },
   description: birthdayCopy.pageDescription,
   alternates: {
-    canonical: "/mon50ome",
+    canonical: "/mom50ome",
   },
   robots: "noindex, nofollow",
   openGraph: {
     title: pageTitle,
     description: birthdayCopy.pageDescription,
-    url: "/mon50ome",
+    url: "/mom50ome",
     siteName: "Shawn's Blog",
     type: "website",
     locale: "zh_CN",
     images: [
       {
-        url: "/mon50ome/opengraph-image",
+        url: "/mom50ome/opengraph-image",
         width: 1200,
         height: 630,
         alt: pageTitle,
@@ -31,6 +31,6 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Mon50omePage() {
+export default function Mom50omePage() {
   return <BirthdayCard />;
 }
