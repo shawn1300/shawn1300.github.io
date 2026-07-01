@@ -1,0 +1,188 @@
+<h2>音乐播放器放哪里？</h2>
+<p class="subtitle">结合博客的极简克制风格，哪种位置最不打扰阅读、又方便使用？</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">方案 A：右下角悬浮小球</div>
+    <div class="mockup-body" style="background:oklch(0.975 0.01 90);min-height:320px;position:relative;padding:0;border-radius:8px;overflow:hidden;">
+      <!-- mini header -->
+      <div style="background:oklch(0.99 0.006 90);border-bottom:1px solid oklch(0.88 0.015 90);padding:10px 16px;display:flex;align-items:center;gap:8px;">
+        <div style="width:20px;height:20px;border-radius:50%;background:oklch(0.85 0.015 90);"></div>
+        <div style="display:flex;gap:12px;">
+          <span style="font-size:11px;color:oklch(0.22 0.02 80);">首页</span>
+          <span style="font-size:11px;color:oklch(0.48 0.02 80);">分类</span>
+          <span style="font-size:11px;color:oklch(0.48 0.02 80);">关于</span>
+        </div>
+        <div style="margin-left:auto;width:18px;height:18px;border-radius:50%;background:oklch(0.88 0.015 90);"></div>
+      </div>
+      <!-- content -->
+      <div style="padding:40px 20px;">
+        <div style="max-width:320px;margin:0 auto;">
+          <div style="width:60%;height:8px;border-radius:4px;background:oklch(0.88 0.015 90);margin-bottom:12px;"></div>
+          <div style="width:100%;height:6px;border-radius:3px;background:oklch(0.93 0.008 90);margin-bottom:6px;"></div>
+          <div style="width:90%;height:6px;border-radius:3px;background:oklch(0.93 0.008 90);margin-bottom:6px;"></div>
+          <div style="width:70%;height:6px;border-radius:3px;background:oklch(0.93 0.008 90);margin-bottom:20px;"></div>
+          <div style="width:100%;height:6px;border-radius:3px;background:oklch(0.93 0.008 90);margin-bottom:6px;"></div>
+          <div style="width:85%;height:6px;border-radius:3px;background:oklch(0.93 0.008 90);"></div>
+        </div>
+      </div>
+      <!-- footer -->
+      <div style="position:absolute;bottom:0;left:0;right:0;background:oklch(0.99 0.006 90);border-top:1px solid oklch(0.88 0.015 90);padding:8px 16px;font-size:10px;color:oklch(0.48 0.02 80);display:flex;justify-content:space-between;">
+        <span>© 2025 Shawn</span>
+        <span>もう、何も怖くない！</span>
+      </div>
+      <!-- floating player (expanded state) -->
+      <div style="position:absolute;bottom:12px;right:12px;background:oklch(0.22 0.02 80);color:white;border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 24px rgba(0,0,0,0.2);font-size:11px;">
+        <div style="width:28px;height:28px;border-radius:6px;background:oklch(0.62 0.16 260);display:flex;align-items:center;justify-content:center;">▶</div>
+        <div>
+          <div style="font-weight:500;">夢と葉桜</div>
+          <div style="opacity:0.6;font-size:10px;">初音ミク</div>
+        </div>
+        <div style="display:flex;gap:4px;">
+          <span>⏮</span><span>⏭</span>
+        </div>
+      </div>
+      <!-- collapsed button (shown smaller above) -->
+      <div style="position:absolute;bottom:60px;right:12px;width:40px;height:40px;border-radius:50%;background:oklch(0.22 0.02 80);color:white;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 12px rgba(0,0,0,0.15);opacity:0.7;">♪</div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">方案 B：页脚内嵌播放条</div>
+    <div class="mockup-body" style="background:oklch(0.975 0.01 90);min-height:320px;position:relative;padding:0;border-radius:8px;overflow:hidden;">
+      <!-- mini header -->
+      <div style="background:oklch(0.99 0.006 90);border-bottom:1px solid oklch(0.88 0.015 90);padding:10px 16px;display:flex;align-items:center;gap:8px;">
+        <div style="width:20px;height:20px;border-radius:50%;background:oklch(0.85 0.015 90);"></div>
+        <div style="display:flex;gap:12px;">
+          <span style="font-size:11px;color:oklch(0.22 0.02 80);">首页</span>
+          <span style="font-size:11px;color:oklch(0.48 0.02 80);">分类</span>
+          <span style="font-size:11px;color:oklch(0.48 0.02 80);">关于</span>
+        </div>
+        <div style="margin-left:auto;width:18px;height:18px;border-radius:50%;background:oklch(0.88 0.015 90);"></div>
+      </div>
+      <!-- content -->
+      <div style="padding:40px 20px;">
+        <div style="max-width:320px;margin:0 auto;">
+          <div style="width:60%;height:8px;border-radius:4px;background:oklch(0.88 0.015 90);margin-bottom:12px;"></div>
+          <div style="width:100%;height:6px;border-radius:3px;background:oklch(0.93 0.008 90);margin-bottom:6px;"></div>
+          <div style="width:90%;height:6px;border-radius:3px;background:oklch(0.93 0.008 90);margin-bottom:20px;"></div>
+          <div style="width:100%;height:6px;border-radius:3px;background:oklch(0.93 0.008 90);margin-bottom:6px;"></div>
+          <div style="width:85%;height:6px;border-radius:3px;background:oklch(0.93 0.008 90);margin-bottom:6px;"></div>
+          <div style="width:70%;height:6px;border-radius:3px;background:oklch(0.93 0.008 90);"></div>
+        </div>
+      </div>
+      <!-- footer with integrated player -->
+      <div style="position:absolute;bottom:0;left:0;right:0;background:oklch(0.99 0.006 90);border-top:1px solid oklch(0.88 0.015 90);">
+        <!-- player row -->
+        <div style="padding:8px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid oklch(0.93 0.008 90);">
+          <div style="width:28px;height:28px;border-radius:50%;background:oklch(0.48 0.16 260);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;flex-shrink:0;">▶</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:10px;color:oklch(0.22 0.02 80);font-weight:500;">夢と葉桜</div>
+            <div style="font-size:9px;color:oklch(0.6 0.02 80);">初音ミク · 青木月光</div>
+          </div>
+          <span style="font-size:10px;color:oklch(0.48 0.02 80);">⏮</span>
+          <span style="font-size:10px;color:oklch(0.48 0.02 80);">⏭</span>
+        </div>
+        <!-- footer bar -->
+        <div style="padding:6px 16px;font-size:9px;color:oklch(0.48 0.02 80);display:flex;justify-content:space-between;">
+          <span>© 2025 Shawn</span>
+          <span>もう、何も怖くない！</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="split" style="margin-top:24px;">
+  <div class="mockup">
+    <div class="mockup-header">方案 C：Header 导航旁音符图标</div>
+    <div class="mockup-body" style="background:oklch(0.975 0.01 90);min-height:320px;position:relative;padding:0;border-radius:8px;overflow:hidden;">
+      <!-- header with music note -->
+      <div style="background:oklch(0.99 0.006 90);border-bottom:1px solid oklch(0.88 0.015 90);padding:10px 16px;display:flex;align-items:center;gap:8px;">
+        <div style="width:20px;height:20px;border-radius:50%;background:oklch(0.85 0.015 90);"></div>
+        <div style="display:flex;gap:12px;">
+          <span style="font-size:11px;color:oklch(0.22 0.02 80);">首页</span>
+          <span style="font-size:11px;color:oklch(0.48 0.02 80);">分类</span>
+          <span style="font-size:11px;color:oklch(0.48 0.02 80);">关于</span>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+          <span style="font-size:14px;color:oklch(0.48 0.16 260);">♪</span>
+          <div style="width:18px;height:18px;border-radius:50%;background:oklch(0.88 0.015 90);"></div>
+        </div>
+      </div>
+      <!-- dropdown player -->
+      <div style="position:absolute;top:42px;right:16px;background:oklch(0.22 0.02 80);color:white;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:11px;box-shadow:0 4px 16px rgba(0,0,0,0.2);z-index:10;">
+        <div style="width:24px;height:24px;border-radius:4px;background:oklch(0.62 0.16 260);display:flex;align-items:center;justify-content:center;font-size:10px;">▶</div>
+        <div>
+          <div style="font-weight:500;">夢と葉桜</div>
+          <div style="opacity:0.6;font-size:9px;">初音ミク</div>
+        </div>
+      </div>
+      <!-- content -->
+      <div style="padding:40px 20px;">
+        <div style="max-width:320px;margin:0 auto;">
+          <div style="width:60%;height:8px;border-radius:4px;background:oklch(0.88 0.015 90);margin-bottom:12px;"></div>
+          <div style="width:100%;height:6px;border-radius:3px;background:oklch(0.93 0.008 90);margin-bottom:6px;"></div>
+          <div style="width:90%;height:6px;border-radius:3px;background:oklch(0.93 0.008 90);margin-bottom:20px;"></div>
+          <div style="width:100%;height:6px;border-radius:3px;background:oklch(0.93 0.008 90);margin-bottom:6px;"></div>
+          <div style="width:85%;height:6px;border-radius:3px;background:oklch(0.93 0.008 90);"></div>
+        </div>
+      </div>
+      <!-- footer -->
+      <div style="position:absolute;bottom:0;left:0;right:0;background:oklch(0.99 0.006 90);border-top:1px solid oklch(0.88 0.015 90);padding:8px 16px;font-size:10px;color:oklch(0.48 0.02 80);display:flex;justify-content:space-between;">
+        <span>© 2025 Shawn</span>
+        <span>もう、何も怖くない！</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">方案 D：固定底部迷你条（极简）</div>
+    <div class="mockup-body" style="background:oklch(0.975 0.01 90);min-height:320px;position:relative;padding:0;border-radius:8px;overflow:hidden;">
+      <!-- mini header -->
+      <div style="background:oklch(0.99 0.006 90);border-bottom:1px solid oklch(0.88 0.015 90);padding:10px 16px;display:flex;align-items:center;gap:8px;">
+        <div style="width:20px;height:20px;border-radius:50%;background:oklch(0.85 0.015 90);"></div>
+        <div style="display:flex;gap:12px;">
+          <span style="font-size:11px;color:oklch(0.22 0.02 80);">首页</span>
+          <span style="font-size:11px;color:oklch(0.48 0.02 80);">分类</span>
+          <span style="font-size:11px;color:oklch(0.48 0.02 80);">关于</span>
+        </div>
+        <div style="margin-left:auto;width:18px;height:18px;border-radius:50%;background:oklch(0.88 0.015 90);"></div>
+      </div>
+      <!-- content -->
+      <div style="padding:40px 20px;">
+        <div style="max-width:320px;margin:0 auto;">
+          <div style="width:60%;height:8px;border-radius:4px;background:oklch(0.88 0.015 90);margin-bottom:12px;"></div>
+          <div style="width:100%;height:6px;border-radius:3px;background:oklch(0.93 0.008 90);margin-bottom:6px;"></div>
+          <div style="width:90%;height:6px;border-radius:3px;background:oklch(0.93 0.008 90);margin-bottom:20px;"></div>
+          <div style="width:100%;height:6px;border-radius:3px;background:oklch(0.93 0.008 90);margin-bottom:6px;"></div>
+          <div style="width:85%;height:6px;border-radius:3px;background:oklch(0.93 0.008 90);margin-bottom:6px;"></div>
+          <div style="width:70%;height:6px;border-radius:3px;background:oklch(0.93 0.008 90);"></div>
+        </div>
+      </div>
+      <!-- footer -->
+      <div style="position:absolute;bottom:40px;left:0;right:0;background:oklch(0.99 0.006 90);border-top:1px solid oklch(0.88 0.015 90);padding:8px 16px;font-size:10px;color:oklch(0.48 0.02 80);display:flex;justify-content:space-between;">
+        <span>© 2025 Shawn</span>
+        <span>もう、何も怖くない！</span>
+      </div>
+      <!-- fixed bottom bar -->
+      <div style="position:absolute;bottom:0;left:0;right:0;background:oklch(0.22 0.02 80);color:white;padding:8px 16px;display:flex;align-items:center;gap:10px;font-size:11px;">
+        <div style="width:24px;height:24px;border-radius:4px;background:oklch(0.62 0.16 260);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;">▶</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:500;font-size:10px;">Where Wind Whispers</div>
+          <div style="opacity:0.5;font-size:9px;">Wuthering Waves · jkinss</div>
+        </div>
+        <span style="opacity:0.5;font-size:10px;">⏮</span>
+        <span style="font-size:10px;">⏭</span>
+        <span style="opacity:0.4;font-size:10px;margin-left:4px;">×</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:28px;">
+  <div class="pros-cons">
+    <div class="pros"><h4>我的推荐：方案 D</h4><p>固定底部迷你条最符合极简博客的气质——它不打断阅读流、不抢占视觉焦点，同时始终可访问。相比右下角悬浮球，它更"归属于页面"而非浮于表层。</p></div>
+    <div class="cons"><h4>需要权衡</h4><p>底部固定条占用少量空间，移动端需确保不遮挡内容。好在博客内容区已有足够底部留白，影响很小。</p></div>
+  </div>
+</div>

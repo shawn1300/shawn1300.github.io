@@ -1,0 +1,14 @@
+以后备份
+每次想备份，终端跑一行就行：
+
+
+cd D:\AI\project\shawn1300 && node scripts/backup.mjs
+恢复数据
+在新 Supabase 项目里，按顺序在 SQL Editor 中执行：
+
+先建表（运行 supabase/migrations/ 里的 001_initial.sql 和 004_diaries.sql）
+然后依次复制备份目录里各 .sql 文件内容，粘贴执行
+
+
+
+一行：cd D:\AI\project\shawn1300 && node scripts/backup.mjs

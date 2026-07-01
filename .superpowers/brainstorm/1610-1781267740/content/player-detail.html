@@ -1,0 +1,153 @@
+<h2>Header 音符播放器 — 两个状态</h2>
+<p class="subtitle">点击音符 → 弹出迷你面板。播放时音符旋转（像唱片），暂停时静止。</p>
+
+<div class="split">
+  <!-- Light theme variant -->
+  <div class="mockup">
+    <div class="mockup-header">暖白主题 — 静置态 & 展开态</div>
+    <div class="mockup-body" style="background:oklch(0.975 0.01 90);min-height:340px;position:relative;padding:0;border-radius:8px;overflow:hidden;">
+      <!-- header -->
+      <div style="background:oklch(0.99 0.006 90);border-bottom:1px solid oklch(0.88 0.015 90);padding:10px 16px;display:flex;align-items:center;gap:8px;">
+        <div style="width:22px;height:22px;border-radius:50%;background:oklch(0.85 0.015 90);flex-shrink:0;"></div>
+        <span style="font-size:11px;color:oklch(0.22 0.02 80);font-weight:500;">Shawn</span>
+        <div style="display:flex;gap:12px;margin-left:16px;">
+          <span style="font-size:11px;color:oklch(0.22 0.02 80);">首页</span>
+          <span style="font-size:11px;color:oklch(0.48 0.02 80);">分类</span>
+          <span style="font-size:11px;color:oklch(0.48 0.02 80);">关于</span>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+          <!-- music note -->
+          <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;color:oklch(0.48 0.16 260);cursor:pointer;">♪</div>
+          <!-- theme toggle -->
+          <div style="width:18px;height:18px;border-radius:50%;background:oklch(0.88 0.015 90);"></div>
+        </div>
+      </div>
+      <!-- content -->
+      <div style="padding:30px 24px;">
+        <div style="max-width:300px;margin:0 auto;">
+          <div style="width:55%;height:7px;border-radius:4px;background:oklch(0.88 0.015 90);margin-bottom:14px;"></div>
+          <div style="width:100%;height:5px;border-radius:3px;background:oklch(0.93 0.008 90);margin-bottom:6px;"></div>
+          <div style="width:92%;height:5px;border-radius:3px;background:oklch(0.93 0.008 90);margin-bottom:6px;"></div>
+          <div style="width:78%;height:5px;border-radius:3px;background:oklch(0.93 0.008 90);margin-bottom:20px;"></div>
+        </div>
+      </div>
+      <!-- expanded player panel -->
+      <div style="position:absolute;top:44px;right:16px;background:oklch(0.99 0.006 90);border:1px solid oklch(0.88 0.015 90);border-radius:12px;padding:16px;width:260px;box-shadow:0 4px 24px rgba(0,0,0,0.08);z-index:10;">
+        <!-- now playing -->
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+          <!-- rotating disc -->
+          <div style="width:48px;height:48px;border-radius:50%;background:conic-gradient(oklch(0.62 0.16 260) 0deg, oklch(0.48 0.16 260) 90deg, oklch(0.62 0.16 260) 180deg, oklch(0.48 0.16 260) 270deg, oklch(0.62 0.16 260) 360deg);flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.12);">
+            <div style="width:14px;height:14px;border-radius:50%;background:oklch(0.99 0.006 90);"></div>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:500;color:oklch(0.22 0.02 80);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">夢と葉桜</div>
+            <div style="font-size:10px;color:oklch(0.48 0.02 80);margin-top:2px;">初音ミク · 青木月光</div>
+          </div>
+        </div>
+        <!-- progress -->
+        <div style="height:2px;background:oklch(0.93 0.008 90);border-radius:1px;margin-bottom:12px;">
+          <div style="width:35%;height:100%;background:oklch(0.48 0.16 260);border-radius:1px;"></div>
+        </div>
+        <!-- controls -->
+        <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:14px;">
+          <span style="font-size:14px;color:oklch(0.48 0.02 80);">⏮</span>
+          <div style="width:36px;height:36px;border-radius:50%;background:oklch(0.48 0.16 260);color:white;display:flex;align-items:center;justify-content:center;font-size:14px;">⏸</div>
+          <span style="font-size:14px;color:oklch(0.48 0.02 80);">⏭</span>
+        </div>
+        <!-- playlist -->
+        <div style="border-top:1px solid oklch(0.93 0.008 90);padding-top:10px;">
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:oklch(0.96 0.005 90);margin-bottom:4px;font-size:11px;">
+            <span style="color:oklch(0.48 0.16 260);">▶</span>
+            <span style="color:oklch(0.22 0.02 80);">夢と葉桜</span>
+            <span style="margin-left:auto;font-size:9px;color:oklch(0.48 0.02 80);">03:42</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;font-size:11px;">
+            <span style="color:oklch(0.48 0.02 80);">♫</span>
+            <span style="color:oklch(0.22 0.02 80);">Where Wind Whispers</span>
+            <span style="margin-left:auto;font-size:9px;color:oklch(0.48 0.02 80);">04:12</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dark theme variant -->
+  <div class="mockup">
+    <div class="mockup-header">深炭蓝暗色 — 静置态 & 展开态</div>
+    <div class="mockup-body" style="background:oklch(0.18 0.008 260);min-height:340px;position:relative;padding:0;border-radius:8px;overflow:hidden;">
+      <!-- header -->
+      <div style="background:oklch(0.22 0.01 260);border-bottom:1px solid oklch(0.27 0.015 260);padding:10px 16px;display:flex;align-items:center;gap:8px;">
+        <div style="width:22px;height:22px;border-radius:50%;background:oklch(0.3 0.01 260);flex-shrink:0;"></div>
+        <span style="font-size:11px;color:oklch(0.89 0.008 95);font-weight:500;">Shawn</span>
+        <div style="display:flex;gap:12px;margin-left:16px;">
+          <span style="font-size:11px;color:oklch(0.89 0.008 95);">首页</span>
+          <span style="font-size:11px;color:oklch(0.6 0.01 95);">分类</span>
+          <span style="font-size:11px;color:oklch(0.6 0.01 95);">关于</span>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+          <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;color:oklch(0.62 0.16 260);cursor:pointer;">♪</div>
+          <div style="width:18px;height:18px;border-radius:50%;background:oklch(0.35 0.01 260);"></div>
+        </div>
+      </div>
+      <!-- content -->
+      <div style="padding:30px 24px;">
+        <div style="max-width:300px;margin:0 auto;">
+          <div style="width:55%;height:7px;border-radius:4px;background:oklch(0.27 0.015 260);margin-bottom:14px;"></div>
+          <div style="width:100%;height:5px;border-radius:3px;background:oklch(0.23 0.008 260);margin-bottom:6px;"></div>
+          <div style="width:92%;height:5px;border-radius:3px;background:oklch(0.23 0.008 260);margin-bottom:6px;"></div>
+          <div style="width:78%;height:5px;border-radius:3px;background:oklch(0.23 0.008 260);margin-bottom:20px;"></div>
+        </div>
+      </div>
+      <!-- expanded panel -->
+      <div style="position:absolute;top:44px;right:16px;background:oklch(0.22 0.01 260);border:1px solid oklch(0.27 0.015 260);border-radius:12px;padding:16px;width:260px;box-shadow:0 4px 24px rgba(0,0,0,0.3);z-index:10;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+          <div style="width:48px;height:48px;border-radius:50%;background:conic-gradient(oklch(0.62 0.16 260) 0deg, oklch(0.75 0.14 250) 90deg, oklch(0.62 0.16 260) 180deg, oklch(0.75 0.14 250) 270deg, oklch(0.62 0.16 260) 360deg);flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.4);">
+            <div style="width:14px;height:14px;border-radius:50%;background:oklch(0.22 0.01 260);"></div>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:500;color:oklch(0.89 0.008 95);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">夢と葉桜</div>
+            <div style="font-size:10px;color:oklch(0.6 0.01 95);margin-top:2px;">初音ミク · 青木月光</div>
+          </div>
+        </div>
+        <div style="height:2px;background:oklch(0.27 0.015 260);border-radius:1px;margin-bottom:12px;">
+          <div style="width:35%;height:100%;background:oklch(0.62 0.16 260);border-radius:1px;"></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:14px;">
+          <span style="font-size:14px;color:oklch(0.6 0.01 95);">⏮</span>
+          <div style="width:36px;height:36px;border-radius:50%;background:oklch(0.62 0.16 260);color:oklch(0.12 0.005 260);display:flex;align-items:center;justify-content:center;font-size:14px;">⏸</div>
+          <span style="font-size:14px;color:oklch(0.6 0.01 95);">⏭</span>
+        </div>
+        <div style="border-top:1px solid oklch(0.27 0.015 260);padding-top:10px;">
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:oklch(0.23 0.008 260);margin-bottom:4px;font-size:11px;">
+            <span style="color:oklch(0.62 0.16 260);">▶</span>
+            <span style="color:oklch(0.89 0.008 95);">夢と葉桜</span>
+            <span style="margin-left:auto;font-size:9px;color:oklch(0.6 0.01 95);">03:42</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;font-size:11px;">
+            <span style="color:oklch(0.6 0.01 95);">♫</span>
+            <span style="color:oklch(0.89 0.008 95);">Where Wind Whispers</span>
+            <span style="margin-left:auto;font-size:9px;color:oklch(0.6 0.01 95);">04:12</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:24px;">
+  <h3>交互细节</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px;">
+    <div style="border:1px solid oklch(0.88 0.015 90);border-radius:8px;padding:16px;">
+      <div class="label">音符图标</div>
+      <p style="font-size:13px;margin-top:4px;">静置时：半透明 ♪ 图标，hover 变亮<br>
+      播放时：CSS rotate 旋转动画（就像黑胶唱片），同时图标颜色变为主色蓝紫调<br>
+      暂停时：停止旋转，恢复静止音符</p>
+    </div>
+    <div style="border:1px solid oklch(0.88 0.015 90);border-radius:8px;padding:16px;">
+      <div class="label">展开面板</div>
+      <p style="font-size:13px;margin-top:4px;">点击音符弹出，含：旋转唱片视觉 + 曲名/艺术家 + 进度条 + 上/下曲 + 播放/暂停 + 播放列表<br>
+      点击面板外部或再点音符关闭<br>
+      切换曲目时面板保持打开</p>
+    </div>
+  </div>
+</div>
