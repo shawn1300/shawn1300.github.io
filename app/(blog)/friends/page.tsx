@@ -32,6 +32,12 @@ const friends: FriendLink[] = [
     description: "群友的万能「资源」库",
     avatar: "/baobao.jpg",
   },
+  {
+    name: "星河（YY）",
+    url: "https://www.galaxyy.de5.net",
+    description: "神级决策分析师，拿不定主意就问YY",
+    avatar: "/YY.jpg",
+  },
 ];
 
 export default function FriendsPage() {
