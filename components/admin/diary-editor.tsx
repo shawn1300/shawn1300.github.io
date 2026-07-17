@@ -184,6 +184,32 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
               >
                 &lt;/&gt;
               </button>
+              <button
+                type="button"
+                onClick={() =>
+                  insertMarkdown(
+                    '<span style="background-color: #fbbf24; color: #1e293b; padding: 1px 4px; border-radius: 2px;">',
+                    "</span>"
+                  )
+                }
+                className="text-[11px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded transition-colors"
+                title="黄色高亮"
+              >
+                🖍
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  insertMarkdown(
+                    '<span style="color: #ef4444; font-weight: 600;">',
+                    "</span>"
+                  )
+                }
+                className="text-[11px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded transition-colors"
+                title="红色文字"
+              >
+                🔴
+              </button>
             </div>
           </div>
           <Textarea
