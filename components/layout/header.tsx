@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MusicPlayer } from "@/components/music/music-player";
+import { SearchDialog } from "@/components/search/search-dialog";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -56,6 +57,7 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
+    <>
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
         {/* Logo */}
@@ -75,13 +77,55 @@ export function Header() {
         <nav className="hidden sm:flex items-center gap-6">
           <NavLinks pathname={pathname} />
           <div className="flex items-center gap-2">
+            {/* 搜索按钮 */}
+            <button
+              onClick={() =>
+                document.dispatchEvent(new CustomEvent("search:toggle"))
+              }
+              className="h-8 w-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="搜索"
+              title="搜索 (Ctrl+K)"
+            >
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+            </button>
             <MusicPlayer />
             <ThemeToggle />
           </div>
         </nav>
 
-        {/* Mobile: theme toggle + hamburger */}
+        {/* Mobile: search + theme toggle + hamburger */}
         <div className="flex items-center gap-2 sm:hidden">
+          <button
+            onClick={() =>
+              document.dispatchEvent(new CustomEvent("search:toggle"))
+            }
+            className="h-8 w-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="搜索"
+          >
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+          </button>
           <MusicPlayer />
           <ThemeToggle />
           <button
@@ -115,5 +159,7 @@ export function Header() {
         </nav>
       )}
     </header>
+    <SearchDialog />
+    </>
   );
 }
