@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { createServiceClient } from "@/lib/supabase/server";
 
 /**
@@ -60,6 +61,9 @@ export async function POST(request: NextRequest) {
         tags.map((tagId: string) => ({ post_id: post.id, tag_id: tagId }))
       );
     }
+
+    // 使公开页缓存立即失效
+    revalidateTag("posts", "max");
 
     return NextResponse.json({ success: true, data: post }, { status: 201 });
   } catch (error) {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { createServiceClient } from "@/lib/supabase/server";
 
 /**
@@ -47,6 +48,9 @@ export async function POST(request: NextRequest) {
       }
       throw error;
     }
+
+    // 使公开页缓存立即失效
+    revalidateTag("diaries", "max");
 
     return NextResponse.json({ success: true, data: diary }, { status: 201 });
   } catch (error) {

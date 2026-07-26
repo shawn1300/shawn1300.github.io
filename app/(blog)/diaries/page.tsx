@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: "生活随想与记录",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 interface GroupedDiaries {
   [year: string]: {

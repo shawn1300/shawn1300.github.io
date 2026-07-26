@@ -126,9 +126,25 @@
   }
   body {
     @apply bg-background text-foreground leading-relaxed;
+    overflow-x: clip;
   }
   html {
     @apply font-sans;
+    /* 移动端：禁止字体自动缩放、去掉点击灰色高亮 */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  a, button {
+    /* 移动端：去掉双击缩放判定带来的点击延迟 */
+    touch-action: manipulation;
+  }
+}
+
+/* 移动端：输入框字号不小于 16px，避免 iOS 聚焦时自动放大页面 */
+@media (max-width: 640px) {
+  input, textarea, select {
+    font-size: 16px !important;
   }
 }
 

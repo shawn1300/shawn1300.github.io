@@ -21,9 +21,11 @@ const navItems = [
 function NavLinks({
   pathname,
   onClick,
+  mobile = false,
 }: {
   pathname: string;
   onClick?: () => void;
+  mobile?: boolean;
 }) {
   return (
     <>
@@ -39,6 +41,8 @@ function NavLinks({
             onClick={onClick}
             className={cn(
               "text-sm transition-colors",
+              // 移动端加大触控区域
+              mobile && "block py-2.5 px-2 rounded-md active:bg-muted",
               isActive
                 ? "text-foreground font-medium"
                 : "text-muted-foreground hover:text-foreground"
@@ -153,8 +157,8 @@ export function Header() {
       {/* Mobile dropdown menu */}
       {menuOpen && (
         <nav className="sm:hidden border-t border-border/40 bg-background/95 backdrop-blur">
-          <div className="flex flex-col px-4 py-3 space-y-1">
-            <NavLinks pathname={pathname} onClick={() => setMenuOpen(false)} />
+          <div className="flex flex-col px-3 py-2">
+            <NavLinks pathname={pathname} onClick={() => setMenuOpen(false)} mobile />
           </div>
         </nav>
       )}

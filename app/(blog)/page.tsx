@@ -1,8 +1,6 @@
 import { getPublishedPosts, getCategories } from "@/lib/posts";
 import { PostList } from "@/components/posts/post-list";
 
-export const dynamic = "force-dynamic";
-
 export default async function HomePage({
   searchParams,
 }: {

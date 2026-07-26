@@ -24,6 +24,8 @@ export function PostCard({ post }: PostCardProps) {
             alt=""
             referrerPolicy="no-referrer"
             crossOrigin="anonymous"
+            loading="lazy"
+            decoding="async"
             className="absolute inset-0 h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
           {/* 暗色渐变遮罩 */}

@@ -8,6 +8,8 @@ interface DiaryPageProps {
   params: Promise<{ slug: string }>;
 }
 
+export const revalidate = 60;
+
 export async function generateMetadata({
   params,
 }: DiaryPageProps): Promise<Metadata> {

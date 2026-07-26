@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: "按时间线查看所有文章",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 interface GroupedPosts {
   [year: string]: {

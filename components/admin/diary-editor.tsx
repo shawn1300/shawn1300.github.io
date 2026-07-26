@@ -118,8 +118,8 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
 
   return (
     <div className="space-y-6">
-      {/* 顶部操作栏 */}
-      <div className="flex items-center justify-between">
+      {/* 顶部操作栏（sticky 在博客 Header 下方，滚动时保持可见） */}
+      <div className="sticky top-14 z-30 -mx-4 px-4 md:-mx-8 md:px-8 py-3 bg-background/95 backdrop-blur border-b border-border/40 flex items-center justify-between">
         <div>
           <h1 className="text-sm font-semibold text-foreground">
             {isEditing ? "编辑日记" : "写日记"}

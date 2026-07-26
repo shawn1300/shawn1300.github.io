@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { createServiceClient } from "@/lib/supabase/server";
 
 /**
@@ -87,6 +88,9 @@ export async function PUT(
       throw error;
     }
 
+    // 使公开页缓存立即失效
+    revalidateTag("diaries", "max");
+
     return NextResponse.json({ success: true, data: diary });
   } catch (error) {
     console.error("PUT /api/diaries/[id] error:", error);
@@ -120,6 +124,8 @@ export async function DELETE(
     const { error } = await supabase.from("diaries").delete().eq("id", id);
 
     if (error) throw error;
+
+    revalidateTag("diaries", "max");
 
     return NextResponse.json({ success: true });
   } catch (error) {
