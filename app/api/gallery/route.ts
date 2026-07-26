@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createServerSupabase } from "@/lib/supabase/server";
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || "";
 const REPO = "shawn1300/shawn1300.github.io";
@@ -7,6 +8,21 @@ const GALLERY_PATH = "public/gallery";
 const API_BASE = "https://api.github.com";
 
 const IMG_EXTS = ["jpg", "jpeg", "png", "gif", "webp", "svg"];
+
+/**
+ * 校验当前请求是否已登录，未登录返回 401 响应，已登录返回 null
+ */
+async function requireUser(): Promise<NextResponse | null> {
+  const supabase = await createServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json(
+      { success: false, error: "请先登录" },
+      { status: 401 }
+    );
+  }
+  return null;
+}
 
 interface GitHubFile {
   name: string;
@@ -92,6 +108,9 @@ async function getFileSha(fileName: string): Promise<string | null> {
  * 上传图片到 public/gallery/（通过 GitHub API）
  */
 export async function POST(request: NextRequest) {
+  const authError = await requireUser();
+  if (authError) return authError;
+
   if (!GITHUB_TOKEN) {
     return NextResponse.json(
       { success: false, error: "未配置 GITHUB_TOKEN" },
@@ -155,6 +174,9 @@ export async function POST(request: NextRequest) {
  * 从 public/gallery/ 删除图片
  */
 export async function DELETE(request: NextRequest) {
+  const authError = await requireUser();
+  if (authError) return authError;
+
   if (!GITHUB_TOKEN) {
     return NextResponse.json(
       { success: false, error: "未配置 GITHUB_TOKEN" },
@@ -166,7 +188,7 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const name = searchParams.get("name");
 
-    if (!name) {
+    if (!name || name.includes("/") || name.includes("\\") || name.includes("..")) {
       return NextResponse.json(
         { success: false, error: "缺少文件名" },
         { status: 400 }

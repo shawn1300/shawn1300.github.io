@@ -43,7 +43,8 @@ export interface Comment {
   id: string
   post_id: string
   author_name: string
-  author_email: string | null
+  /** 公开接口不返回，仅后台接口可见 */
+  author_email?: string | null
   content: string
   created_at: string
 }

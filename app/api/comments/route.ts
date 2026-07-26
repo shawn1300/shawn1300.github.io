@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     const supabase = await createServiceClient();
     const { data, error } = await supabase
       .from("comments")
-      .select("id, post_id, author_name, author_email, content, created_at")
+      .select("id, post_id, author_name, content, created_at")
       .eq("post_id", postId)
       .order("created_at", { ascending: true });
 
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
         delete_token: deleteToken,
         ip_address: ip,
       })
-      .select("id, post_id, author_name, author_email, content, created_at")
+      .select("id, post_id, author_name, content, created_at")
       .single();
 
     if (error) throw error;

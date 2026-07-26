@@ -1,12 +1,21 @@
 import { NextResponse } from "next/server";
-import { createServiceClient } from "@/lib/supabase/server";
+import { createServiceClient, createServerSupabase } from "@/lib/supabase/server";
 
 /**
  * GET /api/admin-comments
- * 获取所有评论（后台管理用，含 IP）
+ * 获取所有评论（后台管理用，含 IP，需登录）
  */
 export async function GET() {
   try {
+    const serverSupabase = await createServerSupabase();
+    const { data: { user } } = await serverSupabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "请先登录" },
+        { status: 401 }
+      );
+    }
+
     const supabase = await createServiceClient();
 
     const { data, error } = await supabase

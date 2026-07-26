@@ -37,7 +37,12 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = await createServerSupabase();
-  const pattern = `%${q}%`;
+  // 移除会破坏 PostgREST or() 过滤语法的字符，并转义 LIKE 通配符
+  const sanitized = q.replace(/[,()"\\]/g, " ").replace(/[%_]/g, "\\$&").trim();
+  if (!sanitized) {
+    return NextResponse.json({ posts: [], diaries: [] });
+  }
+  const pattern = `%${sanitized}%`;
 
   // 并行查询文章和日记（需返回 content 用于生成摘要）
   const [postsRes, diariesRes] = await Promise.all([
