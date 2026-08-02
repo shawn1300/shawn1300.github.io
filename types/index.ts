@@ -32,6 +32,8 @@ export interface Post {
   // 关联数据（JOIN 后填充）
   category?: Category | null
   tags?: Tag[]
+  translation_pending?: boolean
+  source_locale?: 'zh-CN' | 'en' | 'ja'
 }
 
 export interface PostTag {
@@ -59,6 +61,26 @@ export interface Diary {
   author_id: string
   created_at: string
   updated_at: string
+  translation_pending?: boolean
+  source_locale?: 'zh-CN' | 'en' | 'ja'
+}
+
+export type TranslationLocale = 'en' | 'ja'
+export type TranslationStatus = 'pending' | 'processing' | 'complete' | 'failed'
+
+export interface TranslationRun {
+  id: string
+  trigger_source: 'cron' | 'admin'
+  status: 'running' | 'complete' | 'partial' | 'failed'
+  model_id: string
+  scanned_count: number
+  reused_count: number
+  translated_count: number
+  failed_count: number
+  deleted_count: number
+  error_summary: string | null
+  started_at: string
+  completed_at: string | null
 }
 
 export interface DiaryFormData {

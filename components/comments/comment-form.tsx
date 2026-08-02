@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import type { Comment } from "@/types";
+import { useTranslations } from "next-intl";
 
 const TOKENS_KEY = "comment_delete_tokens";
 
@@ -30,12 +31,13 @@ export function CommentForm({ postId, onCommentAdded }: CommentFormProps) {
   const [authorEmail, setAuthorEmail] = useState("");
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const t = useTranslations("Comments");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!content.trim()) {
-      toast.error("请输入评论内容");
+      toast.error(t("contentRequired"));
       return;
     }
 
@@ -47,7 +49,7 @@ export function CommentForm({ postId, onCommentAdded }: CommentFormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           post_id: postId,
-          author_name: authorName.trim() || "匿名",
+          author_name: authorName.trim() || t("anonymous"),
           author_email: authorEmail.trim() || null,
           content: content.trim(),
         }),
@@ -56,7 +58,7 @@ export function CommentForm({ postId, onCommentAdded }: CommentFormProps) {
       const json = await res.json();
 
       if (!json.success) {
-        toast.error(json.error || "评论提交失败");
+        toast.error(t("submitFailed"));
         return;
       }
 
@@ -67,9 +69,9 @@ export function CommentForm({ postId, onCommentAdded }: CommentFormProps) {
 
       onCommentAdded(json.data);
       setContent("");
-      toast.success("评论已发布");
+      toast.success(t("published"));
     } catch {
-      toast.error("网络错误，请重试");
+      toast.error(t("networkError"));
     } finally {
       setSubmitting(false);
     }
@@ -77,11 +79,11 @@ export function CommentForm({ postId, onCommentAdded }: CommentFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <h3 className="text-sm font-medium text-foreground">发表评论</h3>
+      <h3 className="text-sm font-medium text-foreground">{t("formTitle")}</h3>
 
       <div className="flex gap-3">
         <Input
-          placeholder="昵称（默认：匿名）"
+          placeholder={t("namePlaceholder")}
           value={authorName}
           onChange={(e) => setAuthorName(e.target.value)}
           maxLength={30}
@@ -89,7 +91,7 @@ export function CommentForm({ postId, onCommentAdded }: CommentFormProps) {
         />
         <Input
           type="email"
-          placeholder="邮箱（选填）"
+          placeholder={t("emailPlaceholder")}
           value={authorEmail}
           onChange={(e) => setAuthorEmail(e.target.value)}
           maxLength={100}
@@ -98,7 +100,7 @@ export function CommentForm({ postId, onCommentAdded }: CommentFormProps) {
       </div>
 
       <Textarea
-        placeholder="写下你的想法..."
+        placeholder={t("contentPlaceholder")}
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={4}
@@ -117,7 +119,7 @@ export function CommentForm({ postId, onCommentAdded }: CommentFormProps) {
           variant="secondary"
           className="h-8 text-xs"
         >
-          {submitting ? "提交中..." : "发布评论"}
+          {submitting ? t("submitting") : t("submit")}
         </Button>
       </div>
     </form>

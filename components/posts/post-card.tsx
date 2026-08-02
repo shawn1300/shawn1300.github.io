@@ -1,13 +1,15 @@
-import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "@/i18n/navigation";
+import type { Locale } from "@/i18n/routing";
 import { formatDate } from "@/lib/utils";
 import type { Post } from "@/types";
 
 interface PostCardProps {
   post: Post;
+  locale: Locale;
 }
 
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ post, locale }: PostCardProps) {
   const hasCover = !!post.cover_image;
 
   return (
@@ -46,7 +48,7 @@ export function PostCard({ post }: PostCardProps) {
           }`}
         >
           <time dateTime={post.published_at || post.created_at}>
-            {formatDate(post.published_at || post.created_at)}
+            {formatDate(post.published_at || post.created_at, undefined, locale)}
           </time>
           {post.category && (
             <>

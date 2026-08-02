@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { MarkdownRenderer } from "@/components/posts/markdown-renderer";
 import { toast } from "sonner";
 import type { Diary } from "@/types";
+import { useTranslations } from "next-intl";
 
 interface DiaryEditorProps {
   diary?: Diary | null;
@@ -24,6 +25,7 @@ function slugify(text: string): string {
 export function DiaryEditor({ diary }: DiaryEditorProps) {
   const router = useRouter();
   const isEditing = !!diary;
+  const t = useTranslations("Admin.editor");
 
   const [title, setTitle] = useState(diary?.title || "");
   const [slug, setSlug] = useState(diary?.slug || "");
@@ -72,11 +74,11 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
   // 保存
   const handleSave = async () => {
     if (!title.trim()) {
-      toast.error("请输入标题");
+      toast.error(t("titleRequired"));
       return;
     }
     if (!slug.trim()) {
-      toast.error("slug 生成失败，请输入标题");
+      toast.error(t("slugGenerationFailed"));
       return;
     }
 
@@ -99,18 +101,18 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
       const json = await res.json();
 
       if (!json.success) {
-        toast.error(json.error || "保存失败");
+        toast.error(t("saveFailed"));
         return;
       }
 
-      toast.success("日记已保存");
+      toast.success(t("diarySaved"));
 
       if (!isEditing) {
         router.push(`/admin/diaries/${json.data.id}`);
       }
       router.refresh();
     } catch {
-      toast.error("保存失败，请重试");
+      toast.error(t("saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -122,7 +124,7 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
       <div className="sticky top-14 z-30 -mx-4 px-4 md:-mx-8 md:px-8 py-3 bg-background/95 backdrop-blur border-b border-border/40 flex items-center justify-between">
         <div>
           <h1 className="text-sm font-semibold text-foreground">
-            {isEditing ? "编辑日记" : "写日记"}
+            {isEditing ? t("editDiary") : t("createDiary")}
           </h1>
         </div>
         <Button
@@ -131,14 +133,14 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
           onClick={handleSave}
           className="h-8 text-xs"
         >
-          {saving ? "保存中..." : "保存"}
+          {saving ? t("saving") : t("save")}
         </Button>
       </div>
 
       {/* 元数据区 */}
       <div className="space-y-3 p-4 border border-border rounded-lg bg-muted/50">
         <Input
-          placeholder="日记标题"
+          placeholder={t("diaryTitle")}
           value={title}
           onChange={(e) => handleTitleChange(e.target.value)}
           className="text-sm font-medium bg-transparent border-0 border-b border-border/40 rounded-none focus-visible:ring-0 focus-visible:border-ring px-0"
@@ -156,7 +158,7 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
                 type="button"
                 onClick={() => insertMarkdown("**", "**")}
                 className="text-[11px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded transition-colors"
-                title="加粗"
+                title={t("bold")}
               >
                 B
               </button>
@@ -164,7 +166,7 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
                 type="button"
                 onClick={() => insertMarkdown("*", "*")}
                 className="text-[11px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded transition-colors italic"
-                title="斜体"
+                title={t("italic")}
               >
                 I
               </button>
@@ -172,7 +174,7 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
                 type="button"
                 onClick={() => insertMarkdown("[", "](url)")}
                 className="text-[11px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded transition-colors"
-                title="链接"
+                title={t("link")}
               >
                 🔗
               </button>
@@ -180,7 +182,7 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
                 type="button"
                 onClick={() => insertMarkdown("\n```\n", "\n```\n")}
                 className="text-[11px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded transition-colors"
-                title="代码块"
+                title={t("codeBlock")}
               >
                 &lt;/&gt;
               </button>
@@ -193,7 +195,7 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
                   )
                 }
                 className="text-[11px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded transition-colors"
-                title="黄色高亮"
+                title={t("yellowHighlight")}
               >
                 🖍
               </button>
@@ -206,7 +208,7 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
                   )
                 }
                 className="text-[11px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded transition-colors"
-                title="红色文字"
+                title={t("redText")}
               >
                 🔴
               </button>
@@ -216,20 +218,20 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
             data-editor="markdown"
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="开始写 Markdown..."
+            placeholder={t("markdownPlaceholder")}
             className="min-h-[60vh] text-sm font-mono bg-muted/50 border-border focus-visible:ring-0 focus-visible:border-ring resize-none leading-relaxed"
           />
         </div>
 
         {/* 预览区 */}
         <div className="space-y-2">
-          <span className="text-[11px] text-muted-foreground">预览</span>
+          <span className="text-[11px] text-muted-foreground">{t("preview")}</span>
           <div className="min-h-[60vh] border border-border rounded-lg p-6 bg-muted/50 overflow-y-auto">
             {content ? (
               <MarkdownRenderer content={content} />
             ) : (
               <p className="text-sm text-muted-foreground">
-                在左侧输入 Markdown，这里会实时预览...
+                {t("previewEmpty")}
               </p>
             )}
           </div>

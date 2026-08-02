@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { CommentForm } from "@/components/comments/comment-form";
 import { CommentItem } from "@/components/comments/comment-item";
 import type { Comment } from "@/types";
+import { useTranslations } from "next-intl";
 
 interface CommentSectionProps {
   postId: string;
@@ -13,6 +14,7 @@ interface CommentSectionProps {
 export function CommentSection({ postId }: CommentSectionProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
+  const t = useTranslations("Comments");
 
   // 加载初始评论
   useEffect(() => {
@@ -87,10 +89,10 @@ export function CommentSection({ postId }: CommentSectionProps) {
       {/* Comments list */}
       <div className="space-y-0">
         {loading ? (
-          <p className="text-sm text-muted-foreground py-4">加载评论中...</p>
+          <p className="text-sm text-muted-foreground py-4">{t("loading")}</p>
         ) : comments.length === 0 ? (
           <p className="text-sm text-muted-foreground py-4">
-            暂无评论。来做第一个留言的人吧。
+            {t("empty")}
           </p>
         ) : (
           comments.map((comment) => (

@@ -1,22 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MusicPlayer } from "@/components/music/music-player";
 import { SearchDialog } from "@/components/search/search-dialog";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/", label: "首页" },
-  { href: "/categories", label: "分类" },
-  { href: "/archive", label: "归档" },
-  { href: "/diaries", label: "日记" },
-  { href: "/gallery", label: "相册" },
-  { href: "/friends", label: "友链" },
-  { href: "/about", label: "关于" },
-];
+  { href: "/", label: "home" },
+  { href: "/categories", label: "categories" },
+  { href: "/archive", label: "archive" },
+  { href: "/diaries", label: "diaries" },
+  { href: "/gallery", label: "gallery" },
+  { href: "/friends", label: "friends" },
+  { href: "/about", label: "about" },
+] as const;
 
 function NavLinks({
   pathname,
@@ -27,6 +28,8 @@ function NavLinks({
   onClick?: () => void;
   mobile?: boolean;
 }) {
+  const t = useTranslations("Navigation");
+
   return (
     <>
       {navItems.map((item) => {
@@ -48,7 +51,7 @@ function NavLinks({
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
-            {item.label}
+            {t(item.label)}
           </Link>
         );
       })}
@@ -59,6 +62,7 @@ function NavLinks({
 export function Header() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const t = useTranslations("Navigation");
 
   return (
     <>
@@ -87,8 +91,8 @@ export function Header() {
                 document.dispatchEvent(new CustomEvent("search:toggle"))
               }
               className="h-8 w-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="搜索"
-              title="搜索 (Ctrl+K)"
+              aria-label={t("search")}
+              title={`${t("search")} (Ctrl+K)`}
             >
               <svg
                 className="h-4 w-4"
@@ -104,6 +108,7 @@ export function Header() {
               </svg>
             </button>
             <MusicPlayer />
+            <LanguageSwitcher />
             <ThemeToggle />
           </div>
         </nav>
@@ -115,7 +120,7 @@ export function Header() {
               document.dispatchEvent(new CustomEvent("search:toggle"))
             }
             className="h-8 w-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="搜索"
+            aria-label={t("search")}
           >
             <svg
               className="h-4 w-4"
@@ -131,11 +136,12 @@ export function Header() {
             </svg>
           </button>
           <MusicPlayer />
+          <LanguageSwitcher />
           <ThemeToggle />
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="h-8 w-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="菜单"
+            aria-label={t("menu")}
           >
             <svg
               className={cn("h-4 w-4 transition-transform", menuOpen && "rotate-90")}

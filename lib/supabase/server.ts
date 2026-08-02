@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
 /**
@@ -61,4 +62,20 @@ export async function createServiceClient() {
       },
     }
   )
+}
+
+/**
+ * Cookie-free Service Role client for Cron jobs and background translation.
+ * Never import this function into a Client Component.
+ */
+export function createAdminSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !serviceRoleKey) {
+    throw new Error('Supabase server environment variables are not configured')
+  }
+
+  return createClient(url, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
 }

@@ -30,6 +30,8 @@
 - **友链** — 朋友们的主页链接
 - **全局搜索** — `Ctrl+K` 快捷搜索文章 & 日记
 - **后台管理** — 分屏 Markdown 编辑器，草稿/发布状态，图片上传
+- **多语言** — 简体中文、英文、日文手动切换，语言写入 Cookie，不读取浏览器语言
+- **自动翻译** — DeepSeek 每天增量翻译，只翻译有变化的 Markdown 块
 - **响应式** — 适配桌面 & 移动端
 - **纯暗黑** — always dark，专注阅读
 
@@ -38,15 +40,9 @@
 ```
 shawn1300/
 ├── app/                    # Next.js App Router
-│   ├── (blog)/             # 前台页面
-│   │   ├── admin/          # 后台管理 (受 Auth 保护)
-│   │   ├── posts/          # 文章详情
-│   │   ├── diaries/        # 日记
-│   │   ├── gallery/        # 相册
-│   │   ├── friends/        # 友链
-│   │   ├── about/          # 关于
-│   │   ├── archive/        # 归档
-│   │   └── categories/     # 分类
+│   ├── [locale]/           # 语言路由（中文无前缀，英文 /en，日文 /ja）
+│   │   ├── (blog)/         # 前台与后台页面
+│   │   └── (celebration)/  # 独立庆祝页面
 │   └── api/                # API Routes
 ├── components/             # React 组件
 ├── lib/                    # 工具函数 & Supabase 客户端
@@ -75,7 +71,7 @@ npm install
 
 # 配置环境变量
 cp .env.example .env.local
-# 编辑 .env.local，填入 Supabase 项目 URL 和 anon key
+# 编辑 .env.local，填入 Supabase 与 DeepSeek 配置
 
 # 启动开发服务器
 npm run dev
@@ -93,7 +89,33 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # 站点
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
+
+# DeepSeek 自动翻译
+DEEPSEEK_API_KEY=your-deepseek-api-key
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_TRANSLATION_MODEL=控制台显示的-DeepSeek-V4-Flash-准确模型ID
+CRON_SECRET=一段随机长字符串
 ```
+
+`DEEPSEEK_TRANSLATION_MODEL` 不在代码中写死。DeepSeek 发布或调整模型 ID 后，以其控制台/API 文档显示的准确值为准。
+
+### 初始化多语言数据库
+
+部署新版代码前，在 Supabase SQL Editor 中执行：
+
+```text
+supabase/migrations/005_i18n_translations.sql
+```
+
+迁移会创建文章、日记、分类、标签的译文表，以及翻译运行记录和变更触发器。Service Role Key 只能配置在服务端环境变量中，不能使用 `NEXT_PUBLIC_` 前缀。
+
+### 翻译运行方式
+
+- Vercel Cron 使用 `0 18 * * *`（UTC），对应北京时间每天凌晨 2 点。
+- 后台 `/admin/translations` 可手动立即同步并查看运行记录。
+- 修改中文内容后，旧译文会标记为待处理；同步时按 Markdown 块哈希复用未变化部分。
+- 英文或日文译文缺失/过期时，页面暂时显示中文原文和提示，不会出现空白页。
+- 评论正文保持访客提交时的原语言，只翻译评论界面。
 
 ## 部署
 
@@ -107,6 +129,8 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 npm run build
 npm start
 ```
+
+Vercel 项目还需要配置 `.env.example` 中的 Supabase、DeepSeek 和 `CRON_SECRET`。首次发布后可登录后台进入“自动翻译”，手动运行一次以生成已有内容的英文和日文译文。
 
 ## License
 

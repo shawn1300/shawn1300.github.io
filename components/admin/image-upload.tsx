@@ -4,18 +4,16 @@ import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 interface ImageUploadProps {
   onInsert: (url: string, alt?: string) => void;
 }
 
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "上传失败";
-}
-
 export function ImageUpload({ onInsert }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const t = useTranslations("Admin.gallery");
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -23,13 +21,13 @@ export function ImageUpload({ onInsert }: ImageUploadProps) {
 
     // 验证文件类型
     if (!file.type.startsWith("image/")) {
-      toast.error("请选择图片文件");
+      toast.error(t("imageRequired"));
       return;
     }
 
     // 验证大小 (10MB)
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("图片大小不能超过 10MB");
+      toast.error(t("tooLarge"));
       return;
     }
 
@@ -57,10 +55,10 @@ export function ImageUpload({ onInsert }: ImageUploadProps) {
       } = supabase.storage.from("blog-images").getPublicUrl(fileName);
 
       onInsert(publicUrl, file.name.replace(/\.[^.]+$/, ""));
-      toast.success("图片上传成功");
+      toast.success(t("inserted"));
     } catch (error: unknown) {
       console.error("Upload error:", error);
-      toast.error(getErrorMessage(error));
+      toast.error(error instanceof Error ? error.message : t("uploadFailed"));
     } finally {
       setUploading(false);
       // 重置 input 以便再次上传同一文件
@@ -85,7 +83,7 @@ export function ImageUpload({ onInsert }: ImageUploadProps) {
         onClick={() => inputRef.current?.click()}
         className="h-7 text-xs text-muted-foreground hover:text-foreground"
       >
-        {uploading ? "上传中..." : "📷 插入图片"}
+        {uploading ? t("uploading") : t("insert")}
       </Button>
     </>
   );

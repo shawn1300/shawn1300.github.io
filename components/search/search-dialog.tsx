@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/utils";
 import { SearchIcon, FileText, BookOpen, XIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLocale, useTranslations } from "next-intl";
+import type { Locale } from "@/i18n/routing";
 
 interface SearchPost {
   id: string;
@@ -52,6 +54,8 @@ function highlightSnippet(snippet: string, keyword: string) {
 
 export function SearchDialog() {
   const router = useRouter();
+  const locale = useLocale() as Locale;
+  const t = useTranslations("Search");
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult | null>(null);
@@ -109,7 +113,7 @@ export function SearchDialog() {
     setSearched(true);
     setSelectedIndex(-1);
     try {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(term)}`);
+      const res = await fetch(`/api/search?q=${encodeURIComponent(term)}&locale=${encodeURIComponent(locale)}`);
       const data = await res.json();
       setResults(data);
     } catch {
@@ -117,7 +121,7 @@ export function SearchDialog() {
     } finally {
       setLoading(false);
     }
-  }, [query]);
+  }, [query, locale]);
 
   // 跳转
   const navigate = useCallback(
@@ -207,7 +211,8 @@ export function SearchDialog() {
                 setSearched(false);
               }}
               onKeyDown={handleKeyDown}
-              placeholder="搜索文章或日记…（回车搜索）"
+              placeholder={t("placeholder")}
+              aria-label={t("placeholder")}
               className="flex-1 border-0 bg-transparent h-auto px-0 text-sm focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/60"
             />
             {query && (
@@ -219,6 +224,7 @@ export function SearchDialog() {
                   inputRef.current?.focus();
                 }}
                 className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label={t("close")}
               >
                 <XIcon className="h-3.5 w-3.5" />
               </button>
@@ -233,13 +239,13 @@ export function SearchDialog() {
             <div className="border-t border-border/40 max-h-[50vh] overflow-y-auto">
               {loading && (
                 <div className="px-4 py-8 text-center text-xs text-muted-foreground">
-                  搜索中...
+                  {t("searching")}
                 </div>
               )}
 
               {!loading && searched && !hasResults && (
                 <div className="px-4 py-8 text-center text-xs text-muted-foreground">
-                  未找到相关内容
+                  {t("noResults")}
                 </div>
               )}
 
@@ -250,7 +256,7 @@ export function SearchDialog() {
                     <div>
                       <div className="flex items-center gap-1.5 px-4 py-1.5 text-[10px] text-muted-foreground/70 tracking-wider">
                         <FileText className="h-3 w-3" />
-                        文章 · {totalPosts} 篇
+                        {t("posts", { count: totalPosts })}
                       </div>
                       {results!.posts.map((post, idx) => (
                         <button
@@ -269,7 +275,8 @@ export function SearchDialog() {
                           <div className="text-[11px] text-muted-foreground mt-0.5">
                             <span>{formatDate(
                               post.published_at || post.created_at,
-                              "yyyy-MM-dd"
+                              "yyyy-MM-dd",
+                              locale
                             )}</span>
                           </div>
                           {post.snippet && (
@@ -287,7 +294,7 @@ export function SearchDialog() {
                     <div>
                       <div className="flex items-center gap-1.5 px-4 py-1.5 text-[10px] text-muted-foreground/70 tracking-wider mt-1">
                         <BookOpen className="h-3 w-3" />
-                        日记 · {totalDiaries} 篇
+                        {t("diaries", { count: totalDiaries })}
                       </div>
                       {results!.diaries.map((diary, idx) => {
                         const globalIdx = totalPosts + idx;
@@ -311,7 +318,7 @@ export function SearchDialog() {
                               {diary.title}
                             </div>
                             <div className="text-[11px] text-muted-foreground mt-0.5">
-                              <span>{formatDate(diary.created_at, "yyyy-MM-dd")}</span>
+                              <span>{formatDate(diary.created_at, "yyyy-MM-dd", locale)}</span>
                             </div>
                             {diary.snippet && (
                               <div className="text-[11px] text-muted-foreground/70 mt-0.5 line-clamp-2 leading-snug">

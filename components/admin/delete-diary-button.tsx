@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 
 export function DeleteDiaryButton({
   id,
@@ -14,6 +15,7 @@ export function DeleteDiaryButton({
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+  const t = useTranslations("Admin.content");
 
   async function handleDelete() {
     if (!confirmed) {
@@ -41,7 +43,7 @@ export function DeleteDiaryButton({
       disabled={deleting}
       className="h-7 text-[10px]"
     >
-      {deleting ? "删除中..." : confirmed ? `确认删除「${title.slice(0, 8)}${title.length > 8 ? "..." : ""}」?` : "删除"}
+      {deleting ? t("deleting") : confirmed ? t("confirmDelete", { title: `${title.slice(0, 8)}${title.length > 8 ? "..." : ""}` }) : t("delete")}
     </Button>
   );
 }

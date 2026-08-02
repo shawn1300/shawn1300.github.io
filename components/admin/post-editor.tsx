@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { MarkdownRenderer } from "@/components/posts/markdown-renderer";
 import { toast } from "sonner";
 import type { Post, Category, Tag } from "@/types";
+import { useTranslations } from "next-intl";
 
 interface PostEditorProps {
   post?: Post | null;
@@ -19,6 +20,7 @@ interface PostEditorProps {
 export function PostEditor({ post, categories, tags }: PostEditorProps) {
   const router = useRouter();
   const isEditing = !!post;
+  const t = useTranslations("Admin.editor");
 
   const [title, setTitle] = useState(post?.title || "");
   const [slug, setSlug] = useState(post?.slug || "");
@@ -29,9 +31,7 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>(
     post?.tags?.map((t) => t.id) || []
   );
-  const [status, setStatus] = useState<"draft" | "published">(
-    post?.status || "draft"
-  );
+  const status = post?.status || "draft";
   const [saving, setSaving] = useState(false);
 
   // 根据标题自动生成 slug
@@ -90,11 +90,11 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
   // 保存
   const handleSave = async (publishStatus?: "draft" | "published") => {
     if (!title.trim()) {
-      toast.error("请输入文章标题");
+      toast.error(t("postTitleRequired"));
       return;
     }
     if (!slug.trim()) {
-      toast.error("请输入 URL slug");
+      toast.error(t("slugRequired"));
       return;
     }
 
@@ -123,12 +123,12 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
       const json = await res.json();
 
       if (!json.success) {
-        toast.error(json.error || "保存失败");
+        toast.error(t("saveFailed"));
         return;
       }
 
       toast.success(
-        finalStatus === "published" ? "文章已发布！" : "草稿已保存"
+        finalStatus === "published" ? t("postPublished") : t("draftSaved")
       );
 
       if (!isEditing) {
@@ -136,7 +136,7 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
       }
       router.refresh();
     } catch {
-      toast.error("保存失败，请重试");
+      toast.error(t("saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -148,7 +148,7 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
       <div className="sticky top-14 z-30 -mx-4 px-4 md:-mx-8 md:px-8 py-3 bg-background/95 backdrop-blur border-b border-border/40 flex items-center justify-between">
         <div>
           <h1 className="text-sm font-semibold text-foreground">
-            {isEditing ? "编辑文章" : "新建文章"}
+            {isEditing ? t("editPost") : t("createPost")}
           </h1>
         </div>
         <div className="flex items-center gap-2">
@@ -159,7 +159,7 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
             onClick={() => handleSave("draft")}
             className="h-8 text-xs"
           >
-            保存草稿
+            {t("saveDraft")}
           </Button>
           <Button
             size="sm"
@@ -167,7 +167,7 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
             onClick={() => handleSave("published")}
             className="h-8 text-xs"
           >
-            {saving ? "保存中..." : "发布"}
+            {saving ? t("saving") : t("publish")}
           </Button>
         </div>
       </div>
@@ -175,27 +175,27 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
       {/* 元数据区 */}
       <div className="space-y-3 p-4 border border-border rounded-lg bg-muted/50">
         <Input
-          placeholder="文章标题"
+          placeholder={t("postTitle")}
           value={title}
           onChange={(e) => handleTitleChange(e.target.value)}
           className="text-sm font-medium bg-transparent border-0 border-b border-border/40 rounded-none focus-visible:ring-0 focus-visible:border-ring px-0"
         />
         <div className="flex gap-3">
           <Input
-            placeholder="slug（URL 标识）"
+            placeholder={t("slug")}
             value={slug}
             onChange={(e) => setSlug(e.target.value)}
             className="flex-1 text-xs bg-transparent border-border/60 focus-visible:ring-0 focus-visible:border-ring h-8"
           />
           <Input
-            placeholder="封面图 URL"
+            placeholder={t("coverUrl")}
             value={coverImage}
             onChange={(e) => setCoverImage(e.target.value)}
             className="flex-1 text-xs bg-transparent border-border/60 focus-visible:ring-0 focus-visible:border-ring h-8"
           />
         </div>
         <Textarea
-          placeholder="摘要（留空则自动截取正文前 200 字）"
+          placeholder={t("excerpt")}
           value={excerpt}
           onChange={(e) => setExcerpt(e.target.value)}
           rows={2}
@@ -204,13 +204,13 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
 
         {/* 分类 */}
         <div>
-          <p className="text-[11px] text-muted-foreground mb-2">分类</p>
+          <p className="text-[11px] text-muted-foreground mb-2">{t("category")}</p>
           <select
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
             className="w-full text-xs bg-transparent border border-border/60 rounded-md px-3 py-1.5 text-foreground focus:outline-none focus:border-ring"
           >
-            <option value="">无分类</option>
+            <option value="">{t("noCategory")}</option>
             {categories.map((cat) => (
               <option key={cat.id} value={cat.id}>
                 {cat.name}
@@ -221,7 +221,7 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
 
         {/* 标签 */}
         <div>
-          <p className="text-[11px] text-muted-foreground mb-2">标签</p>
+          <p className="text-[11px] text-muted-foreground mb-2">{t("tags")}</p>
           <div className="flex flex-wrap gap-1.5">
             {tags.map((tag) => (
               <Badge
@@ -235,7 +235,7 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
             ))}
             {tags.length === 0 && (
               <span className="text-[11px] text-muted-foreground">
-                暂无标签，先去分类管理页面创建
+                {t("noTags")}
               </span>
             )}
           </div>
@@ -253,7 +253,7 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
                 type="button"
                 onClick={() => insertMarkdown("**", "**")}
                 className="text-[11px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded transition-colors"
-                title="加粗"
+                title={t("bold")}
               >
                 B
               </button>
@@ -261,7 +261,7 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
                 type="button"
                 onClick={() => insertMarkdown("*", "*")}
                 className="text-[11px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded transition-colors italic"
-                title="斜体"
+                title={t("italic")}
               >
                 I
               </button>
@@ -269,7 +269,7 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
                 type="button"
                 onClick={() => insertMarkdown("[", "](url)")}
                 className="text-[11px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded transition-colors"
-                title="链接"
+                title={t("link")}
               >
                 🔗
               </button>
@@ -277,7 +277,7 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
                 type="button"
                 onClick={() => insertMarkdown("\n```\n", "\n```\n")}
                 className="text-[11px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded transition-colors"
-                title="代码块"
+                title={t("codeBlock")}
               >
                 &lt;/&gt;
               </button>
@@ -290,7 +290,7 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
                   )
                 }
                 className="text-[11px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded transition-colors"
-                title="黄色高亮"
+                title={t("yellowHighlight")}
               >
                 🖍
               </button>
@@ -303,7 +303,7 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
                   )
                 }
                 className="text-[11px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded transition-colors"
-                title="红色文字"
+                title={t("redText")}
               >
                 🔴
               </button>
@@ -313,20 +313,20 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
             data-editor="markdown"
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="开始写 Markdown..."
+            placeholder={t("markdownPlaceholder")}
             className="min-h-[60vh] text-sm font-mono bg-muted/50 border-border focus-visible:ring-0 focus-visible:border-ring resize-none leading-relaxed"
           />
         </div>
 
         {/* 预览区 */}
         <div className="space-y-2">
-          <span className="text-[11px] text-muted-foreground">预览</span>
+          <span className="text-[11px] text-muted-foreground">{t("preview")}</span>
           <div className="min-h-[60vh] border border-border rounded-lg p-6 bg-muted/50 overflow-y-auto">
             {content ? (
               <MarkdownRenderer content={content} />
             ) : (
               <p className="text-sm text-muted-foreground">
-                在左侧输入 Markdown，这里会实时预览...
+                {t("previewEmpty")}
               </p>
             )}
           </div>

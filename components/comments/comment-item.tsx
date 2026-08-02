@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { formatDate } from "@/lib/utils";
 import type { Comment } from "@/types";
+import { useLocale, useTranslations } from "next-intl";
+import type { Locale } from "@/i18n/routing";
 
 const TOKENS_KEY = "comment_delete_tokens";
 
@@ -14,6 +16,8 @@ interface CommentItemProps {
 export function CommentItem({ comment, onDeleted }: CommentItemProps) {
   const [deleting, setDeleting] = useState(false);
   const [canDelete, setCanDelete] = useState(false);
+  const locale = useLocale() as Locale;
+  const t = useTranslations("Comments");
 
   useEffect(() => {
     try {
@@ -26,7 +30,7 @@ export function CommentItem({ comment, onDeleted }: CommentItemProps) {
   }, [comment.id]);
 
   const handleDelete = async () => {
-    if (!confirm("确定要删除这条评论吗？")) return;
+    if (!confirm(t("deleteConfirm"))) return;
 
     setDeleting(true);
     try {
@@ -68,7 +72,7 @@ export function CommentItem({ comment, onDeleted }: CommentItemProps) {
           {comment.author_name}
         </span>
         <span className="text-[11px] text-muted-foreground">
-          {formatDate(comment.created_at)}
+          {formatDate(comment.created_at, undefined, locale)}
         </span>
         {canDelete && (
           <button
@@ -76,7 +80,7 @@ export function CommentItem({ comment, onDeleted }: CommentItemProps) {
             disabled={deleting}
             className="text-[10px] text-muted-foreground/50 hover:text-destructive transition-colors ml-auto opacity-0 group-hover:opacity-100"
           >
-            {deleting ? "..." : "删除"}
+            {deleting ? "..." : t("delete")}
           </button>
         )}
       </div>

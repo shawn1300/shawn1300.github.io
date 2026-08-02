@@ -3,9 +3,11 @@
 import { MusicIcon } from "./music-icon";
 import { cn } from "@/lib/utils";
 import { useMusic } from "./music-context";
+import { useTranslations } from "next-intl";
 
 export function MusicNote({ onClick }: { onClick: () => void }) {
   const { isPlaying } = useMusic();
+  const t = useTranslations("Music");
 
   return (
     <button
@@ -15,8 +17,8 @@ export function MusicNote({ onClick }: { onClick: () => void }) {
         "text-muted-foreground hover:text-foreground hover:bg-muted",
         isPlaying && "text-primary [animation:spin-slow_3s_linear_infinite]"
       )}
-      aria-label="音乐播放器"
-      title="音乐播放器"
+      aria-label={t("player")}
+      title={t("player")}
     >
       <MusicIcon className="size-4" />
     </button>

@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 export function BackToTop() {
   const [visible, setVisible] = useState(false);
+  const t = useTranslations("Accessibility");
 
   useEffect(() => {
     const onScroll = () => {
@@ -26,7 +28,7 @@ export function BackToTop() {
         "fixed bottom-6 right-6 z-40 h-8 w-8 flex items-center justify-center rounded-full bg-muted/80 backdrop-blur ring-1 ring-foreground/10 text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200",
         visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
       )}
-      aria-label="返回顶部"
+      aria-label={t("backToTop")}
     >
       <svg
         className="h-3.5 w-3.5"

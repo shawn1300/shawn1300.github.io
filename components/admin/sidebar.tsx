@@ -1,27 +1,28 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 const navItems = [
-  { href: "/admin", label: "概览", exact: true },
-  { href: "/admin/posts", label: "文章管理" },
-  { href: "/admin/posts/new", label: "写文章" },
-  { href: "/admin/diaries", label: "日记管理" },
-  { href: "/admin/diaries/new", label: "写日记" },
-  { href: "/admin/categories", label: "分类与标签" },
-  { href: "/admin/gallery", label: "相册管理" },
-  { href: "/admin/comments", label: "评论管理" },
+  { href: "/admin", label: "dashboard", exact: true },
+  { href: "/admin/posts", label: "posts" },
+  { href: "/admin/posts/new", label: "newPost" },
+  { href: "/admin/diaries", label: "diaries" },
+  { href: "/admin/diaries/new", label: "newDiary" },
+  { href: "/admin/categories", label: "categories" },
+  { href: "/admin/gallery", label: "gallery" },
+  { href: "/admin/comments", label: "comments" },
+  { href: "/admin/translations", label: "translations" },
 ];
 
 export function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const t = useTranslations("Admin.sidebar");
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -38,7 +39,7 @@ export function AdminSidebar() {
       <div className="md:hidden border-b border-border bg-background">
         <div className="flex items-center justify-between px-4 pt-3">
           <span className="text-sm font-semibold text-foreground">
-            CMS 后台
+            CMS
           </span>
           <div className="flex items-center gap-1">
             <Link
@@ -46,13 +47,13 @@ export function AdminSidebar() {
               target="_blank"
               className="text-xs text-muted-foreground hover:text-foreground px-2 py-1"
             >
-              查看博客
+              {t("backToBlog")}
             </Link>
             <button
               onClick={handleLogout}
               className="text-xs text-muted-foreground hover:text-foreground px-2 py-1"
             >
-              退出
+              {t("logout")}
             </button>
           </div>
         </div>
@@ -68,7 +69,7 @@ export function AdminSidebar() {
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              {item.label}
+              {t(item.label)}
             </Link>
           ))}
         </nav>
@@ -83,7 +84,7 @@ export function AdminSidebar() {
           >
             CMS
           </Link>
-          <p className="text-[11px] text-muted-foreground mt-0.5">后台管理</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">{t("dashboard")}</p>
         </div>
 
         <Separator className="bg-border/40" />
@@ -100,7 +101,7 @@ export function AdminSidebar() {
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               )}
             >
-              {item.label}
+              {t(item.label)}
             </Link>
           ))}
         </nav>
@@ -111,7 +112,7 @@ export function AdminSidebar() {
             target="_blank"
             className="block px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors mb-1"
           >
-            → 查看博客
+            → {t("backToBlog")}
           </Link>
           <Button
             variant="ghost"
@@ -119,7 +120,7 @@ export function AdminSidebar() {
             onClick={handleLogout}
             className="w-full justify-start text-sm text-muted-foreground hover:text-foreground h-8 px-3"
           >
-            退出登录
+            {t("logout")}
           </Button>
         </div>
       </aside>

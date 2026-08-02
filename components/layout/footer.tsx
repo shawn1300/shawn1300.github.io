@@ -1,4 +1,9 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+
 export function Footer() {
+  const t = useTranslations("Footer");
   return (
     <footer className="border-t border-border/40">
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
@@ -6,7 +11,7 @@ export function Footer() {
           &copy; {new Date().getFullYear()} Shawn.
         </p>
         <p className="text-[11px] sm:text-xs text-muted-foreground italic tracking-wide">
-          もう、何も怖くない！
+          {t("motto")}
         </p>
         <div className="flex items-center gap-3">
           <a

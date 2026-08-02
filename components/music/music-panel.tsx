@@ -3,6 +3,7 @@
 import { Play, Pause, SkipBack, SkipForward, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMusic } from "./music-context";
+import { useTranslations } from "next-intl";
 
 // ── Helpers ──
 
@@ -33,6 +34,7 @@ export function MusicPanel({
     prev,
     selectTrack,
   } = useMusic();
+  const t = useTranslations("Music");
 
   const currentTrack = tracks[currentTrackIndex];
   const coverUrl = currentTrack.coverUrl;
@@ -65,7 +67,7 @@ export function MusicPanel({
       <button
         onClick={onClose}
         className="absolute top-3 right-3 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-        aria-label="关闭播放器"
+        aria-label={t("close")}
       >
         <X className="size-3.5" />
       </button>
@@ -132,14 +134,14 @@ export function MusicPanel({
         <button
           onClick={prev}
           className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-          aria-label="上一曲"
+          aria-label={t("previous")}
         >
           <SkipBack className="size-4" />
         </button>
         <button
           onClick={toggle}
           className="p-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/85 transition-colors"
-          aria-label={isPlaying ? "暂停" : "播放"}
+          aria-label={isPlaying ? t("pause") : t("play")}
         >
           {isPlaying ? (
             <Pause className="size-4 fill-current" />
@@ -150,7 +152,7 @@ export function MusicPanel({
         <button
           onClick={next}
           className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-          aria-label="下一曲"
+          aria-label={t("next")}
         >
           <SkipForward className="size-4" />
         </button>
@@ -159,7 +161,7 @@ export function MusicPanel({
       {/* Divider + Playlist */}
       <div className="pt-3 border-t border-border">
         <p className="text-[10px] text-muted-foreground mb-2 font-medium uppercase tracking-wider">
-          播放列表
+          {t("playlist")}
         </p>
         <div className="space-y-0.5">
           {tracks.map((track, index) => (

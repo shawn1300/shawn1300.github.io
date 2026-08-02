@@ -1,4 +1,10 @@
 import { unstable_cache } from "next/cache";
+import type { Locale } from "@/i18n/routing";
+import {
+  localizeCategories,
+  localizePosts,
+  localizeTags,
+} from "@/lib/i18n/localized-content";
 import { createStaticSupabase } from "@/lib/supabase/static";
 import type { Post, Category, Tag } from "@/types";
 
@@ -27,9 +33,15 @@ export const getPublishedPosts = unstable_cache(
     categorySlug?: string;
     limit?: number;
     offset?: number;
+    locale?: Locale;
   }): Promise<Post[]> => {
     const supabase = createStaticSupabase();
-    const { categorySlug, limit = 20, offset = 0 } = options || {};
+    const {
+      categorySlug,
+      limit = 20,
+      offset = 0,
+      locale = "zh-CN",
+    } = options || {};
 
     // 按 slug 查分类 id
     let categoryId: string | null = null;
@@ -63,7 +75,7 @@ export const getPublishedPosts = unstable_cache(
       return [];
     }
 
-    return (data || []).map(flattenTags);
+    return localizePosts((data || []).map(flattenTags), locale);
   },
   ["published-posts"],
   { revalidate: 60, tags: ["posts"] }
@@ -73,7 +85,7 @@ export const getPublishedPosts = unstable_cache(
  * 获取单篇文章（通过 slug，公开 — 只返回已发布）
  */
 export const getPostBySlug = unstable_cache(
-  async (slug: string): Promise<Post | null> => {
+  async (slug: string, locale: Locale = "zh-CN"): Promise<Post | null> => {
     const supabase = createStaticSupabase();
 
     const { data, error } = await supabase
@@ -89,7 +101,8 @@ export const getPostBySlug = unstable_cache(
 
     if (error || !data) return null;
 
-    return flattenTags(data);
+    const [post] = await localizePosts([flattenTags(data)], locale);
+    return post ?? null;
   },
   ["post-by-slug"],
   { revalidate: 60, tags: ["posts"] }
@@ -99,7 +112,7 @@ export const getPostBySlug = unstable_cache(
  * 获取所有分类
  */
 export const getCategories = unstable_cache(
-  async (): Promise<Category[]> => {
+  async (locale: Locale = "zh-CN"): Promise<Category[]> => {
     const supabase = createStaticSupabase();
     const { data, error } = await supabase
       .from("categories")
@@ -110,7 +123,7 @@ export const getCategories = unstable_cache(
       console.error("Error fetching categories:", error);
       return [];
     }
-    return data;
+    return localizeCategories(data, locale);
   },
   ["categories"],
   { revalidate: 60, tags: ["categories"] }
@@ -120,7 +133,7 @@ export const getCategories = unstable_cache(
  * 获取所有分类（含文章数量）
  */
 export const getCategoriesWithCount = unstable_cache(
-  async (): Promise<(Category & { count: number })[]> => {
+  async (locale: Locale = "zh-CN"): Promise<(Category & { count: number })[]> => {
     const supabase = createStaticSupabase();
     const { data, error } = await supabase
       .from("categories")
@@ -140,7 +153,7 @@ export const getCategoriesWithCount = unstable_cache(
       })
     );
 
-    return categoriesWithCount;
+    return localizeCategories(categoriesWithCount, locale);
   },
   ["categories-with-count"],
   { revalidate: 60, tags: ["categories", "posts"] }
@@ -149,15 +162,15 @@ export const getCategoriesWithCount = unstable_cache(
 /**
  * 获取所有已发布文章（用于归档，不分页）
  */
-export async function getAllPublishedPosts(): Promise<Post[]> {
-  return getPublishedPosts({ limit: 500 });
+export async function getAllPublishedPosts(locale: Locale = "zh-CN"): Promise<Post[]> {
+  return getPublishedPosts({ limit: 500, locale });
 }
 
 /**
  * 获取所有标签
  */
 export const getTags = unstable_cache(
-  async (): Promise<Tag[]> => {
+  async (locale: Locale = "zh-CN"): Promise<Tag[]> => {
     const supabase = createStaticSupabase();
     const { data, error } = await supabase
       .from("tags")
@@ -168,7 +181,7 @@ export const getTags = unstable_cache(
       console.error("Error fetching tags:", error);
       return [];
     }
-    return data;
+    return localizeTags(data, locale);
   },
   ["tags"],
   { revalidate: 60, tags: ["categories"] }

@@ -2,10 +2,12 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const t = useTranslations("Accessibility");
 
   // 避免 hydration mismatch
   useEffect(() => setMounted(true), []);
@@ -18,7 +20,7 @@ export function ThemeToggle() {
     <button
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
       className="inline-flex items-center justify-center size-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-      aria-label={theme === "dark" ? "切换暖色主题" : "切换深色主题"}
+      aria-label={theme === "dark" ? t("lightTheme") : t("darkTheme")}
     >
       {theme === "dark" ? (
         /* 太阳图标 — 切换到亮色 */

@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useTranslations } from "next-intl";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const [authed, setAuthed] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const t = useTranslations("Admin");
 
   useEffect(() => {
     // 登录页不校验，否则形成死锁
@@ -38,7 +40,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   if (!authed) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-sm text-muted-foreground">验证身份中...</p>
+        <p className="text-sm text-muted-foreground">{t("checkingAuth")}</p>
       </div>
     );
   }
