@@ -308,7 +308,29 @@
       "scanned": "Scanned",
       "reused": "Reused",
       "deleted": "Deleted",
-      "completedAt": "Completed"
+      "completedAt": "Completed",
+      "stopSync": "Stop continuous sync",
+      "stopping": "Stopping after this batch...",
+      "stopRequested": "Sync will stop after the current batch",
+      "continuousHint": "Continuous sync is running. Keep this page open and the next batch will start automatically.",
+      "allComplete": "All English and Japanese translations are complete",
+      "pausedForFailures": "Continuous sync stopped. Review and retry the failed items.",
+      "rateLimited": "DeepSeek rate limit detected. Later batches now use one request at a time.",
+      "failureDetails": "Failure details ({count})",
+      "retryAll": "Retry all failures",
+      "retryItem": "Retry this item",
+      "retryQueued": "Failed item added back to the pending queue",
+      "retryFailed": "Could not schedule the retry",
+      "retryCount": "Retried {count} times",
+      "unknownError": "No detailed error was recorded",
+      "typePost": "Post",
+      "typeDiary": "Diary",
+      "typeCategory": "Category",
+      "typeTag": "Tag",
+      "statusRunning": "Running",
+      "statusComplete": "Complete",
+      "statusPartial": "Partial",
+      "statusFailed": "Failed"
     }
   }
 }

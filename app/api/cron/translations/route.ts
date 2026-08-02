@@ -40,7 +40,7 @@ async function handle(request: NextRequest) {
         revalidateTag(tag, "max");
       }
     }
-    return NextResponse.json({ success: true, data: result.run });
+    return NextResponse.json({ success: true, data: result });
   } catch (error) {
     console.error("Translation cron failed:", error);
     return NextResponse.json(

@@ -8,7 +8,8 @@ import {
   splitMarkdown,
   type StoredTranslatedBlock,
 } from "../lib/i18n/markdown-blocks";
-import { translateItems } from "../lib/i18n/deepseek";
+import { DeepSeekPartialError, translateItems } from "../lib/i18n/deepseek";
+import { planTranslationWork } from "../lib/i18n/work-planner";
 
 test("content hashes are stable and sensitive to source changes", () => {
   assert.equal(contentHash("相同内容"), contentHash("相同内容"));
@@ -53,6 +54,18 @@ test("rebuilding keeps protected code and exact trailing whitespace", () => {
   assert.equal(rebuilt, "Body.\n\n```sh\necho ok\n```\n");
 });
 
+test("translation planner skips current rows and moves failures behind pending work", () => {
+  const plan = planTranslationWork([
+    { work: "post-en", isCurrent: true, status: "complete" },
+    { work: "post-ja", isCurrent: false },
+    { work: "diary-en", isCurrent: false, status: "failed" },
+    { work: "diary-ja", isCurrent: false, status: "pending" },
+  ]);
+  assert.equal(plan.scannedCount, 4);
+  assert.equal(plan.reusedCount, 1);
+  assert.deepEqual(plan.work, ["post-ja", "diary-ja", "diary-en"]);
+});
+
 test("DeepSeek adapter restores protected Markdown tokens", async () => {
   const originalFetch = globalThis.fetch;
   const originalKey = process.env.DEEPSEEK_API_KEY;
@@ -81,6 +94,150 @@ test("DeepSeek adapter restores protected Markdown tokens", async () => {
       result.get("body"),
       "See `const x = 1` and link [site](https://example.com/docs)"
     );
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalKey === undefined) delete process.env.DEEPSEEK_API_KEY;
+    else process.env.DEEPSEEK_API_KEY = originalKey;
+    if (originalModel === undefined) delete process.env.DEEPSEEK_TRANSLATION_MODEL;
+    else process.env.DEEPSEEK_TRANSLATION_MODEL = originalModel;
+  }
+});
+
+test("DeepSeek adapter keeps valid items and retries only a duplicated id", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalKey = process.env.DEEPSEEK_API_KEY;
+  const originalModel = process.env.DEEPSEEK_TRANSLATION_MODEL;
+  process.env.DEEPSEEK_API_KEY = "test-key";
+  process.env.DEEPSEEK_TRANSLATION_MODEL = "test-model";
+  const requestIds: string[][] = [];
+
+  globalThis.fetch = async (_input, init) => {
+    const request = JSON.parse(String(init?.body));
+    const userPayload = JSON.parse(request.messages[1].content) as {
+      items: Array<{ id: string; text: string }>;
+    };
+    requestIds.push(userPayload.items.map((item) => item.id));
+    const translations =
+      requestIds.length === 1
+        ? [
+            { id: "a", text: "duplicate one" },
+            { id: "a", text: "duplicate two" },
+            { id: "b", text: "valid b" },
+          ]
+        : [{ id: "a", text: "recovered a" }];
+    return new Response(
+      JSON.stringify({
+        choices: [{ message: { content: JSON.stringify({ translations }) } }],
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  };
+
+  try {
+    const result = await translateItems("en", [
+      { id: "a", text: "甲" },
+      { id: "b", text: "乙" },
+    ]);
+    assert.deepEqual(requestIds, [["a", "b"], ["a"]]);
+    assert.equal(result.get("a"), "recovered a");
+    assert.equal(result.get("b"), "valid b");
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalKey === undefined) delete process.env.DEEPSEEK_API_KEY;
+    else process.env.DEEPSEEK_API_KEY = originalKey;
+    if (originalModel === undefined) delete process.env.DEEPSEEK_TRANSLATION_MODEL;
+    else process.env.DEEPSEEK_TRANSLATION_MODEL = originalModel;
+  }
+});
+
+test("DeepSeek adapter carries valid results when one duplicated id still fails", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalKey = process.env.DEEPSEEK_API_KEY;
+  const originalModel = process.env.DEEPSEEK_TRANSLATION_MODEL;
+  process.env.DEEPSEEK_API_KEY = "test-key";
+  process.env.DEEPSEEK_TRANSLATION_MODEL = "test-model";
+
+  globalThis.fetch = async (_input, init) => {
+    const request = JSON.parse(String(init?.body));
+    const userPayload = JSON.parse(request.messages[1].content) as {
+      items: Array<{ id: string; text: string }>;
+    };
+    const translations = userPayload.items.flatMap((item) =>
+      item.id === "a"
+        ? [
+            { id: "a", text: "duplicate one" },
+            { id: "a", text: "duplicate two" },
+          ]
+        : [{ id: item.id, text: "valid b" }]
+    );
+    return new Response(
+      JSON.stringify({
+        choices: [{ message: { content: JSON.stringify({ translations }) } }],
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  };
+
+  try {
+    await assert.rejects(
+      () =>
+        translateItems("en", [
+          { id: "a", text: "甲" },
+          { id: "b", text: "乙" },
+        ]),
+      (error) => {
+        assert.equal(error instanceof DeepSeekPartialError, true);
+        assert.equal((error as DeepSeekPartialError).translated.get("b"), "valid b");
+        assert.equal((error as DeepSeekPartialError).translated.has("a"), false);
+        return true;
+      }
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalKey === undefined) delete process.env.DEEPSEEK_API_KEY;
+    else process.env.DEEPSEEK_API_KEY = originalKey;
+    if (originalModel === undefined) delete process.env.DEEPSEEK_TRANSLATION_MODEL;
+    else process.env.DEEPSEEK_TRANSLATION_MODEL = originalModel;
+  }
+});
+
+test("DeepSeek adapter reports rate limiting and recovers with retry", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalKey = process.env.DEEPSEEK_API_KEY;
+  const originalModel = process.env.DEEPSEEK_TRANSLATION_MODEL;
+  process.env.DEEPSEEK_API_KEY = "test-key";
+  process.env.DEEPSEEK_TRANSLATION_MODEL = "test-model";
+  let calls = 0;
+  let rateLimited = false;
+
+  globalThis.fetch = async () => {
+    calls += 1;
+    if (calls === 1) return new Response("rate limited", { status: 429 });
+    return new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                translations: [{ id: "name", text: "Name" }],
+              }),
+            },
+          },
+        ],
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  };
+
+  try {
+    const result = await translateItems(
+      "en",
+      [{ id: "name", text: "名称" }],
+      { onRateLimit: () => (rateLimited = true) }
+    );
+    assert.equal(calls, 2);
+    assert.equal(rateLimited, true);
+    assert.equal(result.get("name"), "Name");
   } finally {
     globalThis.fetch = originalFetch;
     if (originalKey === undefined) delete process.env.DEEPSEEK_API_KEY;

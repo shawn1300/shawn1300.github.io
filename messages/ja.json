@@ -308,7 +308,29 @@
       "scanned": "スキャン",
       "reused": "再利用",
       "deleted": "削除",
-      "completedAt": "完了時刻"
+      "completedAt": "完了時刻",
+      "stopSync": "連続同期を停止",
+      "stopping": "現在のバッチ後に停止します...",
+      "stopRequested": "現在のバッチ完了後に停止します",
+      "continuousHint": "連続同期中です。このページを開いたままにすると次のバッチが自動で始まります。",
+      "allComplete": "英語と日本語の翻訳がすべて完了しました",
+      "pausedForFailures": "連続同期を停止しました。失敗内容を確認して再試行してください。",
+      "rateLimited": "DeepSeek のレート制限を検出したため、以降は同時リクエスト数を1に下げました。",
+      "failureDetails": "失敗の詳細（{count}）",
+      "retryAll": "すべて再試行",
+      "retryItem": "この項目を再試行",
+      "retryQueued": "失敗項目を待機キューに戻しました",
+      "retryFailed": "再試行を設定できませんでした",
+      "retryCount": "再試行 {count} 回",
+      "unknownError": "詳しいエラーは記録されていません",
+      "typePost": "記事",
+      "typeDiary": "日記",
+      "typeCategory": "カテゴリー",
+      "typeTag": "タグ",
+      "statusRunning": "実行中",
+      "statusComplete": "完了",
+      "statusPartial": "一部完了",
+      "statusFailed": "失敗"
     }
   }
 }

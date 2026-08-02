@@ -93,8 +93,12 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 # DeepSeek 自动翻译
 DEEPSEEK_API_KEY=your-deepseek-api-key
 DEEPSEEK_BASE_URL=https://api.deepseek.com
-DEEPSEEK_TRANSLATION_MODEL=控制台显示的-DeepSeek-V4-Flash-准确模型ID
+DEEPSEEK_TRANSLATION_MODEL=deepseek-v4-flash
 CRON_SECRET=一段随机长字符串
+
+# 可选：手动同步并发数（默认 2，Cron 固定为 1）
+TRANSLATION_CONCURRENCY=2
+TRANSLATION_BATCH_CHARACTERS=6000
 ```
 
 `DEEPSEEK_TRANSLATION_MODEL` 不在代码中写死。DeepSeek 发布或调整模型 ID 后，以其控制台/API 文档显示的准确值为准。
@@ -112,7 +116,10 @@ supabase/migrations/005_i18n_translations.sql
 ### 翻译运行方式
 
 - Vercel Cron 使用 `0 18 * * *`（UTC），对应北京时间每天凌晨 2 点。
-- 后台 `/admin/translations` 可手动立即同步并查看运行记录。
+- 后台 `/admin/translations` 点击一次即可连续执行多轮；保持页面打开，直到全部完成或手动停止。
+- 手动同步默认并发 2 个不同译文任务，遇到 429 自动降为单并发；每日 Cron 固定为单并发。
+- 每个成功批次立即保存断点。长文章、函数超时或页面关闭后，下次只继续缺失的块。
+- 后台会显示准确的等待数量、失败内容和错误原因，并支持单项或全部重试。
 - 修改中文内容后，旧译文会标记为待处理；同步时按 Markdown 块哈希复用未变化部分。
 - 英文或日文译文缺失/过期时，页面暂时显示中文原文和提示，不会出现空白页。
 - 评论正文保持访客提交时的原语言，只翻译评论界面。
@@ -130,7 +137,7 @@ npm run build
 npm start
 ```
 
-Vercel 项目还需要配置 `.env.example` 中的 Supabase、DeepSeek 和 `CRON_SECRET`。首次发布后可登录后台进入“自动翻译”，手动运行一次以生成已有内容的英文和日文译文。
+Vercel 项目还需要配置 `.env.example` 中的 Supabase、DeepSeek 和 `CRON_SECRET`。首次发布后可登录后台进入“自动翻译”，点击一次连续同步以生成已有内容的英文和日文译文。
 
 ## License
 

@@ -308,7 +308,29 @@
       "scanned": "扫描",
       "reused": "复用",
       "deleted": "删除",
-      "completedAt": "完成时间"
+      "completedAt": "完成时间",
+      "stopSync": "停止连续同步",
+      "stopping": "将在当前批次后停止...",
+      "stopRequested": "已请求停止，将在当前批次完成后停止",
+      "continuousHint": "连续同步中：当前批次结束后会自动继续下一批，请保持页面打开。",
+      "allComplete": "所有英文和日文译文均已完成",
+      "pausedForFailures": "连续同步已停止，请查看失败详情后重试",
+      "rateLimited": "DeepSeek 触发限流，后续批次已自动降为单并发",
+      "failureDetails": "失败详情（{count}）",
+      "retryAll": "重试全部失败项",
+      "retryItem": "重试此项",
+      "retryQueued": "失败项已重新加入等待队列",
+      "retryFailed": "设置重试失败",
+      "retryCount": "已重试 {count} 次",
+      "unknownError": "没有记录具体错误",
+      "typePost": "文章",
+      "typeDiary": "日记",
+      "typeCategory": "分类",
+      "typeTag": "标签",
+      "statusRunning": "运行中",
+      "statusComplete": "完成",
+      "statusPartial": "部分完成",
+      "statusFailed": "失败"
     }
   }
 }

@@ -5,6 +5,28 @@ export interface TranslationItem {
   text: string;
 }
 
+export interface DeepSeekTranslationOptions {
+  onRateLimit?: () => void;
+  deadline?: number;
+}
+
+export class DeepSeekDeadlineError extends Error {
+  constructor() {
+    super("DeepSeek request skipped because the translation deadline is near");
+    this.name = "DeepSeekDeadlineError";
+  }
+}
+
+export class DeepSeekPartialError extends Error {
+  constructor(
+    message: string,
+    readonly translated: Map<string, string>
+  ) {
+    super(message);
+    this.name = "DeepSeekPartialError";
+  }
+}
+
 const targetNames: Record<TranslationLocale, string> = {
   en: "natural English",
   ja: "natural Japanese",
@@ -14,6 +36,23 @@ type ProtectedText = {
   text: string;
   placeholders: string[];
 };
+
+type BatchAttempt = {
+  translated: Map<string, string>;
+  unresolved: Map<string, string>;
+};
+
+class DeepSeekResponseError extends Error {}
+
+class DeepSeekHttpError extends Error {
+  constructor(
+    readonly status: number,
+    message: string
+  ) {
+    super(message);
+    this.name = "DeepSeekHttpError";
+  }
+}
 
 function protectMarkdown(text: string): ProtectedText {
   const placeholders: string[] = [];
@@ -64,16 +103,17 @@ async function wait(milliseconds: number) {
   await new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
-export async function translateItems(
+async function requestBatch(
   locale: TranslationLocale,
-  items: TranslationItem[]
-): Promise<Map<string, string>> {
-  if (!items.length) return new Map();
-
+  items: TranslationItem[],
+  options: DeepSeekTranslationOptions
+): Promise<BatchAttempt> {
   const apiKey = process.env.DEEPSEEK_API_KEY;
   const model = process.env.DEEPSEEK_TRANSLATION_MODEL;
-  const baseUrl = (process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com")
-    .replace(/\/$/, "");
+  const baseUrl = (process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com").replace(
+    /\/$/,
+    ""
+  );
   if (!apiKey || !model) {
     throw new Error("DeepSeek translation environment variables are not configured");
   }
@@ -85,7 +125,6 @@ export async function translateItems(
     id: item.id,
     text: protectedById.get(item.id)!.text,
   }));
-
   const systemPrompt = [
     `Translate every item from Simplified Chinese into ${targetNames[locale]}.`,
     "Return JSON only: {\"translations\":[{\"id\":\"unchanged id\",\"text\":\"translation\"}]}",
@@ -96,8 +135,15 @@ export async function translateItems(
 
   let lastError: Error | null = null;
   for (let attempt = 0; attempt < 3; attempt += 1) {
+    const remainingTime = options.deadline
+      ? options.deadline - Date.now() - 5_000
+      : 45_000;
+    if (remainingTime <= 1_000) throw new DeepSeekDeadlineError();
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 45_000);
+    const timeout = setTimeout(
+      () => controller.abort(),
+      Math.min(45_000, remainingTime)
+    );
     try {
       const response = await fetch(`${baseUrl}/chat/completions`, {
         method: "POST",
@@ -120,10 +166,14 @@ export async function translateItems(
 
       if (!response.ok) {
         const summary = (await response.text()).slice(0, 500);
-        const error = new Error(`DeepSeek HTTP ${response.status}: ${summary}`);
+        const error = new DeepSeekHttpError(
+          response.status,
+          `DeepSeek HTTP ${response.status}: ${summary}`
+        );
+        if (response.status === 429) options.onRateLimit?.();
         if (retryable(response.status) && attempt < 2) {
           lastError = error;
-          await wait(attempt === 0 ? 500 : 1_500);
+          await wait(attempt === 0 ? 750 : 2_000);
           continue;
         }
         throw error;
@@ -133,41 +183,62 @@ export async function translateItems(
         choices?: Array<{ message?: { content?: string } }>;
       };
       const content = payload.choices?.[0]?.message?.content;
-      if (!content) throw new Error("DeepSeek returned an empty response");
-      const parsed = parseJsonContent(content) as {
-        translations?: Array<{ id?: unknown; text?: unknown }>;
-      };
+      if (!content) throw new DeepSeekResponseError("DeepSeek returned an empty response");
+
+      let parsed: { translations?: Array<{ id?: unknown; text?: unknown }> };
+      try {
+        parsed = parseJsonContent(content) as typeof parsed;
+      } catch (error) {
+        throw new DeepSeekResponseError(
+          `DeepSeek returned invalid JSON: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
       if (!Array.isArray(parsed.translations)) {
-        throw new Error("DeepSeek response does not contain translations array");
+        throw new DeepSeekResponseError(
+          "DeepSeek response does not contain translations array"
+        );
       }
 
       const expectedIds = new Set(items.map((item) => item.id));
-      const translated = new Map<string, string>();
+      const candidates = new Map<string, string>();
+      const unresolved = new Map<string, string>();
       for (const entry of parsed.translations) {
         if (typeof entry.id !== "string" || typeof entry.text !== "string") {
-          throw new Error("DeepSeek returned an invalid translation item");
+          continue;
         }
-        if (!expectedIds.has(entry.id) || translated.has(entry.id)) {
-          throw new Error(`DeepSeek returned an unexpected or duplicate id: ${entry.id}`);
+        if (!expectedIds.has(entry.id)) continue;
+        if (candidates.has(entry.id) || unresolved.has(entry.id)) {
+          candidates.delete(entry.id);
+          unresolved.set(entry.id, `DeepSeek returned duplicate id: ${entry.id}`);
+          continue;
         }
-        const value = restoreAndValidate(
-          entry.text,
-          protectedById.get(entry.id)!
-        );
-        if (!value.trim()) throw new Error(`DeepSeek returned empty text for ${entry.id}`);
-        translated.set(entry.id, value);
+        try {
+          const value = restoreAndValidate(entry.text, protectedById.get(entry.id)!);
+          if (!value.trim()) {
+            unresolved.set(entry.id, `DeepSeek returned empty text for ${entry.id}`);
+          } else {
+            candidates.set(entry.id, value);
+          }
+        } catch (error) {
+          unresolved.set(
+            entry.id,
+            error instanceof Error ? error.message : String(error)
+          );
+        }
       }
 
-      if (translated.size !== expectedIds.size) {
-        throw new Error("DeepSeek did not return every requested translation item");
+      for (const id of expectedIds) {
+        if (!candidates.has(id) && !unresolved.has(id)) {
+          unresolved.set(id, `DeepSeek did not return requested id: ${id}`);
+        }
       }
-      return translated;
+      return { translated: candidates, unresolved };
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
       const isNetworkFailure =
         lastError.name === "AbortError" || lastError instanceof TypeError;
       if (attempt < 2 && isNetworkFailure) {
-        await wait(attempt === 0 ? 500 : 1_500);
+        await wait(attempt === 0 ? 750 : 2_000);
         continue;
       }
       throw lastError;
@@ -177,4 +248,92 @@ export async function translateItems(
   }
 
   throw lastError ?? new Error("DeepSeek translation failed");
+}
+
+async function resolveItems(
+  locale: TranslationLocale,
+  items: TranslationItem[],
+  options: DeepSeekTranslationOptions,
+  singleAttempt = 0
+): Promise<Map<string, string>> {
+  let attempt: BatchAttempt;
+  try {
+    attempt = await requestBatch(locale, items, options);
+  } catch (error) {
+    if (error instanceof DeepSeekResponseError && items.length > 1) {
+      const middle = Math.ceil(items.length / 2);
+      const translated = new Map<string, string>();
+      const errors: string[] = [];
+      for (const part of [items.slice(0, middle), items.slice(middle)]) {
+        try {
+          const result = await resolveItems(locale, part, options);
+          result.forEach((value, id) => translated.set(id, value));
+        } catch (partError) {
+          if (partError instanceof DeepSeekPartialError) {
+            partError.translated.forEach((value, id) => translated.set(id, value));
+          }
+          errors.push(partError instanceof Error ? partError.message : String(partError));
+        }
+      }
+      if (errors.length) throw new DeepSeekPartialError(errors.join("; "), translated);
+      return translated;
+    }
+    if (error instanceof DeepSeekResponseError && singleAttempt < 1) {
+      return resolveItems(locale, items, options, singleAttempt + 1);
+    }
+    throw error;
+  }
+
+  if (!attempt.unresolved.size) return attempt.translated;
+  const unresolvedItems = items.filter((item) => attempt.unresolved.has(item.id));
+  if (unresolvedItems.length === 1 && singleAttempt >= 1) {
+    const reason = attempt.unresolved.get(unresolvedItems[0].id);
+    throw new DeepSeekPartialError(
+      reason || `DeepSeek could not translate ${unresolvedItems[0].id}`,
+      attempt.translated
+    );
+  }
+
+  const parts =
+    unresolvedItems.length === 1
+      ? [unresolvedItems]
+      : [
+          unresolvedItems.slice(0, Math.ceil(unresolvedItems.length / 2)),
+          unresolvedItems.slice(Math.ceil(unresolvedItems.length / 2)),
+        ];
+  const errors: string[] = [];
+  for (const part of parts) {
+    try {
+      const recovered = await resolveItems(
+        locale,
+        part,
+        options,
+        unresolvedItems.length === 1 ? singleAttempt + 1 : 0
+      );
+      recovered.forEach((value, id) => attempt.translated.set(id, value));
+    } catch (error) {
+      if (error instanceof DeepSeekPartialError) {
+        error.translated.forEach((value, id) => attempt.translated.set(id, value));
+      }
+      errors.push(error instanceof Error ? error.message : String(error));
+    }
+  }
+  if (errors.length) {
+    throw new DeepSeekPartialError(errors.join("; "), attempt.translated);
+  }
+  return attempt.translated;
+}
+
+export async function translateItems(
+  locale: TranslationLocale,
+  items: TranslationItem[],
+  options: DeepSeekTranslationOptions = {}
+): Promise<Map<string, string>> {
+  if (!items.length) return new Map();
+  const ids = new Set<string>();
+  for (const item of items) {
+    if (ids.has(item.id)) throw new Error(`Duplicate translation request id: ${item.id}`);
+    ids.add(item.id);
+  }
+  return resolveItems(locale, items, options);
 }

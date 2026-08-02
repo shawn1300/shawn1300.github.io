@@ -32,7 +32,7 @@ export async function POST() {
         revalidateTag(tag, "max");
       }
     }
-    return NextResponse.json({ success: true, data: result.run });
+    return NextResponse.json({ success: true, data: result });
   } catch (error) {
     console.error("Admin translation sync failed:", error);
     return NextResponse.json(
