@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
+import { createAuthenticatedAdminContext } from "@/lib/supabase/authenticated-admin";
 import { createServiceClient } from "@/lib/supabase/server";
 
 /**
@@ -57,15 +58,14 @@ export async function PUT(
       );
     }
 
-    const supabase = await createServiceClient();
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const context = await createAuthenticatedAdminContext();
+    if (!context) {
       return NextResponse.json(
         { success: false, error: "请先登录" },
         { status: 401 }
       );
     }
+    const { supabase } = context;
 
     const { data: diary, error } = await supabase
       .from("diaries")
@@ -111,15 +111,14 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createServiceClient();
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const context = await createAuthenticatedAdminContext();
+    if (!context) {
       return NextResponse.json(
         { success: false, error: "请先登录" },
         { status: 401 }
       );
     }
+    const { supabase } = context;
 
     const { error } = await supabase.from("diaries").delete().eq("id", id);
 

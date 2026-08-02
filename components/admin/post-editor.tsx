@@ -120,10 +120,12 @@ export function PostEditor({ post, categories, tags }: PostEditorProps) {
         }
       );
 
-      const json = await res.json();
+      const json = await res.json().catch(() => null);
 
-      if (!json.success) {
-        toast.error(t("saveFailed"));
+      if (!res.ok || !json?.success) {
+        toast.error(
+          typeof json?.error === "string" ? json.error : t("saveFailed")
+        );
         return;
       }
 

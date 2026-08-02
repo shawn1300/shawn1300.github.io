@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
+import { createAuthenticatedAdminContext } from "@/lib/supabase/authenticated-admin";
 import { createServiceClient } from "@/lib/supabase/server";
 
 /**
@@ -75,16 +76,14 @@ export async function PUT(
       );
     }
 
-    const supabase = await createServiceClient();
-
-    // 验证登录
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const context = await createAuthenticatedAdminContext();
+    if (!context) {
       return NextResponse.json(
         { success: false, error: "请先登录" },
         { status: 401 }
       );
     }
+    const { supabase } = context;
 
     // 更新文章
     const { data: post, error } = await supabase
@@ -144,15 +143,14 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createServiceClient();
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const context = await createAuthenticatedAdminContext();
+    if (!context) {
       return NextResponse.json(
         { success: false, error: "请先登录" },
         { status: 401 }
       );
     }
+    const { supabase } = context;
 
     // 先删除标签关联
     await supabase.from("post_tags").delete().eq("post_id", id);

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
-import { createServiceClient } from "@/lib/supabase/server";
+import { createAuthenticatedAdminContext } from "@/lib/supabase/authenticated-admin";
 
 /**
  * POST /api/diaries
@@ -18,15 +18,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = await createServiceClient();
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const context = await createAuthenticatedAdminContext();
+    if (!context) {
       return NextResponse.json(
         { success: false, error: "请先登录" },
         { status: 401 }
       );
     }
+    const { supabase, user } = context;
 
     const { data: diary, error } = await supabase
       .from("diaries")
