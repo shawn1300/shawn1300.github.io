@@ -17,6 +17,7 @@ import {
   type DeepSeekTranslationOptions,
   type TranslationItem,
 } from "./deepseek";
+import { buildTranslationBatches } from "./batches";
 import {
   contentHash,
   sourceHashForDiary,
@@ -89,6 +90,7 @@ type WorkItem = {
 type WorkContext = {
   deadline: number;
   onRateLimit: () => void;
+  onTimeout: () => void;
 };
 
 export interface TranslationSyncResult {
@@ -99,6 +101,7 @@ export interface TranslationSyncResult {
   madeProgress: boolean;
   canContinue: boolean;
   rateLimited: boolean;
+  timedOut: boolean;
 }
 
 export class TranslationDeadlineError extends Error {
@@ -152,29 +155,23 @@ async function translateInBatches(
   context: WorkContext,
   onBatch?: (translated: ReadonlyMap<string, string>) => Promise<void>
 ): Promise<Map<string, string>> {
-  const maxCharacters = Math.max(
-    2_000,
-    Number(process.env.TRANSLATION_BATCH_CHARACTERS || 6_000)
+  const configuredCharacters = Number(
+    process.env.TRANSLATION_BATCH_CHARACTERS || 2_000
   );
-  const batches: TranslationItem[][] = [];
-  let current: TranslationItem[] = [];
-  let currentCharacters = 0;
-
-  for (const item of items) {
-    if (current.length && currentCharacters + item.text.length > maxCharacters) {
-      batches.push(current);
-      current = [];
-      currentCharacters = 0;
-    }
-    current.push(item);
-    currentCharacters += item.text.length;
-  }
-  if (current.length) batches.push(current);
+  const configuredItems = Number(process.env.TRANSLATION_BATCH_ITEMS || 16);
+  const maxCharacters = Number.isFinite(configuredCharacters)
+    ? Math.max(500, Math.floor(configuredCharacters))
+    : 2_000;
+  const maxItems = Number.isFinite(configuredItems)
+    ? Math.min(50, Math.max(1, Math.floor(configuredItems)))
+    : 16;
+  const batches = buildTranslationBatches(items, maxCharacters, maxItems);
 
   const result = new Map<string, string>();
   let translatedCount = 0;
   const deepSeekOptions: DeepSeekTranslationOptions = {
     onRateLimit: context.onRateLimit,
+    onTimeout: context.onTimeout,
     deadline: context.deadline,
   };
   for (const batch of batches) {
@@ -184,6 +181,9 @@ async function translateInBatches(
       translated = await translateItems(locale, batch, deepSeekOptions);
     } catch (error) {
       if (error instanceof DeepSeekDeadlineError) {
+        error.translated.forEach((value, id) => result.set(id, value));
+        translatedCount += error.translated.size;
+        if (onBatch && error.translated.size) await onBatch(error.translated);
         throw new TranslationDeadlineError(translatedCount);
       }
       if (error instanceof DeepSeekPartialError) {
@@ -473,6 +473,7 @@ export async function runTranslationSync(
       madeProgress: false,
       canContinue: false,
       rateLimited: false,
+      timedOut: false,
     };
   }
   if (runError || !runData) throw runError ?? new Error("Unable to create run");
@@ -486,6 +487,7 @@ export async function runTranslationSync(
   let changed = false;
   let partial = false;
   let rateLimited = false;
+  let timedOut = false;
   const errors: string[] = [];
 
   try {
@@ -657,6 +659,10 @@ export async function runTranslationSync(
       rateLimited = true;
       concurrency = 1;
     };
+    const onTimeout = () => {
+      timedOut = true;
+      concurrency = 1;
+    };
 
     while (cursor < work.length) {
       if (changedItemCount >= maxItems || Date.now() >= deadline - 55_000) {
@@ -666,7 +672,7 @@ export async function runTranslationSync(
       const available = Math.max(1, maxItems - changedItemCount);
       const wave = work.slice(cursor, cursor + Math.min(concurrency, available));
       const results = await Promise.allSettled(
-        wave.map((item) => item.run({ deadline, onRateLimit }))
+        wave.map((item) => item.run({ deadline, onRateLimit, onTimeout }))
       );
       cursor += wave.length;
 
@@ -731,6 +737,7 @@ export async function runTranslationSync(
       madeProgress,
       canContinue,
       rateLimited,
+      timedOut,
     };
   } catch (error) {
     await supabase

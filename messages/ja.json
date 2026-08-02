@@ -316,6 +316,7 @@
       "allComplete": "英語と日本語の翻訳がすべて完了しました",
       "pausedForFailures": "連続同期を停止しました。失敗内容を確認して再試行してください。",
       "rateLimited": "DeepSeek のレート制限を検出したため、以降は同時リクエスト数を1に下げました。",
+      "timedOut": "DeepSeek の遅いリクエストを分割し、以降の同時リクエスト数を1に下げました。",
       "failureDetails": "失敗の詳細（{count}）",
       "retryAll": "すべて再試行",
       "retryItem": "この項目を再試行",

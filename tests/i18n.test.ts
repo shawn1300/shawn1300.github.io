@@ -2,13 +2,18 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { contentHash } from "../lib/i18n/hash";
+import { buildTranslationBatches } from "../lib/i18n/batches";
 import {
   rebuildMarkdown,
   reusableTranslations,
   splitMarkdown,
   type StoredTranslatedBlock,
 } from "../lib/i18n/markdown-blocks";
-import { DeepSeekPartialError, translateItems } from "../lib/i18n/deepseek";
+import {
+  DeepSeekDeadlineError,
+  DeepSeekPartialError,
+  translateItems,
+} from "../lib/i18n/deepseek";
 import { planTranslationWork } from "../lib/i18n/work-planner";
 
 test("content hashes are stable and sensitive to source changes", () => {
@@ -64,6 +69,23 @@ test("translation planner skips current rows and moves failures behind pending w
   assert.equal(plan.scannedCount, 4);
   assert.equal(plan.reusedCount, 1);
   assert.deepEqual(plan.work, ["post-ja", "diary-ja", "diary-en"]);
+});
+
+test("translation batches enforce character and item limits", () => {
+  const items = Array.from({ length: 35 }, (_, index) => ({
+    id: String(index),
+    text: "字".repeat(150),
+  }));
+  const batches = buildTranslationBatches(items, 2_000, 16);
+
+  assert.equal(batches.flat().length, items.length);
+  assert.equal(batches.every((batch) => batch.length <= 16), true);
+  assert.equal(
+    batches.every(
+      (batch) => batch.reduce((total, item) => total + item.text.length, 0) <= 2_000
+    ),
+    true
+  );
 });
 
 test("DeepSeek adapter restores protected Markdown tokens", async () => {
@@ -238,6 +260,189 @@ test("DeepSeek adapter reports rate limiting and recovers with retry", async () 
     assert.equal(calls, 2);
     assert.equal(rateLimited, true);
     assert.equal(result.get("name"), "Name");
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalKey === undefined) delete process.env.DEEPSEEK_API_KEY;
+    else process.env.DEEPSEEK_API_KEY = originalKey;
+    if (originalModel === undefined) delete process.env.DEEPSEEK_TRANSLATION_MODEL;
+    else process.env.DEEPSEEK_TRANSLATION_MODEL = originalModel;
+  }
+});
+
+test("DeepSeek adapter splits a timed-out multi-item request", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalKey = process.env.DEEPSEEK_API_KEY;
+  const originalModel = process.env.DEEPSEEK_TRANSLATION_MODEL;
+  process.env.DEEPSEEK_API_KEY = "test-key";
+  process.env.DEEPSEEK_TRANSLATION_MODEL = "test-model";
+  const requestIds: string[][] = [];
+  let timeoutCount = 0;
+
+  globalThis.fetch = async (_input, init) => {
+    const request = JSON.parse(String(init?.body));
+    const userPayload = JSON.parse(request.messages[1].content) as {
+      items: Array<{ id: string; text: string }>;
+    };
+    requestIds.push(userPayload.items.map((item) => item.id));
+    if (userPayload.items.length > 1) {
+      throw new DOMException("This operation was aborted", "AbortError");
+    }
+    return new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                translations: userPayload.items.map((item) => ({
+                  id: item.id,
+                  text: `translated ${item.id}`,
+                })),
+              }),
+            },
+          },
+        ],
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  };
+
+  try {
+    const result = await translateItems(
+      "en",
+      [
+        { id: "a", text: "甲" },
+        { id: "b", text: "乙" },
+      ],
+      { onTimeout: () => (timeoutCount += 1) }
+    );
+    assert.deepEqual(requestIds, [["a", "b"], ["a"], ["b"]]);
+    assert.equal(timeoutCount, 1);
+    assert.equal(result.get("a"), "translated a");
+    assert.equal(result.get("b"), "translated b");
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalKey === undefined) delete process.env.DEEPSEEK_API_KEY;
+    else process.env.DEEPSEEK_API_KEY = originalKey;
+    if (originalModel === undefined) delete process.env.DEEPSEEK_TRANSLATION_MODEL;
+    else process.env.DEEPSEEK_TRANSLATION_MODEL = originalModel;
+  }
+});
+
+test("DeepSeek adapter keeps a successful half when the other half times out", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalKey = process.env.DEEPSEEK_API_KEY;
+  const originalModel = process.env.DEEPSEEK_TRANSLATION_MODEL;
+  process.env.DEEPSEEK_API_KEY = "test-key";
+  process.env.DEEPSEEK_TRANSLATION_MODEL = "test-model";
+  const requestIds: string[][] = [];
+
+  globalThis.fetch = async (_input, init) => {
+    const request = JSON.parse(String(init?.body));
+    const userPayload = JSON.parse(request.messages[1].content) as {
+      items: Array<{ id: string; text: string }>;
+    };
+    requestIds.push(userPayload.items.map((item) => item.id));
+    if (userPayload.items.length > 1 || userPayload.items[0].id === "b") {
+      throw new DOMException("This operation was aborted", "AbortError");
+    }
+    return new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                translations: [{ id: "a", text: "translated a" }],
+              }),
+            },
+          },
+        ],
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  };
+
+  try {
+    await assert.rejects(
+      () =>
+        translateItems("en", [
+          { id: "a", text: "甲" },
+          { id: "b", text: "乙" },
+        ]),
+      (error) => {
+        assert.equal(error instanceof DeepSeekPartialError, true);
+        assert.equal(
+          (error as DeepSeekPartialError).message.includes(
+            "DeepSeek request timed out after 45 seconds"
+          ),
+          true
+        );
+        assert.equal((error as DeepSeekPartialError).translated.get("a"), "translated a");
+        return true;
+      }
+    );
+    assert.deepEqual(requestIds, [["a", "b"], ["a"], ["b"], ["b"]]);
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalKey === undefined) delete process.env.DEEPSEEK_API_KEY;
+    else process.env.DEEPSEEK_API_KEY = originalKey;
+    if (originalModel === undefined) delete process.env.DEEPSEEK_TRANSLATION_MODEL;
+    else process.env.DEEPSEEK_TRANSLATION_MODEL = originalModel;
+  }
+});
+
+test("DeepSeek adapter carries a successful half into a deadline stop", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalKey = process.env.DEEPSEEK_API_KEY;
+  const originalModel = process.env.DEEPSEEK_TRANSLATION_MODEL;
+  process.env.DEEPSEEK_API_KEY = "test-key";
+  process.env.DEEPSEEK_TRANSLATION_MODEL = "test-model";
+  const options = { deadline: Date.now() + 100_000 };
+
+  globalThis.fetch = async (_input, init) => {
+    const request = JSON.parse(String(init?.body));
+    const userPayload = JSON.parse(request.messages[1].content) as {
+      items: Array<{ id: string; text: string }>;
+    };
+    if (userPayload.items.length > 1) {
+      throw new DOMException("This operation was aborted", "AbortError");
+    }
+    options.deadline = Date.now();
+    return new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                translations: [{ id: "a", text: "translated a" }],
+              }),
+            },
+          },
+        ],
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  };
+
+  try {
+    await assert.rejects(
+      () =>
+        translateItems(
+          "en",
+          [
+            { id: "a", text: "甲" },
+            { id: "b", text: "乙" },
+          ],
+          options
+        ),
+      (error) => {
+        assert.equal(error instanceof DeepSeekDeadlineError, true);
+        assert.equal(
+          (error as DeepSeekDeadlineError).translated.get("a"),
+          "translated a"
+        );
+        return true;
+      }
+    );
   } finally {
     globalThis.fetch = originalFetch;
     if (originalKey === undefined) delete process.env.DEEPSEEK_API_KEY;

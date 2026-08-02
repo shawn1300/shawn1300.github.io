@@ -7,11 +7,12 @@ export interface TranslationItem {
 
 export interface DeepSeekTranslationOptions {
   onRateLimit?: () => void;
+  onTimeout?: () => void;
   deadline?: number;
 }
 
 export class DeepSeekDeadlineError extends Error {
-  constructor() {
+  constructor(readonly translated = new Map<string, string>()) {
     super("DeepSeek request skipped because the translation deadline is near");
     this.name = "DeepSeekDeadlineError";
   }
@@ -43,6 +44,13 @@ type BatchAttempt = {
 };
 
 class DeepSeekResponseError extends Error {}
+
+class DeepSeekTimeoutError extends DeepSeekResponseError {
+  constructor() {
+    super("DeepSeek request timed out after 45 seconds");
+    this.name = "DeepSeekTimeoutError";
+  }
+}
 
 class DeepSeekHttpError extends Error {
   constructor(
@@ -235,8 +243,11 @@ async function requestBatch(
       return { translated: candidates, unresolved };
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
-      const isNetworkFailure =
-        lastError.name === "AbortError" || lastError instanceof TypeError;
+      if (lastError.name === "AbortError") {
+        options.onTimeout?.();
+        throw new DeepSeekTimeoutError();
+      }
+      const isNetworkFailure = lastError instanceof TypeError;
       if (attempt < 2 && isNetworkFailure) {
         await wait(attempt === 0 ? 750 : 2_000);
         continue;
@@ -269,6 +280,10 @@ async function resolveItems(
           const result = await resolveItems(locale, part, options);
           result.forEach((value, id) => translated.set(id, value));
         } catch (partError) {
+          if (partError instanceof DeepSeekDeadlineError) {
+            partError.translated.forEach((value, id) => translated.set(id, value));
+            throw new DeepSeekDeadlineError(translated);
+          }
           if (partError instanceof DeepSeekPartialError) {
             partError.translated.forEach((value, id) => translated.set(id, value));
           }
@@ -312,6 +327,10 @@ async function resolveItems(
       );
       recovered.forEach((value, id) => attempt.translated.set(id, value));
     } catch (error) {
+      if (error instanceof DeepSeekDeadlineError) {
+        error.translated.forEach((value, id) => attempt.translated.set(id, value));
+        throw new DeepSeekDeadlineError(attempt.translated);
+      }
       if (error instanceof DeepSeekPartialError) {
         error.translated.forEach((value, id) => attempt.translated.set(id, value));
       }

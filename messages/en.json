@@ -316,6 +316,7 @@
       "allComplete": "All English and Japanese translations are complete",
       "pausedForFailures": "Continuous sync stopped. Review and retry the failed items.",
       "rateLimited": "DeepSeek rate limit detected. Later batches now use one request at a time.",
+      "timedOut": "A slow DeepSeek request was split, and later tasks now use one request at a time.",
       "failureDetails": "Failure details ({count})",
       "retryAll": "Retry all failures",
       "retryItem": "Retry this item",

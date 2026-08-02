@@ -33,6 +33,7 @@ interface TranslationSyncResponse {
   madeProgress: boolean;
   canContinue: boolean;
   rateLimited: boolean;
+  timedOut: boolean;
 }
 
 const wait = (milliseconds: number) =>
@@ -95,6 +96,7 @@ export default function AdminTranslationsPage() {
         const result = json.data as TranslationSyncResponse;
         await loadStatus(true);
         if (result.rateLimited) toast.info(t("rateLimited"));
+        if (result.timedOut) toast.info(t("timedOut"));
         if (result.remainingCount === 0) {
           toast.success(t("allComplete"));
           break;

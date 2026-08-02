@@ -316,6 +316,7 @@
       "allComplete": "所有英文和日文译文均已完成",
       "pausedForFailures": "连续同步已停止，请查看失败详情后重试",
       "rateLimited": "DeepSeek 触发限流，后续批次已自动降为单并发",
+      "timedOut": "检测到 DeepSeek 慢请求，已拆分批次并将后续任务降为单并发",
       "failureDetails": "失败详情（{count}）",
       "retryAll": "重试全部失败项",
       "retryItem": "重试此项",
