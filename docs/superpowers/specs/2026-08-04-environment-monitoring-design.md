@@ -98,6 +98,26 @@ bootstrap 必须保持一次连续的登录会话：
 - 每次 bootstrap 最多提交一次图片验证码。若小米再次要求图片验证码，视为验证码错误或已过期并安全停止，避免循环尝试触发账号风控。
 - 图片验证码通过后，如果小米继续返回 `notificationUrl`，沿用同一个 HTTP 会话进入短信或邮箱验证。
 
+### 4.5 浏览器官方响应导入
+
+若小米验证码接口限流，或验证完成后程序仍无法取得 `ssecurity`，bootstrap 提供一个不读取浏览器 Cookie 数据库的本地替代入口：
+
+```powershell
+.\.venv\Scripts\python.exe -m collector.environment_collector.browser_bootstrap
+```
+
+用户在已经登录并完成验证的同一浏览器中打开小米官方 `xiaomiio` service login 地址，将页面显示的一行 `&&&START&&&` JSON 复制到程序的隐藏输入。程序完成以下步骤：
+
+1. 输入最大为 64 KiB；不回显、不写入命令历史、文件或日志。
+2. 去掉固定前缀并解析 JSON，只读取 `code`、`userId`、`ssecurity` 和 `location`；`passToken` 及其他字段不得保存或打印。
+3. 要求 `code` 为 `0`，且 `userId`、`ssecurity`、`location` 均存在。
+4. `location` 必须使用 HTTPS，且主机名属于已批准的小米登录完成域名；拒绝用户信息、非默认端口、伪造子域名和非小米地址。
+5. 程序在新的本地 HTTP 会话中仅访问一次该 `location`，从响应 Cookie 取得 `serviceToken`，随后立即丢弃原始 JSON 与一次性地址。
+6. 取得 `userId`、`ssecurity`、`serviceToken` 后，复用普通 bootstrap 的设备列举、室内外选择、真实属性读取和 `.collector-credentials.json` 写入流程。
+7. 成功或失败后均提醒用户清空系统剪贴板；程序不自动读取或覆盖整个剪贴板，也不访问 Chrome/Edge Cookie 数据库。
+
+错误信息只能说明输入过长、JSON 无法解析、字段缺失、状态未认证、地址不可信、一次性地址已使用或未返回 `serviceToken`，不得包含原始响应或任何字段值。
+
 ## 5. 系统架构
 
 ```text
