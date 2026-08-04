@@ -6,25 +6,26 @@
 - **质朴**：微暖的纸白底色，干净的线条，不添加任何多余装饰
 - **克制**：少即是多——颜色、线条、动效皆以"必要性"为准则
 
-## 2. 色板
+## 2. 双主题色板
+
+暖白亮色为默认主题；深炭蓝暗色通过 `<html class="dark">` 启用。组件必须使用语义变量，不能把某一套主题色写死在组件内。
 
 ```
-背景层级：
-  根背景:     #fafaf7 (微暖纸白，非纯白)
-  卡片/表面:  #ffffff (纯白)
-  悬浮态:     #f5f5f4 (中性浅灰)
-  边框:       #e7e5e4 (极淡，近乎无形)
+亮色：
+  根背景:     oklch(0.975 0.01 90)  微暖纸白
+  卡片/表面:  oklch(0.99 0.006 90)
+  主文字:     oklch(0.22 0.02 80)   暖墨色
+  次文字:     oklch(0.48 0.02 80)
+  边框:       oklch(0.88 0.015 90)
+  主交互:     oklch(0.48 0.16 260)
 
-文字层级：
-  主文字:     #3d3935 (墨色，非纯黑)
-  次文字:     #78716c (中灰)
-  辅助文字:   #a8a29e (浅灰)
-  链接:       #3d3935 (与主文字同色，下划线区分)
-
-强调色：
-  Primary:    #3d3935 → 按钮、主交互
-  Secondary:  #f5f5f4 → 次要元素
-  Destructive: 软红 → 删除/错误
+暗色：
+  根背景:     oklch(0.18 0.008 260) 深炭蓝
+  卡片/表面:  oklch(0.22 0.01 260)
+  主文字:     oklch(0.89 0.008 95)
+  次文字:     oklch(0.6 0.01 95)
+  边框:       oklch(0.27 0.015 260)
+  主交互:     oklch(0.62 0.16 260)
 ```
 
 ## 3. 字体
@@ -54,23 +55,27 @@
 
 ## 6. Shadcn UI 主题配置
 
+完整变量以 `app/globals.css` 为准。核心双主题变量如下：
+
 ```css
---background: oklch(0.985 0.002 95);
---foreground: oklch(0.23 0.005 95);
---card: oklch(1 0 0);
---card-foreground: oklch(0.23 0.005 95);
---popover: oklch(1 0 0);
---popover-foreground: oklch(0.23 0.005 95);
---primary: oklch(0.23 0.005 95);
---primary-foreground: oklch(0.985 0.002 95);
---secondary: oklch(0.95 0.002 95);
---secondary-foreground: oklch(0.23 0.005 95);
---muted: oklch(0.95 0.002 95);
---muted-foreground: oklch(0.45 0.005 95);
---accent: oklch(0.95 0.002 95);
---accent-foreground: oklch(0.23 0.005 95);
---border: oklch(0.88 0.002 95);
---input: oklch(0.88 0.002 95);
---ring: oklch(0.5 0.005 95);
---radius: 0.5rem;
+:root {
+  --background: oklch(0.975 0.01 90);
+  --foreground: oklch(0.22 0.02 80);
+  --card: oklch(0.99 0.006 90);
+  --primary: oklch(0.48 0.16 260);
+  --muted: oklch(0.96 0.005 90);
+  --muted-foreground: oklch(0.48 0.02 80);
+  --border: oklch(0.88 0.015 90);
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: oklch(0.18 0.008 260);
+  --foreground: oklch(0.89 0.008 95);
+  --card: oklch(0.22 0.01 260);
+  --primary: oklch(0.62 0.16 260);
+  --muted: oklch(0.23 0.008 260);
+  --muted-foreground: oklch(0.6 0.01 95);
+  --border: oklch(0.27 0.015 260);
+}
 ```

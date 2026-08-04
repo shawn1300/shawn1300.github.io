@@ -4,8 +4,8 @@
 - [ ] 使用 create-next-app 初始化项目（TypeScript + Tailwind + App Router）
 - [ ] 安装核心依赖（react-markdown, supabase, date-fns, slugify 等）
 - [ ] Shadcn UI init + 添加所需组件
-- [ ] 配置 tailwind.config.ts 暗黑主题
-- [ ] 编写 globals.css 全局暗黑样式
+- [ ] 配置 Tailwind CSS 4 与基于 class 的亮暗主题
+- [ ] 编写 globals.css 暖白默认 + 深炭蓝暗色语义变量
 
 ## 阶段 2：Supabase 基础设施
 - [ ] 封装 Browser / Server / Middleware 三种 Supabase 客户端

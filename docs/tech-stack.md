@@ -4,7 +4,7 @@
 
 | 层面 | 技术 | 版本要求 |
 |------|------|----------|
-| 前端框架 | Next.js (App Router) | 15.x |
+| 前端框架 | Next.js (App Router) | 16.2.x |
 | 语言 | TypeScript | 5.x |
 | 样式 | Tailwind CSS | 4.x |
 | UI 组件 | Shadcn UI | latest |
@@ -18,16 +18,16 @@
 
 ```json
 {
-  "next": "^15",
+  "next": "16.2.7",
   "react": "^19",
   "react-dom": "^19",
-  "react-markdown": "^9",
+  "react-markdown": "^10",
   "remark-gfm": "^4",
   "rehype-highlight": "^7",
   "rehype-slug": "^6",
   "rehype-raw": "^7",
   "@supabase/supabase-js": "^2",
-  "@supabase/ssr": "^0.5",
+  "@supabase/ssr": "^0.12",
   "date-fns": "^4",
   "slugify": "^1"
 }
