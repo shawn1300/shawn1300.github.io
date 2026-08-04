@@ -150,20 +150,20 @@ def _default_browser_open(url: str) -> bool:
     return webbrowser.open(url, new=2)
 
 
-def _has_expected_image_signature(content: bytes, media_type: str) -> bool:
-    if media_type == "image/jpeg":
-        return content.startswith(b"\xff\xd8\xff")
-    if media_type == "image/png":
-        return content.startswith(b"\x89PNG\r\n\x1a\n")
-    if media_type == "image/gif":
-        return content.startswith((b"GIF87a", b"GIF89a"))
-    if media_type == "image/webp":
-        return (
-            len(content) >= 12
-            and content.startswith(b"RIFF")
-            and content[8:12] == b"WEBP"
-        )
-    return False
+def _detect_supported_image_media_type(content: bytes) -> str | None:
+    if content.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+    if content.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    if content.startswith((b"GIF87a", b"GIF89a")):
+        return "image/gif"
+    if (
+        len(content) >= 12
+        and content.startswith(b"RIFF")
+        and content[8:12] == b"WEBP"
+    ):
+        return "image/webp"
+    return None
 
 
 def _remove_temp_file(path: Path) -> bool:
@@ -334,16 +334,23 @@ class XiaomiBootstrapAuthenticator:
                 f"Xiaomi captcha image exceeded {MAX_CAPTCHA_BYTES} bytes "
                 f"(received {len(content)})"
             )
+        detected_media_type = _detect_supported_image_media_type(bytes(content))
+        if media_type in ("", "application/octet-stream"):
+            if detected_media_type is None:
+                raise XiaomiInvalidCaptchaImage(
+                    "Xiaomi untyped captcha content did not have a supported "
+                    "image signature"
+                )
+            media_type = detected_media_type
         if media_type not in ALLOWED_CAPTCHA_MEDIA_TYPES:
-            category = (
-                "unsupported image media type"
-                if media_type.startswith("image/")
-                else "non-image media type"
-            )
+            if media_type.startswith("image/"):
+                raise XiaomiInvalidCaptchaImage(
+                    "Xiaomi captcha response used an unsupported image media type"
+                )
             raise XiaomiInvalidCaptchaImage(
-                f"Xiaomi captcha response used an {category}"
+                "Xiaomi captcha response used a non-image media type"
             )
-        if not _has_expected_image_signature(bytes(content), media_type):
+        if detected_media_type != media_type:
             raise XiaomiInvalidCaptchaImage(
                 "Xiaomi captcha media type and image signature did not match"
             )

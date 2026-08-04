@@ -31,14 +31,14 @@ class FakeResponse:
         status_code: int = 200,
         cookies: dict[str, str] | None = None,
         content: bytes | None = None,
-        content_type: str = "application/json",
+        content_type: str | None = "application/json",
         url: str = "https://account.xiaomi.com/",
     ) -> None:
         self.text = "&&&START&&&" + json.dumps(payload or {})
         self.content = content if content is not None else self.text.encode()
         self.status_code = status_code
         self.cookies = cookies or {}
-        self.headers = {"Content-Type": content_type}
+        self.headers = {"Content-Type": content_type} if content_type else {}
         self.url = url
         self.reason = "OK"
 
@@ -49,7 +49,7 @@ class FakeSession:
         password_response: dict | list[dict],
         *,
         captcha_content: bytes = b"\xff\xd8\xffcaptcha-image",
-        captcha_content_type: str = "image/jpeg",
+        captcha_content_type: str | None = "image/jpeg",
     ) -> None:
         self.password_responses = (
             list(password_response)
@@ -252,6 +252,28 @@ def test_captcha_accepts_safe_jpeg_media_type_aliases(media_type: str) -> None:
         XiaomiBootstrapAuthenticator(cloud).begin_login()
 
     assert caught.value.media_type == "image/jpeg"
+
+
+@pytest.mark.parametrize("media_type", [None, "application/octet-stream"])
+def test_captcha_accepts_generic_or_missing_type_only_with_image_signature(
+    media_type: str | None,
+) -> None:
+    cloud = FakeCloud(captcha_response(), captcha_content_type=media_type)
+
+    with pytest.raises(XiaomiImageCaptchaRequired) as caught:
+        XiaomiBootstrapAuthenticator(cloud).begin_login()
+
+    assert caught.value.media_type == "image/jpeg"
+
+
+@pytest.mark.parametrize("media_type", ["text/html", "application/json"])
+def test_captcha_rejects_non_image_type_even_with_valid_image_bytes(
+    media_type: str,
+) -> None:
+    cloud = FakeCloud(captcha_response(), captcha_content_type=media_type)
+
+    with pytest.raises(XiaomiInvalidCaptchaImage, match="non-image media type"):
+        XiaomiBootstrapAuthenticator(cloud).begin_login()
 
 
 def test_captcha_code_reuses_session_and_can_continue_to_sms_verification() -> None:
