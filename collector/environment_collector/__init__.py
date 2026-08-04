@@ -2,6 +2,7 @@
 
 from .config import CollectorConfig, CollectorConfigError
 from .models import CloudDevice, SensorReading, SensorRole
+from .xiaomi_cloud import XiaomiCloudClient, XiaomiCloudError
 
 __all__ = [
     "CloudDevice",
@@ -9,4 +10,6 @@ __all__ = [
     "CollectorConfigError",
     "SensorReading",
     "SensorRole",
+    "XiaomiCloudClient",
+    "XiaomiCloudError",
 ]
