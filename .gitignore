@@ -33,6 +33,12 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# local Xiaomi collector credentials and Python caches
+.collector-credentials.json
+collector/.env
+__pycache__/
+.pytest_cache/
+
 # vercel
 .vercel
 
