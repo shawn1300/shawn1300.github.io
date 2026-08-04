@@ -109,14 +109,16 @@ bootstrap 必须保持一次连续的登录会话：
 用户在已经登录并完成验证的同一浏览器中打开小米官方 `xiaomiio` service login 地址，将页面显示的一行 JSON 复制到程序的隐藏输入。原始响应可能带有 `&&&START&&&` 防劫持前缀，也可能被浏览器显示为直接从 `{` 开始的 JSON 对象；程序兼容两者。程序完成以下步骤：
 
 1. 输入最大为 64 KiB；不回显、不写入命令历史、文件或日志。
-2. 若存在则去掉固定前缀，并要求剩余内容为 JSON 对象；只读取 `code`、`userId`、`ssecurity` 和 `location`，`passToken` 及其他字段不得保存或打印。
-3. 要求 `code` 为 `0`，且 `userId`、`ssecurity`、`location` 均存在。
-4. `location` 必须使用 HTTPS，且主机名属于已批准的小米登录完成域名；拒绝用户信息、非默认端口、伪造子域名和非小米地址。
-5. 程序在新的本地 HTTP 会话中仅访问一次该 `location`，从响应 Cookie 取得 `serviceToken`，随后立即丢弃原始 JSON 与一次性地址。
-6. 取得 `userId`、`ssecurity`、`serviceToken` 后，复用普通 bootstrap 的设备列举、室内外选择、真实属性读取和 `.collector-credentials.json` 写入流程。
-7. 成功或失败后均提醒用户清空系统剪贴板；程序不自动读取或覆盖整个剪贴板，也不访问 Chrome/Edge Cookie 数据库。
+2. 若存在则去掉固定前缀，并要求剩余内容为 JSON 对象；第一阶段只读取 `code`、`userId` 和 `passToken`。`passToken` 只允许存在于当前 Python 进程内，不写入客户端对象、文件、日志或错误信息。
+3. 要求 `code` 为 `0`，且 `userId`、`passToken` 均存在；缺少任一字段时安全停止，不再尝试消费响应中的旧 `location`。
+4. 程序创建新的本地 HTTP 会话，仅在一次发往 `https://account.xiaomi.com/pass/serviceLogin` 的请求上附带 `userId` 与 `passToken`。这两个值不得进入会话的持久 Cookie jar，因而不会被随后发往 `sts.api.io.mi.com` 或其他域名。
+5. 刷新请求固定使用 `sid=xiaomiio&_json=true`。其响应必须为认证成功的 JSON，且返回的 `userId` 必须与导入值完全一致；否则视为会话过期或身份不一致并立即停止。
+6. 第二阶段只接受刷新响应中的 `ssecurity` 和全新的 `location`。`location` 必须使用 HTTPS，且主机名属于已批准的小米登录完成域名；拒绝用户信息、非默认端口、伪造子域名和非小米地址。刷新响应若返回新的 `passToken`，程序也不得保存或打印。
+7. 程序仅访问一次全新的 `location`，从响应 Cookie 取得 `serviceToken`。无论成功或失败，都立即释放原始 JSON、`passToken`、刷新响应和一次性地址的程序引用；Python 无法保证不可变字符串在内存中原地清零，因此安全承诺是“不持久化、不输出、最短生命周期”，而不是不可验证的内存擦除。
+8. 取得 `userId`、`ssecurity`、`serviceToken` 后，显式确认客户端的 `pass_token` 属性为空，再复用普通 bootstrap 的设备列举、室内外选择、真实属性读取和 `.collector-credentials.json` 写入流程。最终凭证文件仍只包含长期采集所需的 `user_id`、`service_token` 和 `ssecurity`。
+9. 成功或失败后均提醒用户清空系统剪贴板；程序不自动读取或覆盖整个剪贴板，也不访问 Chrome/Edge Cookie 数据库。
 
-错误信息只能说明输入过长、JSON 无法解析、字段缺失、状态未认证、地址不可信、一次性地址已使用或未返回 `serviceToken`，不得包含原始响应或任何字段值。
+错误信息只能说明输入过长、JSON 无法解析、字段缺失、状态未认证、浏览器会话已过期、账号身份不一致、地址不可信或未返回 `serviceToken`，不得包含原始响应或任何字段值。自动化测试必须覆盖 `passToken` 缺失、仅随定向刷新请求发送、刷新身份不一致、恶意新 `location`、未返回 `serviceToken`、所有错误路径的秘密脱敏，以及成功后客户端不保留 `passToken`。
 
 ## 5. 系统架构
 
