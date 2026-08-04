@@ -568,7 +568,7 @@ class XiaomiBootstrapAuthenticator:
             ) from exc
 
 
-def _parse_browser_service_response(raw_response: str) -> tuple[str, str, str]:
+def _parse_browser_service_response(raw_response: str) -> tuple[str, str]:
     if not isinstance(raw_response, str):
         raise XiaomiBootstrapAuthenticationError(
             "Xiaomi browser response must be text"
@@ -604,12 +604,41 @@ def _parse_browser_service_response(raw_response: str) -> tuple[str, str, str]:
         )
 
     user_id = values.get("userId")
-    ssecurity = values.get("ssecurity")
-    location = values.get("location")
+    pass_token = values.get("passToken")
     missing: list[str] = []
     if isinstance(user_id, bool) or not isinstance(user_id, (str, int)) or not str(
         user_id
     ).strip():
+        missing.append("userId")
+    if not isinstance(pass_token, str) or not pass_token.strip():
+        missing.append("passToken")
+    if missing:
+        raise XiaomiBootstrapAuthenticationError(
+            "Xiaomi browser response missing: " + ", ".join(missing)
+        )
+    return str(user_id), pass_token
+
+
+def _parse_browser_refresh_response(
+    response: Any,
+    *,
+    expected_user_id: str,
+) -> tuple[str, str]:
+    values = _decode_response(response)
+    if values.get("code") != 0:
+        raise XiaomiBootstrapAuthenticationError(
+            "Xiaomi browser session expired before it could be refreshed"
+        )
+
+    refreshed_user_id = values.get("userId")
+    ssecurity = values.get("ssecurity")
+    location = values.get("location")
+    missing: list[str] = []
+    if (
+        isinstance(refreshed_user_id, bool)
+        or not isinstance(refreshed_user_id, (str, int))
+        or not str(refreshed_user_id).strip()
+    ):
         missing.append("userId")
     if not isinstance(ssecurity, str) or not ssecurity.strip():
         missing.append("ssecurity")
@@ -617,9 +646,39 @@ def _parse_browser_service_response(raw_response: str) -> tuple[str, str, str]:
         missing.append("location")
     if missing:
         raise XiaomiBootstrapAuthenticationError(
-            "Xiaomi browser response missing: " + ", ".join(missing)
+            "Xiaomi browser session refresh missing: " + ", ".join(missing)
         )
-    return str(user_id), ssecurity, _validate_login_completion_url(location)
+    if str(refreshed_user_id) != expected_user_id:
+        raise XiaomiBootstrapAuthenticationError(
+            "Xiaomi browser session identity did not match the imported account"
+        )
+    return ssecurity, _validate_login_completion_url(location)
+
+
+def _discard_browser_bridge_cookies(client: Any) -> None:
+    session = getattr(client, "session", None)
+    cookies = getattr(session, "cookies", None)
+    if cookies is None:
+        return
+    if isinstance(cookies, dict):
+        cookies.pop("userId", None)
+        cookies.pop("passToken", None)
+        return
+    try:
+        cookie_items = list(cookies)
+    except TypeError:
+        return
+    for cookie in cookie_items:
+        if getattr(cookie, "name", None) not in {"userId", "passToken"}:
+            continue
+        try:
+            cookies.clear(
+                domain=getattr(cookie, "domain", None),
+                path=getattr(cookie, "path", None),
+                name=getattr(cookie, "name", None),
+            )
+        except (KeyError, ValueError):
+            continue
 
 
 def login_from_browser_response(
@@ -629,14 +688,27 @@ def login_from_browser_response(
 ) -> Any:
     """Exchange one official browser service-login response for cloud session data."""
 
-    user_id, ssecurity, location = _parse_browser_service_response(raw_response)
+    user_id, pass_token = _parse_browser_service_response(raw_response)
+    raw_response = ""
     client = client_factory(username=None, password=None)
-    client.user_id = user_id
-    client.ssecurity = ssecurity
     client.pass_token = None
     client._init_session()
     authenticator = XiaomiBootstrapAuthenticator(client)
     try:
+        response = client.session.get(
+            SERVICE_LOGIN_URL,
+            params={"sid": "xiaomiio", "_json": "true"},
+            cookies={"userId": user_id, "passToken": pass_token},
+        )
+        pass_token = ""
+        _discard_browser_bridge_cookies(client)
+        ssecurity, location = _parse_browser_refresh_response(
+            response,
+            expected_user_id=user_id,
+        )
+        response = None
+        client.user_id = user_id
+        client.ssecurity = ssecurity
         return authenticator._finish_location(location)
     except XiaomiBootstrapAuthenticationError:
         raise
@@ -648,6 +720,10 @@ def login_from_browser_response(
         raise XiaomiBootstrapAuthenticationError(
             "Xiaomi browser session exchange failed"
         ) from exc
+    finally:
+        pass_token = ""
+        client.pass_token = None
+        _discard_browser_bridge_cookies(client)
 
 
 def login_interactive(

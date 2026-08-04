@@ -4,7 +4,7 @@
 
 ## 安全边界
 
-- 不要把小米账号密码、`serviceToken`、`ssecurity`、设备 DID 或 Supabase Service Role Key 发到聊天中。
+- 不要把小米账号密码、`passToken`、`serviceToken`、`ssecurity`、设备 DID 或 Supabase Service Role Key 发到聊天中。
 - 不要把这些值写进仓库、Issue、Actions 日志或公开网页。
 - 定时任务只保存会话材料，不保存小米账号密码。
 - 优先使用一个专用中国大陆区小米账号，并把米家“家”共享给它。
@@ -33,7 +33,7 @@ python -m venv .venv
 https://account.xiaomi.com/pass/serviceLogin?sid=xiaomiio&_json=true
 ```
 
-确认页面是一行 JSON，可能以 `&&&START&&&` 开头，也可能直接从 `{` 开始，并且可以在本机搜索到 `ssecurity`。不要点击 JSON 中的 `location`，也不要把页面内容、截图或字段值发送到聊天。
+确认页面是一行 JSON，可能以 `&&&START&&&` 开头，也可能直接从 `{` 开始，并且可以在本机搜索到 `passToken`。不要点击 JSON 中的 `location`，也不要把页面内容、截图或字段值发送到聊天。如果找不到 `passToken`，说明当前浏览器会话不足以完成桥接；请停止，不要把其他 Cookie 导出或发到聊天。
 
 在项目根目录运行：
 
@@ -41,7 +41,7 @@ https://account.xiaomi.com/pass/serviceLogin?sid=xiaomiio&_json=true
 .\.venv\Scripts\python.exe -m collector.environment_collector.browser_bootstrap
 ```
 
-在隐藏提示后粘贴完整的一行 JSON 并按 Enter。程序会自动提取所需字段、校验一次性小米地址、换取云会话，然后进入与普通 bootstrap 相同的室内外设备选择和真实读取流程。粘贴内容不会显示；不要把 JSON 直接写进 PowerShell 命令参数或文件。
+在隐藏提示后粘贴完整的一行 JSON 并按 Enter。程序只在内存中临时使用 `userId + passToken`，并且只把它们附加到一次小米账号会话刷新请求；随后使用刷新得到的 `ssecurity + location` 换取云会话，再进入与普通 bootstrap 相同的室内外设备选择和真实读取流程。`passToken` 不会写入凭证文件、客户端属性或日志。粘贴内容不会显示；不要把 JSON 直接写进 PowerShell 命令参数或文件。
 
 命令结束后清空剪贴板：
 
