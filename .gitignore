@@ -36,6 +36,7 @@ yarn-error.log*
 # local Xiaomi collector credentials and Python caches
 .collector-credentials.json
 collector/.env
+.venv/
 __pycache__/
 .pytest_cache/
 

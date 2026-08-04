@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Sequence
 
 from .models import CloudDevice, EXPECTED_MODEL
+from .xiaomi_auth import login_interactive
 from .xiaomi_cloud import XiaomiCloudClient, XiaomiCloudError
 
 
@@ -74,24 +75,10 @@ def write_credentials(
 
 
 def _login(username: str, password: str):
-    try:
-        from micloud import MiCloud
-    except ImportError as exc:
-        raise XiaomiCloudError(
-            "micloud is not installed; run pip install -r collector/requirements.txt"
-        ) from exc
-
-    cloud = MiCloud(username=username, password=password)
-    try:
-        logged_in = cloud.login()
-    except Exception as exc:
-        raise XiaomiCloudError(
-            "Xiaomi login was rejected or requires additional verification"
-        ) from exc
-    if not logged_in:
-        raise XiaomiCloudError("Xiaomi login failed")
+    cloud = login_interactive(username, password)
     if not cloud.user_id or not cloud.service_token or not cloud.ssecurity:
         raise XiaomiCloudError("Xiaomi login did not return complete session material")
+    cloud.password = None
     return cloud
 
 

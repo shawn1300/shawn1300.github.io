@@ -14,11 +14,16 @@
 在项目根目录执行：
 
 ```powershell
-python -m pip install -r collector/requirements.txt
-python -m collector.environment_collector.bootstrap
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r collector\requirements.txt
+.\.venv\Scripts\python.exe -m collector.environment_collector.bootstrap
 ```
 
 程序会在本机提示输入账号和密码，列出型号为 `miaomiaoce.sensor_ht.t2` 的设备，并要求选择室内与室外。完整 DID 不会打印到终端。
+
+若小米要求短信或邮箱验证，程序会先校验验证地址必须严格属于 `https://account.xiaomi.com`，再用默认浏览器打开完整挑战地址。终端只显示不含查询参数的官方路径。请在官方页面请求一次性验证码，再回到仍在运行的终端输入；验证码采用隐藏输入且不会保存。不要把验证页面地址或验证码发送到聊天、Issue 或日志中。
+
+当前 bootstrap 不处理图片验证码。若提示需要图片验证码，请停止重试，不要尝试输出原始小米登录响应。
 
 成功后会生成已被 Git 忽略的 `.collector-credentials.json`。该文件不包含密码，但仍包含可访问小米云的会话材料，必须按密码对待。
 
