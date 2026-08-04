@@ -37,6 +37,7 @@ yarn-error.log*
 .collector-credentials.json
 collector/.env
 .venv/
+.venv-miservice/
 __pycache__/
 .pytest_cache/
 
