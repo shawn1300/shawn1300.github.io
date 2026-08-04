@@ -3,12 +3,16 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
+import collector.environment_collector.bootstrap as bootstrap
 from collector.environment_collector.bootstrap import (
     BootstrapSession,
     print_device_choices,
     write_credentials,
 )
 from collector.environment_collector.models import CloudDevice
+from collector.environment_collector.xiaomi_cloud import XiaomiCloudError
 
 
 def test_write_credentials_never_persists_the_account_password(tmp_path: Path) -> None:
@@ -52,3 +56,26 @@ def test_device_choices_show_names_and_masked_ids_only(capsys) -> None:
     assert "室内" in output
     assert device.log_id in output
     assert device.did not in output
+
+
+def test_login_reports_only_missing_session_field_names(monkeypatch) -> None:
+    class IncompleteCloud:
+        user_id = "user-secret"
+        service_token = "service-token-secret"
+        ssecurity = None
+        password = "password-secret"
+
+    monkeypatch.setattr(
+        bootstrap,
+        "login_interactive",
+        lambda _username, _password: IncompleteCloud(),
+    )
+
+    with pytest.raises(XiaomiCloudError) as caught:
+        bootstrap._login("user-secret", "password-secret")
+
+    message = str(caught.value)
+    assert "ssecurity" in message
+    assert "user-secret" not in message
+    assert "service-token-secret" not in message
+    assert "password-secret" not in message

@@ -21,6 +21,7 @@ from .xiaomi_cloud import XiaomiCloudError
 
 
 ACCOUNT_ORIGIN = "https://account.xiaomi.com"
+SERVICE_LOGIN_URL = f"{ACCOUNT_ORIGIN}/pass/serviceLogin"
 PASSWORD_LOGIN_URL = f"{ACCOUNT_ORIGIN}/pass/serviceLoginAuth2"
 ALLOWED_LOGIN_RESULT_HOSTS = frozenset({"account.xiaomi.com", "sts.api.io.mi.com"})
 MAX_CAPTCHA_BYTES = 1024 * 1024
@@ -518,7 +519,29 @@ class XiaomiBootstrapAuthenticator:
         user_id = _cookie(response, "userId")
         if user_id:
             self.client.user_id = user_id
+        if not getattr(self.client, "user_id", None) or not getattr(
+            self.client, "ssecurity", None
+        ):
+            self._refresh_session_material()
         return self.client
+
+    def _refresh_session_material(self) -> None:
+        try:
+            response = self.client.session.get(
+                SERVICE_LOGIN_URL,
+                params={"sid": "xiaomiio", "_json": "true"},
+            )
+            self._hydrate_session_fields(_decode_response(response))
+        except XiaomiBootstrapAuthenticationError:
+            raise
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as exc:
+            raise XiaomiAuthenticationNetworkError(
+                "Xiaomi session material refresh could not reach the account service"
+            ) from exc
+        except Exception as exc:
+            raise XiaomiBootstrapAuthenticationError(
+                "Xiaomi session material could not be refreshed"
+            ) from exc
 
 
 def login_interactive(

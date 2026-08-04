@@ -76,8 +76,20 @@ def write_credentials(
 
 def _login(username: str, password: str):
     cloud = login_interactive(username, password)
-    if not cloud.user_id or not cloud.service_token or not cloud.ssecurity:
-        raise XiaomiCloudError("Xiaomi login did not return complete session material")
+    missing = [
+        name
+        for name, value in (
+            ("user_id", cloud.user_id),
+            ("service_token", cloud.service_token),
+            ("ssecurity", cloud.ssecurity),
+        )
+        if not value
+    ]
+    if missing:
+        raise XiaomiCloudError(
+            "Xiaomi login did not return complete session material; missing: "
+            + ", ".join(missing)
+        )
     cloud.password = None
     return cloud
 

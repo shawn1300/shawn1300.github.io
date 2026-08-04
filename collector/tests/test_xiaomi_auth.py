@@ -88,6 +88,16 @@ class FakeSession:
                 {"flag": 4, "options": [4]},
                 cookies={"identity_session": "identity-session-secret"},
             )
+        if url == "https://account.xiaomi.com/pass/serviceLogin":
+            return FakeResponse(
+                {
+                    "code": 0,
+                    "userId": "12345",
+                    "cUserId": "c-user-secret",
+                    "ssecurity": "refreshed-ssecurity-secret",
+                    "passToken": "refreshed-pass-token-secret",
+                }
+            )
         if url in {
             "https://sts.api.io.mi.com/sts/normal",
             "https://sts.api.io.mi.com/sts/verified",
@@ -322,6 +332,8 @@ def test_verification_code_completes_login_in_the_same_session() -> None:
 
     assert result is cloud
     assert result.service_token == "service-token-secret"
+    assert result.ssecurity == "refreshed-ssecurity-secret"
+    assert "https://account.xiaomi.com/pass/serviceLogin" in cloud.session.gets
     verify_url, verify_kwargs = cloud.session.posts[-1]
     assert verify_url == "https://account.xiaomi.com/identity/auth/verifyPhone"
     assert verify_kwargs["data"]["ticket"] == "246810"
