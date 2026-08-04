@@ -120,6 +120,29 @@ bootstrap 必须保持一次连续的登录会话：
 
 错误信息只能说明输入过长、JSON 无法解析、字段缺失、状态未认证、浏览器会话已过期、账号身份不一致、地址不可信或未返回 `serviceToken`，不得包含原始响应或任何字段值。自动化测试必须覆盖 `passToken` 缺失、仅随定向刷新请求发送、刷新身份不一致、恶意新 `location`、未返回 `serviceToken`、所有错误路径的秘密脱敏，以及成功后客户端不保留 `passToken`。
 
+### 4.6 临时 Edge 登录捕获
+
+若普通 bootstrap 和浏览器官方响应导入都无法取得 `ssecurity`，提供最终的本地交互式入口：
+
+```powershell
+.\.venv\Scripts\python.exe -m collector.environment_collector.edge_bootstrap
+```
+
+该入口使用固定版本的 Playwright 驱动 Windows 已安装的 Microsoft Edge，不执行 `playwright install`，也不下载或捆绑另一份 Chromium。它必须遵守以下边界：
+
+1. 启动一个可见、非持久化的临时浏览器上下文，不指定或读取用户日常 Edge/Chrome 配置目录，不加载现有扩展，不导出 storage state。
+2. 初始页面只能是 `https://account.xiaomi.com/pass/serviceLogin?sid=xiaomiio&_json=true`。账号、密码、图片验证码和短信验证码均由用户直接输入小米官方网页；程序不在终端索取这些值，不读取表单字段，也不监听或保存请求体。
+3. 程序只检查响应地址严格匹配 `https://account.xiaomi.com/pass/serviceLoginAuth2` 或 `https://account.xiaomi.com/pass/serviceLogin` 的响应；不使用后缀匹配，不接受子域名、用户信息、非 443 端口、HTTP 或其他路径。
+4. 候选响应体最大为 64 KiB，只接受可去除可选 `&&&START&&&` 前缀后解析为 JSON 对象、且 `code=0` 的结果。只提取 `userId`、`ssecurity` 和 `location`；忽略并不保存 `passToken`、密码、验证码及其他字段。
+5. `location` 继续复用严格的小米 HTTPS 登录完成地址校验。刷新响应的 `userId`、STS Cookie 中的 `userId` 若同时存在，必须完全一致。
+6. 若同一临时浏览器上下文已经因页面跳转取得 `serviceToken`，程序不再次访问 `location`；否则仅在该上下文中消费一次经过校验的新 `location`。随后只从适用于 `https://sts.api.io.mi.com` 或 `https://api.io.mi.com` 的 Cookie 中读取 `serviceToken` 和可选 `userId`，不导出完整 Cookie 集合。
+7. 取得 `userId`、`ssecurity`、`serviceToken` 后，立即关闭页面、上下文、浏览器和 Playwright，再把三项材料注入不含密码与 `passToken` 的 `MiCloud` 客户端，复用普通 bootstrap 的设备列举、真实属性读取、室内外选择和凭证写入流程。
+8. 登录窗口最长等待 10 分钟。用户关闭窗口、按 Ctrl+C、超时、Edge 缺失、Playwright 缺失、响应不完整、身份不一致或无法取得 `serviceToken` 时均安全停止；不得自动重新登录、重复发送验证码或循环消费登录地址。
+9. 所有退出路径都必须尝试关闭非持久化上下文和浏览器。程序不承诺浏览器进程从不使用操作系统临时缓存，但不得主动创建持久用户数据目录；由 Playwright 管理并清理其临时运行数据。
+10. 错误和终端提示不得包含响应正文、Cookie 值、完整 `location`、带查询参数的 URL、账号或完整设备 DID。错误只报告安全分类及用户下一步。
+
+实现拆分为三个可独立测试的单元：严格响应筛选与材料解析器、Playwright/Edge 会话协调器、复用现有 `run_authenticated_bootstrap` 的命令入口。协调器通过小接口接收浏览器事件，使单元测试能使用假浏览器覆盖成功、超时、用户关闭、恶意来源、过大或畸形响应、身份冲突、已有 Cookie、不重复消费 `location`、清理和秘密脱敏；自动化测试不得打开真实 Edge 或访问小米账号。
+
 ## 5. 系统架构
 
 ```text
