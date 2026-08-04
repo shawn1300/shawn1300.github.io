@@ -65,6 +65,16 @@ Set-Clipboard -Value ''
 
 该流程不会保存浏览器 storage state、完整 Cookie、密码、验证码或 `passToken`。最终仍只生成与其他 bootstrap 相同的 `.collector-credentials.json`。
 
+如果网页登录结束并显示 `ok`，但严格 Edge 命令没有继续，请按 `Ctrl+C` 结束它，不要立即重复请求验证码。冷却恢复后改为运行一次独立诊断命令：
+
+```powershell
+.\.venv\Scripts\python.exe -m collector.environment_collector.edge_diagnostic
+```
+
+诊断命令只观察精确 `https://account.xiaomi.com` 源的小型 JSON 响应，终端只显示查询参数已删除、数字已脱敏的路径、状态码和固定字段存在标记。它不输出字段值、响应正文或 Cookie。若捕获到完整会话会直接进入设备选择；若只检测到云端 Cookie，会在 5 秒后结束，不再无提示等待 10 分钟。
+
+排查时可以提供所有以 `Diagnostic #` 开头的行和最后一行错误；不要提供浏览器截图、开发者工具内容、其他终端输出或任何 JSON/Cookie。确认实际接口后，应修正正式白名单，不长期使用诊断命令。
+
 ## 安全上传到 GitHub Secrets
 
 先安装并登录 GitHub CLI，然后在项目根目录使用 PowerShell：

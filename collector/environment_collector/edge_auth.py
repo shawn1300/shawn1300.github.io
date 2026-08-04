@@ -156,15 +156,6 @@ class PlaywrightEdgeDriver:
         return sync_playwright().start()
 
     def start(self, response_callback: Callable[[str, bytes], None]) -> None:
-        self._playwright = self._playwright_start()
-        self._browser = self._playwright.chromium.launch(
-            channel="msedge",
-            headless=False,
-            args=["--disable-extensions"],
-        )
-        self._context = self._browser.new_context(accept_downloads=False)
-        self._page = self._context.new_page()
-
         def handle_response(response: Any) -> None:
             if not _is_allowed_login_response_url(response.url):
                 return
@@ -174,7 +165,18 @@ class PlaywrightEdgeDriver:
                 return
             response_callback(response.url, body)
 
-        self._page.on("response", handle_response)
+        self._launch(handle_response)
+
+    def _launch(self, response_handler: Callable[[Any], None]) -> None:
+        self._playwright = self._playwright_start()
+        self._browser = self._playwright.chromium.launch(
+            channel="msedge",
+            headless=False,
+            args=["--disable-extensions"],
+        )
+        self._context = self._browser.new_context(accept_downloads=False)
+        self._page = self._context.new_page()
+        self._page.on("response", response_handler)
 
     def open(self, url: str) -> None:
         self._page.goto(url, wait_until="domcontentloaded", timeout=60_000)
