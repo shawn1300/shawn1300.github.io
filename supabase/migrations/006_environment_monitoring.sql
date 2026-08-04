@@ -3,6 +3,8 @@
 -- Home Assistant 环境读数、30 天保留与私有访问边界
 -- =============================================
 
+BEGIN;
+
 CREATE TABLE environment_locations (
   id          uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   slug        text NOT NULL UNIQUE CHECK (slug ~ '^[a-z0-9-]+$'),
@@ -112,3 +114,4 @@ SELECT cron.schedule(
   $$SELECT public.cleanup_environment_readings();$$
 );
 
+COMMIT;

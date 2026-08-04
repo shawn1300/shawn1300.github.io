@@ -8,6 +8,8 @@ const migration = readFileSync(
 );
 
 test("environment migration creates only the isolated environment tables", () => {
+  assert.match(migration, /BEGIN;/);
+  assert.match(migration, /COMMIT;/);
   for (const table of [
     "environment_locations",
     "environment_sensors",
@@ -46,4 +48,3 @@ test("environment migration configures independent 30-day cleanup", () => {
   assert.match(migration, /'environment-readings-retention'/);
   assert.match(migration, /'17 19 \* \* \*'/);
 });
-
