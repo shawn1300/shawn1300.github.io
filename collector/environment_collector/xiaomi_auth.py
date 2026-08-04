@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import atexit
 import getpass
 import hashlib
 import json
+import os
+import tempfile
 import time
 import webbrowser
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 from urllib.parse import urljoin, urlparse, urlunparse
 
@@ -19,6 +23,10 @@ from .xiaomi_cloud import XiaomiCloudError
 ACCOUNT_ORIGIN = "https://account.xiaomi.com"
 PASSWORD_LOGIN_URL = f"{ACCOUNT_ORIGIN}/pass/serviceLoginAuth2"
 ALLOWED_LOGIN_RESULT_HOSTS = frozenset({"account.xiaomi.com", "sts.api.io.mi.com"})
+MAX_CAPTCHA_BYTES = 1024 * 1024
+ALLOWED_CAPTCHA_MEDIA_TYPES = frozenset(
+    {"image/gif", "image/jpeg", "image/png", "image/webp"}
+)
 
 
 class XiaomiBootstrapAuthenticationError(XiaomiCloudError):
@@ -51,7 +59,24 @@ class XiaomiVerificationOpenError(XiaomiBootstrapAuthenticationError):
 
 
 class XiaomiImageCaptchaRequired(XiaomiBootstrapAuthenticationError):
-    """Xiaomi requested an image captcha, which this bootstrap does not handle."""
+    """Xiaomi requires one locally displayed image captcha."""
+
+    def __init__(self, *, image: bytes, media_type: str) -> None:
+        self.image = image
+        self.media_type = media_type
+        super().__init__("Xiaomi requires an image captcha")
+
+
+class XiaomiImageCaptchaRejected(XiaomiBootstrapAuthenticationError):
+    """Xiaomi rejected, expired, or repeated an image captcha challenge."""
+
+
+class XiaomiInvalidCaptchaImage(XiaomiBootstrapAuthenticationError):
+    """The captcha response was missing, too large, or not an image."""
+
+
+class XiaomiCaptchaOpenError(XiaomiBootstrapAuthenticationError):
+    """The temporary captcha image could not be opened locally."""
 
 
 class XiaomiAuthenticationNetworkError(XiaomiBootstrapAuthenticationError):
@@ -121,17 +146,90 @@ def _default_browser_open(url: str) -> bool:
     return webbrowser.open(url, new=2)
 
 
+def _has_expected_image_signature(content: bytes, media_type: str) -> bool:
+    if media_type == "image/jpeg":
+        return content.startswith(b"\xff\xd8\xff")
+    if media_type == "image/png":
+        return content.startswith(b"\x89PNG\r\n\x1a\n")
+    if media_type == "image/gif":
+        return content.startswith((b"GIF87a", b"GIF89a"))
+    if media_type == "image/webp":
+        return (
+            len(content) >= 12
+            and content.startswith(b"RIFF")
+            and content[8:12] == b"WEBP"
+        )
+    return False
+
+
+def _remove_temp_file(path: Path) -> bool:
+    try:
+        path.unlink(missing_ok=True)
+    except OSError:
+        return False
+    return True
+
+
+def solve_image_captcha(
+    challenge: XiaomiImageCaptchaRequired,
+    *,
+    browser_open: Callable[[str], bool] = _default_browser_open,
+    captcha_prompt: Callable[[str], str] = getpass.getpass,
+    print_fn: Callable[[str], None] = print,
+    temp_directory: Path | None = None,
+) -> str:
+    """Show a captcha from a randomized temporary file and always clean it up."""
+
+    suffixes = {
+        "image/gif": ".gif",
+        "image/png": ".png",
+        "image/webp": ".webp",
+    }
+    suffix = suffixes.get(challenge.media_type, ".jpg")
+    descriptor, raw_path = tempfile.mkstemp(
+        prefix="xiaomi-captcha-",
+        suffix=suffix,
+        dir=temp_directory,
+    )
+    path = Path(raw_path)
+    try:
+        with os.fdopen(descriptor, "wb") as image_file:
+            image_file.write(challenge.image)
+        try:
+            os.chmod(path, 0o600)
+        except OSError:
+            pass
+
+        print_fn("Opening the Xiaomi image captcha in the default viewer.")
+        if not browser_open(path.resolve().as_uri()):
+            raise XiaomiCaptchaOpenError(
+                "Could not open the temporary Xiaomi captcha image"
+            )
+        return captcha_prompt("Xiaomi image captcha characters: ")
+    finally:
+        if not _remove_temp_file(path):
+            atexit.register(_remove_temp_file, path)
+            print_fn(
+                "Warning: the temporary captcha image is in use; "
+                "cleanup will be retried when bootstrap exits."
+            )
+
+
 class XiaomiBootstrapAuthenticator:
     """Perform password and optional verification steps in one HTTP session."""
 
     def __init__(self, client: Any) -> None:
         self.client = client
         self._verification_url: str | None = None
+        self._password_sign: str | None = None
+        self._captcha_cookie: str | None = None
+        self._captcha_attempted = False
 
     def begin_login(self) -> Any:
         try:
             self.client._init_session()
             sign = self.client._login_step1()
+            self._password_sign = str(sign)
             location = sign if str(sign).startswith("http") else self._password_step(sign)
             return self._finish_location(location)
         except XiaomiBootstrapAuthenticationError:
@@ -145,7 +243,13 @@ class XiaomiBootstrapAuthenticator:
                 "Xiaomi authentication failed"
             ) from exc
 
-    def _password_step(self, sign: str) -> str:
+    def _password_step(
+        self,
+        sign: str,
+        *,
+        captcha: str | None = None,
+        captcha_cookie: str | None = None,
+    ) -> str:
         password = getattr(self.client, "password", None)
         username = getattr(self.client, "username", None)
         if not username or not password:
@@ -161,7 +265,19 @@ class XiaomiBootstrapAuthenticator:
         }
         if sign:
             post_data["_sign"] = sign
-        response = self.client.session.post(PASSWORD_LOGIN_URL, data=post_data)
+        params: dict[str, Any] = {}
+        cookies: dict[str, str] = {}
+        if captcha is not None:
+            post_data["captCode"] = captcha
+            params["_dc"] = int(time.time() * 1000)
+            if captcha_cookie:
+                cookies["ick"] = captcha_cookie
+        response = self.client.session.post(
+            PASSWORD_LOGIN_URL,
+            data=post_data,
+            params=params,
+            cookies=cookies,
+        )
         auth = _decode_response(response)
         self._hydrate_session_fields(auth)
 
@@ -175,10 +291,15 @@ class XiaomiBootstrapAuthenticator:
             self._verification_url = full_url
             raise XiaomiVerificationRequired(full_url, safe_display)
 
-        if auth.get("captchaUrl"):
-            raise XiaomiImageCaptchaRequired(
-                "Xiaomi requested an image captcha; this bootstrap does not expose it"
-            )
+        captcha_url = auth.get("captchaUrl")
+        if isinstance(captcha_url, str) and captcha_url:
+            if self._captcha_attempted:
+                raise XiaomiImageCaptchaRejected(
+                    "Xiaomi rejected or repeated the image captcha"
+                )
+            image, media_type, captcha_cookie = self._fetch_captcha(captcha_url)
+            self._captcha_cookie = captcha_cookie
+            raise XiaomiImageCaptchaRequired(image=image, media_type=media_type)
 
         if auth.get("code") in (20003, 70002, 70016):
             raise XiaomiCredentialsRejected(
@@ -187,6 +308,68 @@ class XiaomiBootstrapAuthenticator:
         raise XiaomiBootstrapAuthenticationError(
             "Xiaomi rejected the login without a supported verification method"
         )
+
+    def _fetch_captcha(self, value: str) -> tuple[bytes, str, str]:
+        full_url, _safe_display = validate_verification_url(value)
+        response = self.client.session.get(full_url)
+        if getattr(response, "status_code", None) != 200:
+            raise XiaomiInvalidCaptchaImage(
+                "Xiaomi captcha image request was not successful"
+            )
+        headers = getattr(response, "headers", {})
+        raw_media_type = headers.get("Content-Type") or headers.get("content-type")
+        media_type = str(raw_media_type or "").split(";", 1)[0].strip().lower()
+        content = getattr(response, "content", None)
+        if (
+            media_type not in ALLOWED_CAPTCHA_MEDIA_TYPES
+            or not isinstance(content, (bytes, bytearray))
+            or not content
+            or len(content) > MAX_CAPTCHA_BYTES
+            or not _has_expected_image_signature(bytes(content), media_type)
+        ):
+            raise XiaomiInvalidCaptchaImage(
+                "Xiaomi captcha response was not a valid bounded image"
+            )
+        captcha_cookie = _cookie(response, "ick")
+        if not captcha_cookie:
+            session_cookies = getattr(self.client.session, "cookies", {})
+            captcha_cookie = _cookie_from_jar(session_cookies, "ick")
+        if not captcha_cookie:
+            raise XiaomiInvalidCaptchaImage(
+                "Xiaomi captcha response did not include a challenge session"
+            )
+        return bytes(content), media_type, captcha_cookie
+
+    def complete_captcha(self, value: str) -> Any:
+        if self._captcha_attempted:
+            raise XiaomiImageCaptchaRejected(
+                "Only one Xiaomi image captcha attempt is allowed"
+            )
+        if self._password_sign is None or not self._captcha_cookie:
+            raise XiaomiImageCaptchaRejected(
+                "Xiaomi image captcha session is no longer available"
+            )
+        if not value.strip():
+            raise XiaomiImageCaptchaRejected("Xiaomi image captcha was blank")
+
+        self._captcha_attempted = True
+        try:
+            location = self._password_step(
+                self._password_sign,
+                captcha=value.strip(),
+                captcha_cookie=self._captcha_cookie,
+            )
+            return self._finish_location(location)
+        except XiaomiBootstrapAuthenticationError:
+            raise
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as exc:
+            raise XiaomiAuthenticationNetworkError(
+                "Xiaomi image captcha submission could not reach the account service"
+            ) from exc
+        except Exception as exc:
+            raise XiaomiImageCaptchaRejected(
+                "Xiaomi image captcha could not be submitted"
+            ) from exc
 
     def complete_verification(self, ticket: str) -> Any:
         if not self._verification_url:
@@ -319,6 +502,7 @@ def login_interactive(
     password: str,
     *,
     client_factory: Callable[..., Any] = _default_client_factory,
+    captcha_solver: Callable[[XiaomiImageCaptchaRequired], str] | None = None,
     browser_open: Callable[[str], bool] = _default_browser_open,
     verification_prompt: Callable[[str], str] = getpass.getpass,
     print_fn: Callable[[str], None] = print,
@@ -329,12 +513,50 @@ def login_interactive(
     authenticator = XiaomiBootstrapAuthenticator(client)
     try:
         return authenticator.begin_login()
+    except XiaomiImageCaptchaRequired as required:
+        print_fn("Xiaomi requires one image captcha before account verification.")
+        solver = captcha_solver
+        if solver is None:
+            code = solve_image_captcha(
+                required,
+                browser_open=browser_open,
+                print_fn=print_fn,
+            )
+        else:
+            code = solver(required)
+        try:
+            return authenticator.complete_captcha(code)
+        except XiaomiVerificationRequired as verification:
+            return _complete_interactive_verification(
+                authenticator,
+                verification,
+                browser_open=browser_open,
+                verification_prompt=verification_prompt,
+                print_fn=print_fn,
+            )
     except XiaomiVerificationRequired as required:
-        print_fn("Xiaomi requires SMS or email account verification.")
-        print_fn(f"Opening official verification page: {required.safe_display}")
-        if not browser_open(required.url):
-            raise XiaomiVerificationOpenError(
-                "Could not open the official Xiaomi verification page"
-            ) from None
-        code = verification_prompt("Xiaomi one-time verification code: ")
-        return authenticator.complete_verification(code)
+        return _complete_interactive_verification(
+            authenticator,
+            required,
+            browser_open=browser_open,
+            verification_prompt=verification_prompt,
+            print_fn=print_fn,
+        )
+
+
+def _complete_interactive_verification(
+    authenticator: XiaomiBootstrapAuthenticator,
+    required: XiaomiVerificationRequired,
+    *,
+    browser_open: Callable[[str], bool],
+    verification_prompt: Callable[[str], str],
+    print_fn: Callable[[str], None],
+) -> Any:
+    print_fn("Xiaomi requires SMS or email account verification.")
+    print_fn(f"Opening official verification page: {required.safe_display}")
+    if not browser_open(required.url):
+        raise XiaomiVerificationOpenError(
+            "Could not open the official Xiaomi verification page"
+        ) from None
+    code = verification_prompt("Xiaomi one-time verification code: ")
+    return authenticator.complete_verification(code)
