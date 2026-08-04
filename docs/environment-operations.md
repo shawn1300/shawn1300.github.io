@@ -33,7 +33,7 @@ python -m venv .venv
 https://account.xiaomi.com/pass/serviceLogin?sid=xiaomiio&_json=true
 ```
 
-确认页面是一行以 `&&&START&&&` 开头的 JSON，且可以在本机搜索到 `ssecurity`。不要点击 JSON 中的 `location`，也不要把页面内容、截图或字段值发送到聊天。
+确认页面是一行 JSON，可能以 `&&&START&&&` 开头，也可能直接从 `{` 开始，并且可以在本机搜索到 `ssecurity`。不要点击 JSON 中的 `location`，也不要把页面内容、截图或字段值发送到聊天。
 
 在项目根目录运行：
 

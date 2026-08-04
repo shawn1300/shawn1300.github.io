@@ -106,10 +106,10 @@ bootstrap 必须保持一次连续的登录会话：
 .\.venv\Scripts\python.exe -m collector.environment_collector.browser_bootstrap
 ```
 
-用户在已经登录并完成验证的同一浏览器中打开小米官方 `xiaomiio` service login 地址，将页面显示的一行 `&&&START&&&` JSON 复制到程序的隐藏输入。程序完成以下步骤：
+用户在已经登录并完成验证的同一浏览器中打开小米官方 `xiaomiio` service login 地址，将页面显示的一行 JSON 复制到程序的隐藏输入。原始响应可能带有 `&&&START&&&` 防劫持前缀，也可能被浏览器显示为直接从 `{` 开始的 JSON 对象；程序兼容两者。程序完成以下步骤：
 
 1. 输入最大为 64 KiB；不回显、不写入命令历史、文件或日志。
-2. 去掉固定前缀并解析 JSON，只读取 `code`、`userId`、`ssecurity` 和 `location`；`passToken` 及其他字段不得保存或打印。
+2. 若存在则去掉固定前缀，并要求剩余内容为 JSON 对象；只读取 `code`、`userId`、`ssecurity` 和 `location`，`passToken` 及其他字段不得保存或打印。
 3. 要求 `code` 为 `0`，且 `userId`、`ssecurity`、`location` 均存在。
 4. `location` 必须使用 HTTPS，且主机名属于已批准的小米登录完成域名；拒绝用户信息、非默认端口、伪造子域名和非小米地址。
 5. 程序在新的本地 HTTP 会话中仅访问一次该 `location`，从响应 Cookie 取得 `serviceToken`，随后立即丢弃原始 JSON 与一次性地址。

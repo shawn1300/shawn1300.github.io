@@ -15,7 +15,7 @@ def main() -> int:
     raw_response = ""
     try:
         raw_response = getpass.getpass(
-            "Paste the complete &&&START&&& Xiaomi response: "
+            "Paste the complete Xiaomi JSON response: "
         )
         raw_client = login_from_browser_response(raw_response)
         raw_response = ""

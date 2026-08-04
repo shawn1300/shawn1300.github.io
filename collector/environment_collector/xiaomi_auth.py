@@ -580,11 +580,14 @@ def _parse_browser_service_response(raw_response: str) -> tuple[str, str, str]:
         )
     response = raw_response.strip()
     prefix = "&&&START&&&"
-    if not response.startswith(prefix):
+    if response.startswith(prefix):
+        body = response[len(prefix) :]
+    elif response.startswith("{"):
+        body = response
+    else:
         raise XiaomiBootstrapAuthenticationError(
-            "Xiaomi browser response did not have the official response prefix"
+            "Xiaomi browser response was not an official JSON object"
         )
-    body = response[len(prefix) :]
     try:
         values = json.loads(body)
     except (TypeError, ValueError) as exc:

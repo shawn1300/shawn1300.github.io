@@ -62,6 +62,20 @@ def official_response(**changes) -> str:
     return "&&&START&&&" + json.dumps(values)
 
 
+def test_browser_response_accepts_json_object_without_xssi_prefix() -> None:
+    client = FakeCloud()
+    response = official_response().removeprefix("&&&START&&&")
+
+    result = login_from_browser_response(
+        response,
+        client_factory=lambda **_kwargs: client,
+    )
+
+    assert result is client
+    assert result.ssecurity == "browser-ssecurity-secret"
+    assert result.service_token == "service-token-secret"
+
+
 def test_browser_response_extracts_only_required_session_material() -> None:
     client = FakeCloud()
 
@@ -88,8 +102,9 @@ def test_browser_response_extracts_only_required_session_material() -> None:
 @pytest.mark.parametrize(
     ("response", "error"),
     [
-        ("{}", "official response prefix"),
+        ("not-an-official-response", "official JSON object"),
         ("&&&START&&&not-json", "could not be parsed"),
+        ("{}", "not authenticated"),
         (official_response(code=81003), "not authenticated"),
         (official_response(userId=""), "missing: userId"),
         (official_response(ssecurity=""), "missing: ssecurity"),
