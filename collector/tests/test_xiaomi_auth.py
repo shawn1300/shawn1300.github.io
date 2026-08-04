@@ -217,7 +217,7 @@ def test_captcha_requires_exact_xiaomi_image_response() -> None:
         captcha_content=b"<html>not an image</html>",
         captcha_content_type="text/html",
     )
-    with pytest.raises(XiaomiInvalidCaptchaImage):
+    with pytest.raises(XiaomiInvalidCaptchaImage, match="non-image media type"):
         XiaomiBootstrapAuthenticator(html).begin_login()
 
     disguised_html = FakeCloud(
@@ -225,7 +225,7 @@ def test_captcha_requires_exact_xiaomi_image_response() -> None:
         captcha_content=b"<html>mislabeled</html>",
         captcha_content_type="image/jpeg",
     )
-    with pytest.raises(XiaomiInvalidCaptchaImage):
+    with pytest.raises(XiaomiInvalidCaptchaImage, match="signature did not match"):
         XiaomiBootstrapAuthenticator(disguised_html).begin_login()
 
     svg = FakeCloud(
@@ -233,15 +233,25 @@ def test_captcha_requires_exact_xiaomi_image_response() -> None:
         captcha_content=b"<svg><script/></svg>",
         captcha_content_type="image/svg+xml",
     )
-    with pytest.raises(XiaomiInvalidCaptchaImage):
+    with pytest.raises(XiaomiInvalidCaptchaImage, match="unsupported image media type"):
         XiaomiBootstrapAuthenticator(svg).begin_login()
 
     oversized = FakeCloud(
         captcha_response(),
         captcha_content=b"x" * (MAX_CAPTCHA_BYTES + 1),
     )
-    with pytest.raises(XiaomiInvalidCaptchaImage):
+    with pytest.raises(XiaomiInvalidCaptchaImage, match="exceeded 1048576 bytes"):
         XiaomiBootstrapAuthenticator(oversized).begin_login()
+
+
+@pytest.mark.parametrize("media_type", ["image/jpg", "image/pjpeg"])
+def test_captcha_accepts_safe_jpeg_media_type_aliases(media_type: str) -> None:
+    cloud = FakeCloud(captcha_response(), captcha_content_type=media_type)
+
+    with pytest.raises(XiaomiImageCaptchaRequired) as caught:
+        XiaomiBootstrapAuthenticator(cloud).begin_login()
+
+    assert caught.value.media_type == "image/jpeg"
 
 
 def test_captcha_code_reuses_session_and_can_continue_to_sms_verification() -> None:

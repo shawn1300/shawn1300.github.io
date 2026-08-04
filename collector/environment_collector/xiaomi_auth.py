@@ -27,6 +27,10 @@ MAX_CAPTCHA_BYTES = 1024 * 1024
 ALLOWED_CAPTCHA_MEDIA_TYPES = frozenset(
     {"image/gif", "image/jpeg", "image/png", "image/webp"}
 )
+CAPTCHA_MEDIA_TYPE_ALIASES = {
+    "image/jpg": "image/jpeg",
+    "image/pjpeg": "image/jpeg",
+}
 
 
 class XiaomiBootstrapAuthenticationError(XiaomiCloudError):
@@ -319,16 +323,29 @@ class XiaomiBootstrapAuthenticator:
         headers = getattr(response, "headers", {})
         raw_media_type = headers.get("Content-Type") or headers.get("content-type")
         media_type = str(raw_media_type or "").split(";", 1)[0].strip().lower()
+        media_type = CAPTCHA_MEDIA_TYPE_ALIASES.get(media_type, media_type)
         content = getattr(response, "content", None)
-        if (
-            media_type not in ALLOWED_CAPTCHA_MEDIA_TYPES
-            or not isinstance(content, (bytes, bytearray))
-            or not content
-            or len(content) > MAX_CAPTCHA_BYTES
-            or not _has_expected_image_signature(bytes(content), media_type)
-        ):
+        if not isinstance(content, (bytes, bytearray)) or not content:
             raise XiaomiInvalidCaptchaImage(
-                "Xiaomi captcha response was not a valid bounded image"
+                "Xiaomi captcha response contained no image bytes"
+            )
+        if len(content) > MAX_CAPTCHA_BYTES:
+            raise XiaomiInvalidCaptchaImage(
+                f"Xiaomi captcha image exceeded {MAX_CAPTCHA_BYTES} bytes "
+                f"(received {len(content)})"
+            )
+        if media_type not in ALLOWED_CAPTCHA_MEDIA_TYPES:
+            category = (
+                "unsupported image media type"
+                if media_type.startswith("image/")
+                else "non-image media type"
+            )
+            raise XiaomiInvalidCaptchaImage(
+                f"Xiaomi captcha response used an {category}"
+            )
+        if not _has_expected_image_signature(bytes(content), media_type):
+            raise XiaomiInvalidCaptchaImage(
+                "Xiaomi captcha media type and image signature did not match"
             )
         captcha_cookie = _cookie(response, "ick")
         if not captcha_cookie:
