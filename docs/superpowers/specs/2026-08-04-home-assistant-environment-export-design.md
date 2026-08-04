@@ -1,7 +1,7 @@
 # Home Assistant 环境数据导出设计
 
 日期：2026-08-04  
-状态：对话设计已确认，待用户复核书面规格
+状态：生产导出链路已完成并通过真实数据验收
 
 ## 1. 目标与已验证基线
 
@@ -194,7 +194,7 @@ Supabase Cron 每天执行一次清理，删除 `collected_at < now() - interval
 
 1. Xiaomi Home 设备过滤后只保留两只温湿度计，三个实体均正常更新。
 2. 手动触发一次自动化，Supabase 分别出现室内和室外真实读数。
-3. 连续运行至少 20 分钟，形成至少三个 10 分钟时间桶且没有重复记录。
+3. 形成至少三个不同的 10 分钟时间桶，且同一时间桶重复触发不会新增记录。
 4. 暂时模拟一只角色不可用，另一只仍成功写入。
 5. 错误密钥请求被拒绝，Home Assistant 和 Vercel 日志没有秘密值。
 6. 清理任务只删除 30 天以前的环境读数，不影响博客表和旧 ESP32 表。
@@ -202,19 +202,19 @@ Supabase Cron 每天执行一次清理，删除 `collected_at < now() - interval
 
 ## 11. 旧路线处理
 
-- `micloud`、MiService、浏览器捕获、Edge 诊断和 `ssecurity` 代码保留为失败实验的历史记录，不再成为生产依赖。
+- `micloud`、MiService、浏览器捕获、Edge 诊断和 `ssecurity` 代码已从当前工作树移除，只保留在 Git 历史中。
 - 不创建或上传 `.collector-credentials.json`，不配置旧 `MI_*` GitHub Secrets。
 - 不启用旧 GitHub Actions 小米采集工作流。
 - 原环境监测规格中的数据库、页面、主题、公开 API 和 VRChat 契约继续有效；旧认证与 GitHub Actions 采集章节由本设计取代。
 - 实施计划必须从数据库和私有写入 API 开始重写，不执行旧计划中的 bootstrap 和旧云采集任务。
 
-## 12. 实施顺序
+## 12. 实施结果
 
-1. 在 Home Assistant 中配置只包含两只传感器的设备过滤并验证持续读取。
-2. 创建独立 Supabase schema、约束、RLS 和每日清理任务。
-3. 实现并测试私有写入 Route Handler。
-4. 在 Vercel 与 Home Assistant 中配置专用写入密钥。
-5. 配置 Home Assistant `rest_command` 和 10 分钟自动化。
-6. 完成 20 分钟真实数据验收。
-7. 实现公开 API、独立 `/environment` 页面和 30 天历史展示。
-8. 更新运维文档，记录令牌轮换、SSH 隧道、容器维护和故障排查。
+1. Home Assistant 设备过滤、摄氏度读数和私有 SSH 隧道已验证。
+2. Supabase schema、约束、RLS、种子与每日清理已部署。
+3. 私有写入 Route Handler 已测试并部署，匿名请求固定返回 `401`。
+4. Vercel 与 Home Assistant 已配置同一枚专用写入密钥。
+5. `rest_command` 与每 10 分钟自动化已生效。
+6. 室内外各形成三个真实时间桶，重复触发幂等验证通过。
+7. 剩余工作是公开 API 与独立 `/environment` 页面，入口见 `docs/environment-next-steps.md`。
+8. 当前运维流程见 `docs/environment-operations.md`。

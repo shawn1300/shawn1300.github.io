@@ -1,7 +1,7 @@
 # Home Assistant 小米官方集成云服务器验证设计
 
 日期：2026-08-04  
-状态：用户已批准最小验证方向，待书面规格复核
+状态：真实设备验证已完成，生产链路继续使用该部署
 
 ## 1. 目标
 
@@ -44,7 +44,7 @@ LYWSD03MMC × 2
   → Windows 浏览器
 ```
 
-Home Assistant 仅承担兼容性探测和后续潜在的数据出口。首次验证不允许它写入博客数据库。
+Home Assistant 的首次兼容性验证已经通过；后续数据出口由独立私有写入 API 承担，Home Assistant 不直接持有博客数据库凭据。
 
 ## 5. 部署边界
 
@@ -83,5 +83,4 @@ Home Assistant 仅承担兼容性探测和后续潜在的数据出口。首次�
 5. 安装固定版本的 Xiaomi Home 官方集成并完成 OAuth。
 6. 验证两只 `miaomiaoce.sensor_ht.t2` 的温度、湿度和电量实体，以及更新时间是否合理。
 
-只有第 6 步通过后，才另行设计 Home Assistant 到 Supabase 的数据转发方式，并更新原环境监测规格中已经失败的旧式小米云采集路线。
-
+第 6 步已经通过。后续导出设计与完成记录分别见 `2026-08-04-home-assistant-environment-export-design.md` 和对应 implementation plan。

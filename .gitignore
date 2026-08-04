@@ -33,9 +33,7 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
-# local Xiaomi collector credentials and Python caches
-.collector-credentials.json
-collector/.env
+# local Python environments and caches
 .venv/
 .venv-miservice/
 __pycache__/

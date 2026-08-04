@@ -1,102 +1,173 @@
 # 环境监测运维说明
 
-> **历史文档警告（2026-08-04）：** 下文的 `micloud`、`ssecurity`、浏览器导入和 Edge 捕获步骤均已停止使用，不要继续执行。真实设备已经通过大阪服务器上的 Home Assistant 与小米官方 Xiaomi Home 集成验证。当前生产方向见 [`docs/superpowers/specs/2026-08-04-home-assistant-environment-export-design.md`](superpowers/specs/2026-08-04-home-assistant-environment-export-design.md)；完成新实现后，本页将改写为 Home Assistant、私有写入 API 和 Supabase 的运维流程。
-
-本页先记录真实设备可行性验证所需的安全步骤。数据库迁移、定时采集和故障恢复说明会在对应实现完成后继续补充。
+更新：2026-08-05
+生产链路：Home Assistant → 私有写入 API → Supabase
 
 ## 安全边界
 
-- 不要把小米账号密码、`passToken`、`serviceToken`、`ssecurity`、设备 DID 或 Supabase Service Role Key 发到聊天中。
-- 不要把这些值写进仓库、Issue、Actions 日志或公开网页。
-- 定时任务只保存会话材料，不保存小米账号密码。
-- 优先使用一个专用中国大陆区小米账号，并把米家“家”共享给它。
+- Home Assistant 只监听大阪服务器的 `127.0.0.1:8123`，不得开放公网端口。
+- 管理页面只通过 SSH 本地端口转发访问。
+- 小米账号密码、OAuth 材料、写入令牌、Supabase Service Role Key 和 SSH 私钥不得进入仓库、聊天或日志。
+- Home Assistant 只保存专用写入令牌，不保存 Supabase Service Role Key。
+- Vercel 只保存服务端变量 `ENVIRONMENT_INGEST_TOKEN`；不得添加 `NEXT_PUBLIC_` 前缀。
+- Xiaomi Home 使用包含过滤，只保留室内和室外两只温湿度计；导出自动化不调用任何家电控制动作。
 
-## 本机生成一次性会话
+旧的 `micloud`、MiService、`ssecurity`、浏览器捕获与 Edge 诊断路线已经失败并移除，不要恢复。
 
-在项目根目录执行：
+## 日常健康检查
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r collector\requirements.txt
-.\.venv\Scripts\python.exe -m collector.environment_collector.bootstrap
+登录大阪服务器后：
+
+```bash
+cd ~/homeassistant
+docker compose ps
+docker stats --no-stream homeassistant
+curl --silent --show-error --output /dev/null \
+  --write-out 'HTTP %{http_code}\n' \
+  http://127.0.0.1:8123/
 ```
 
-程序会在本机提示输入账号和密码，列出型号为 `miaomiaoce.sensor_ht.t2` 的设备，并要求选择室内与室外。完整 DID 不会打印到终端。
+正常结果是容器为 `Up`、HTTP 为 `200`，内存明显低于 768 MiB 限制。
 
-若小米先要求图片验证码，程序会从严格校验过的 `https://account.xiaomi.com` 地址读取一次图片，在系统临时目录创建随机文件并用默认查看器打开。回到仍在运行的终端输入图片字符；输入采用隐藏模式。临时图片会在输入后立即删除，且每次 bootstrap 最多提交一次，避免循环尝试触发账号风控。
+检查近期错误：
 
-图片验证码通过后，若小米继续要求短信或邮箱验证，程序会在同一会话中校验官方地址并打开验证页面。请在官方页面请求一次性验证码，再回到终端输入；验证码同样不回显、不保存。不要把验证页面地址、验证码图片或验证码发送到聊天、Issue 或日志中。
+```bash
+docker logs --since 30m homeassistant 2>&1 \
+  | grep -E 'ERROR|CRITICAL|rest_command|environment_ingest|automations.yaml'
+```
 
-### 浏览器官方响应导入
+不要开启调试级网络日志，以免扩大请求正文或认证头的暴露面。
 
-若正常 bootstrap 已触发短信限流，或验证成功后仍缺少 `ssecurity`，请停止重复登录，并在刚刚完成小米验证的同一个浏览器配置文件中打开：
+## 管理页面与 SSH 隧道
+
+Windows `hosts` 中保留：
 
 ```text
-https://account.xiaomi.com/pass/serviceLogin?sid=xiaomiio&_json=true
+127.0.0.1 homeassistant.local
 ```
 
-确认页面是一行 JSON，可能以 `&&&START&&&` 开头，也可能直接从 `{` 开始，并且可以在本机搜索到 `passToken`。不要点击 JSON 中的 `location`，也不要把页面内容、截图或字段值发送到聊天。如果找不到 `passToken`，说明当前浏览器会话不足以完成桥接；请停止，不要把其他 Cookie 导出或发到聊天。
-
-在项目根目录运行：
+使用自己的私钥建立隧道，私钥内容不得复制到聊天：
 
 ```powershell
-.\.venv\Scripts\python.exe -m collector.environment_collector.browser_bootstrap
+ssh -i <private-key-path> -o ExitOnForwardFailure=yes `
+  -N -L 8123:127.0.0.1:8123 ubuntu@<server-ip>
 ```
 
-在隐藏提示后粘贴完整的一行 JSON 并按 Enter。程序只在内存中临时使用 `userId + passToken`，并且只把它们附加到一次小米账号会话刷新请求；随后使用刷新得到的 `ssecurity + location` 换取云会话，再进入与普通 bootstrap 相同的室内外设备选择和真实读取流程。`passToken` 不会写入凭证文件、客户端属性或日志。粘贴内容不会显示；不要把 JSON 直接写进 PowerShell 命令参数或文件。
+隧道保持运行时访问：
 
-命令结束后清空剪贴板：
-
-```powershell
-Set-Clipboard -Value ''
+```text
+http://homeassistant.local:8123
 ```
 
-成功后会生成已被 Git 忽略的 `.collector-credentials.json`。该文件不包含密码，但仍包含可访问小米云的会话材料，必须按密码对待。
+关闭本地隧道不会停止服务器上的 Home Assistant 或自动采集。
 
-### 临时 Edge 登录捕获
+## 配置修改与重启
 
-如果浏览器官方响应中没有 `passToken` 和 `ssecurity`，请停止重复登录和请求验证码。等待验证码冷却恢复后，在项目根目录运行一次：
+修改前为以下文件创建带时间戳的备份：
 
-```powershell
-.\.venv\Scripts\python.exe -m collector.environment_collector.edge_bootstrap
+- `/home/ubuntu/homeassistant/config/secrets.yaml`
+- `/home/ubuntu/homeassistant/config/configuration.yaml`
+- `/home/ubuntu/homeassistant/config/automations.yaml`
+
+每次修改后先检查配置：
+
+```bash
+docker exec homeassistant \
+  python -m homeassistant --script check_config --config /config
 ```
 
-程序会使用已安装的 Microsoft Edge 打开一个可见、非持久化的临时会话；不需要也不要运行 `playwright install`。请只在新打开的小米官方页面中输入小号的账号、密码和验证码，不要在终端输入或粘贴这些内容。程序不会读取日常浏览器配置、表单字段或请求体。
+只有检查成功才能重启：
 
-登录过程中不要关闭临时 Edge 窗口。程序只监听小米官方登录响应中短暂出现的云端会话材料；成功后会先关闭 Edge，再列出温湿度计并要求选择室内和室外设备。等待上限为 10 分钟；失败、超时或关窗后不要立即重复请求验证码，只把终端最后一行脱敏错误用于排查。
-
-该流程不会保存浏览器 storage state、完整 Cookie、密码、验证码或 `passToken`。最终仍只生成与其他 bootstrap 相同的 `.collector-credentials.json`。
-
-如果网页登录结束并显示 `ok`，但严格 Edge 命令没有继续，请按 `Ctrl+C` 结束它，不要立即重复请求验证码。冷却恢复后改为运行一次独立诊断命令：
-
-```powershell
-.\.venv\Scripts\python.exe -m collector.environment_collector.edge_diagnostic
+```bash
+cd ~/homeassistant
+docker compose restart
 ```
 
-诊断命令只观察精确 `https://account.xiaomi.com` 源的小型 JSON 响应，终端只显示查询参数已删除、数字已脱敏的路径、状态码和固定字段存在标记。它不输出字段值、响应正文或 Cookie。若捕获到完整会话会直接进入设备选择；若只检测到云端 Cookie，会在 5 秒后结束，不再无提示等待 10 分钟。
+重启后重新执行健康检查和近期日志检查。
 
-排查时可以提供所有以 `Diagnostic #` 开头的行和最后一行错误；不要提供浏览器截图、开发者工具内容、其他终端输出或任何 JSON/Cookie。确认实际接口后，应修正正式白名单，不长期使用诊断命令。
+## 手动上传与数据确认
 
-## 安全上传到 GitHub Secrets
+在 Home Assistant 的“自动化与场景”中运行：
 
-先安装并登录 GitHub CLI，然后在项目根目录使用 PowerShell：
-
-```powershell
-$environmentSecrets = Get-Content -Raw -Encoding UTF8 '.collector-credentials.json' | ConvertFrom-Json
-$environmentSecrets.psobject.Properties | ForEach-Object {
-  $_.Value | gh secret set $_.Name
-}
+```text
+环境监测：每 10 分钟上传
 ```
 
-这段命令通过标准输入上传值，不会把值写进命令参数。完成后在 GitHub 仓库的 Actions secrets 页面确认以下名称存在：
+自动化正常情况下每个整十分钟触发一次。私有写入接口为：
 
-- `MI_USER_ID`
-- `MI_SERVICE_TOKEN`
-- `MI_SSECURITY`
-- `MI_INDOOR_DID`
-- `MI_OUTDOOR_DID`
-- `MI_COUNTRY`
+```text
+POST https://shawn1300.cc.cd/api/environment/ingest
+```
 
-Supabase 所需的 `SUPABASE_URL` 和 `SUPABASE_SERVICE_ROLE_KEY` 会在定时采集实现完成后一起配置。
+匿名请求必须返回 `401`。不要使用真实令牌做终端回显测试。
 
-确认 Secrets 已保存后，可以删除本机 `.collector-credentials.json`；需要刷新过期会话时再重新运行 bootstrap。
+在 Supabase SQL Editor 中检查最新读数：
+
+```sql
+SELECT DISTINCT ON (s.role)
+  l.slug AS location,
+  s.role,
+  r.temperature_c,
+  r.humidity_percent,
+  r.battery_percent,
+  r.source_updated_at,
+  r.collected_at,
+  r.idempotency_key
+FROM environment_readings r
+JOIN environment_sensors s ON s.id = r.sensor_id
+JOIN environment_locations l ON l.id = s.location_id
+WHERE l.slug = 'home'
+ORDER BY s.role, r.collected_at DESC;
+```
+
+同一角色在同一 UTC 十分钟时间桶内重复运行不会新增行。
+
+## 小米集成维护
+
+- 登录地区固定为中国大陆。
+- Home Assistant 单位系统和两个温度实体都应使用摄氏度。
+- Xiaomi Home 配置使用设备包含过滤，只选择两只温湿度计。
+- OAuth 失效时通过 SSH 隧道进入 Xiaomi Home 集成，使用小米官方 OAuth 页面重新认证。
+- 不回退到账号密码脚本、Cookie 导出、`ssecurity` 或浏览器响应抓取。
+- 重新认证或调整过滤后，再确认两只设备各有温度、湿度和电量三个实体。
+
+## 写入令牌轮换
+
+1. 在本机用密码学安全随机源生成至少 32 字节的新令牌，不在终端打印。
+2. 更新 Vercel Production 的 `ENVIRONMENT_INGEST_TOKEN`。
+3. 在 Home Assistant `/config/secrets.yaml` 更新完整的 `Bearer` 认证值。
+4. 重新部署 Vercel，检查匿名请求仍为 `401`。
+5. 检查 Home Assistant 配置、重启容器并手动运行一次自动化。
+6. 在 Supabase 确认室内外均成功写入后，清除本机剪贴板和临时变量。
+
+不要把 Supabase Service Role Key 或 Home Assistant 长期访问令牌引入这条路径。
+
+## 30 天保留
+
+Supabase 的 `pg_cron` 每天运行 `environment-readings-retention`，删除 30 天以前的环境读数。检查任务：
+
+```sql
+SELECT jobid, jobname, schedule, active
+FROM cron.job
+WHERE jobname = 'environment-readings-retention';
+```
+
+清理函数只处理 `environment_readings`，不得影响博客表或旧环境表。
+
+## 回滚
+
+如果配置修改导致启动失败：
+
+1. 不删除 `/config`、`.storage` 或 Xiaomi OAuth 数据。
+2. 从本次修改前的时间戳备份恢复三个 YAML 文件。
+3. 运行配置检查。
+4. 只重启 `homeassistant` 容器。
+5. 检查日志、两个设备状态和自动上传。
+
+## 设备放置
+
+`LYWSD03MMC` 不防雨。室外设备必须通风、遮雨并避开阳光直射；异常高温不能由软件校正为真实环境温度。
+
+## 后续消费者
+
+网页和未来 VRChat 桥接只读取待实现的公开只读 API，不直接访问 Home Assistant。VRChat 桥接程序将运行在 Windows 本机，通过 UDP `127.0.0.1:9000` 的 `/chatbox/input` 输出不超过 144 字符的文本。
