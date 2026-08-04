@@ -131,9 +131,116 @@ export interface Database {
           created_at?: string
         }
       }
+      environment_locations: {
+        Row: {
+          id: string
+          slug: string
+          name_zh: string
+          name_en: string
+          name_ja: string
+          timezone: string
+          enabled: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          slug: string
+          name_zh: string
+          name_en: string
+          name_ja: string
+          timezone: string
+          enabled?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          slug?: string
+          name_zh?: string
+          name_en?: string
+          name_ja?: string
+          timezone?: string
+          enabled?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      environment_sensors: {
+        Row: {
+          id: string
+          location_id: string
+          role: 'indoor' | 'outdoor'
+          name_zh: string
+          name_en: string
+          name_ja: string
+          enabled: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          location_id: string
+          role: 'indoor' | 'outdoor'
+          name_zh: string
+          name_en: string
+          name_ja: string
+          enabled?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          location_id?: string
+          role?: 'indoor' | 'outdoor'
+          name_zh?: string
+          name_en?: string
+          name_ja?: string
+          enabled?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      environment_readings: {
+        Row: {
+          id: string
+          sensor_id: string
+          temperature_c: number
+          humidity_percent: number
+          battery_percent: number | null
+          source_updated_at: string
+          collected_at: string
+          idempotency_key: string
+        }
+        Insert: {
+          id?: string
+          sensor_id: string
+          temperature_c: number
+          humidity_percent: number
+          battery_percent?: number | null
+          source_updated_at: string
+          collected_at?: string
+          idempotency_key: string
+        }
+        Update: {
+          id?: string
+          sensor_id?: string
+          temperature_c?: number
+          humidity_percent?: number
+          battery_percent?: number | null
+          source_updated_at?: string
+          collected_at?: string
+          idempotency_key?: string
+        }
+      }
     }
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      cleanup_environment_readings: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+    }
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>
   }
