@@ -25,6 +25,30 @@ python -m venv .venv
 
 图片验证码通过后，若小米继续要求短信或邮箱验证，程序会在同一会话中校验官方地址并打开验证页面。请在官方页面请求一次性验证码，再回到终端输入；验证码同样不回显、不保存。不要把验证页面地址、验证码图片或验证码发送到聊天、Issue 或日志中。
 
+### 浏览器官方响应导入
+
+若正常 bootstrap 已触发短信限流，或验证成功后仍缺少 `ssecurity`，请停止重复登录，并在刚刚完成小米验证的同一个浏览器配置文件中打开：
+
+```text
+https://account.xiaomi.com/pass/serviceLogin?sid=xiaomiio&_json=true
+```
+
+确认页面是一行以 `&&&START&&&` 开头的 JSON，且可以在本机搜索到 `ssecurity`。不要点击 JSON 中的 `location`，也不要把页面内容、截图或字段值发送到聊天。
+
+在项目根目录运行：
+
+```powershell
+.\.venv\Scripts\python.exe -m collector.environment_collector.browser_bootstrap
+```
+
+在隐藏提示后粘贴完整的一行 JSON 并按 Enter。程序会自动提取所需字段、校验一次性小米地址、换取云会话，然后进入与普通 bootstrap 相同的室内外设备选择和真实读取流程。粘贴内容不会显示；不要把 JSON 直接写进 PowerShell 命令参数或文件。
+
+命令结束后清空剪贴板：
+
+```powershell
+Set-Clipboard -Value ''
+```
+
 成功后会生成已被 Git 忽略的 `.collector-credentials.json`。该文件不包含密码，但仍包含可访问小米云的会话材料，必须按密码对待。
 
 ## 安全上传到 GitHub Secrets

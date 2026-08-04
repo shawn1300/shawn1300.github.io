@@ -24,6 +24,7 @@ ACCOUNT_ORIGIN = "https://account.xiaomi.com"
 SERVICE_LOGIN_URL = f"{ACCOUNT_ORIGIN}/pass/serviceLogin"
 PASSWORD_LOGIN_URL = f"{ACCOUNT_ORIGIN}/pass/serviceLoginAuth2"
 ALLOWED_LOGIN_RESULT_HOSTS = frozenset({"account.xiaomi.com", "sts.api.io.mi.com"})
+MAX_BROWSER_RESPONSE_BYTES = 64 * 1024
 MAX_CAPTCHA_BYTES = 1024 * 1024
 ALLOWED_CAPTCHA_MEDIA_TYPES = frozenset(
     {"image/gif", "image/jpeg", "image/png", "image/webp"}
@@ -137,7 +138,9 @@ def _cookie_from_jar(cookies: Any, name: str) -> str | None:
     return str(value) if value else None
 
 
-def _default_client_factory(*, username: str, password: str) -> Any:
+def _default_client_factory(
+    *, username: str | None = None, password: str | None = None
+) -> Any:
     try:
         from micloud import MiCloud
     except ImportError as exc:
@@ -149,6 +152,31 @@ def _default_client_factory(*, username: str, password: str) -> Any:
 
 def _default_browser_open(url: str) -> bool:
     return webbrowser.open(url, new=2)
+
+
+def _validate_login_completion_url(value: str) -> str:
+    try:
+        parsed = urlparse(value)
+        port = parsed.port
+    except (TypeError, ValueError) as exc:
+        raise XiaomiBootstrapAuthenticationError(
+            "Xiaomi returned an invalid login completion address"
+        ) from exc
+    if (
+        value != value.strip()
+        or any(character in value for character in "\r\n\t")
+        or parsed.scheme != "https"
+        or parsed.hostname not in ALLOWED_LOGIN_RESULT_HOSTS
+        or parsed.username is not None
+        or parsed.password is not None
+        or port not in (None, 443)
+        or not parsed.path.startswith("/")
+        or parsed.fragment
+    ):
+        raise XiaomiBootstrapAuthenticationError(
+            "Xiaomi returned an invalid login completion address"
+        )
+    return value
 
 
 def _detect_supported_image_media_type(content: bytes) -> str | None:
@@ -498,11 +526,7 @@ class XiaomiBootstrapAuthenticator:
                 setattr(self.client, attribute, str(value))
 
     def _finish_location(self, location: str) -> Any:
-        parsed = urlparse(location)
-        if parsed.scheme != "https" or parsed.hostname not in ALLOWED_LOGIN_RESULT_HOSTS:
-            raise XiaomiBootstrapAuthenticationError(
-                "Xiaomi returned an invalid login completion address"
-            )
+        location = _validate_login_completion_url(location)
         response = self.client.session.get(location, allow_redirects=True)
         if getattr(response, "status_code", None) == 403:
             raise XiaomiCredentialsRejected("Xiaomi rejected the completed login")
@@ -542,6 +566,85 @@ class XiaomiBootstrapAuthenticator:
             raise XiaomiBootstrapAuthenticationError(
                 "Xiaomi session material could not be refreshed"
             ) from exc
+
+
+def _parse_browser_service_response(raw_response: str) -> tuple[str, str, str]:
+    if not isinstance(raw_response, str):
+        raise XiaomiBootstrapAuthenticationError(
+            "Xiaomi browser response must be text"
+        )
+    size = len(raw_response.encode("utf-8"))
+    if size > MAX_BROWSER_RESPONSE_BYTES:
+        raise XiaomiBootstrapAuthenticationError(
+            f"Xiaomi browser response exceeded {MAX_BROWSER_RESPONSE_BYTES} bytes"
+        )
+    response = raw_response.strip()
+    prefix = "&&&START&&&"
+    if not response.startswith(prefix):
+        raise XiaomiBootstrapAuthenticationError(
+            "Xiaomi browser response did not have the official response prefix"
+        )
+    body = response[len(prefix) :]
+    try:
+        values = json.loads(body)
+    except (TypeError, ValueError) as exc:
+        raise XiaomiBootstrapAuthenticationError(
+            "Xiaomi browser response could not be parsed"
+        ) from exc
+    if not isinstance(values, dict):
+        raise XiaomiBootstrapAuthenticationError(
+            "Xiaomi browser response could not be parsed"
+        )
+    if values.get("code") != 0:
+        raise XiaomiBootstrapAuthenticationError(
+            "Xiaomi browser response was not authenticated"
+        )
+
+    user_id = values.get("userId")
+    ssecurity = values.get("ssecurity")
+    location = values.get("location")
+    missing: list[str] = []
+    if isinstance(user_id, bool) or not isinstance(user_id, (str, int)) or not str(
+        user_id
+    ).strip():
+        missing.append("userId")
+    if not isinstance(ssecurity, str) or not ssecurity.strip():
+        missing.append("ssecurity")
+    if not isinstance(location, str) or not location.strip():
+        missing.append("location")
+    if missing:
+        raise XiaomiBootstrapAuthenticationError(
+            "Xiaomi browser response missing: " + ", ".join(missing)
+        )
+    return str(user_id), ssecurity, _validate_login_completion_url(location)
+
+
+def login_from_browser_response(
+    raw_response: str,
+    *,
+    client_factory: Callable[..., Any] = _default_client_factory,
+) -> Any:
+    """Exchange one official browser service-login response for cloud session data."""
+
+    user_id, ssecurity, location = _parse_browser_service_response(raw_response)
+    client = client_factory(username=None, password=None)
+    client.user_id = user_id
+    client.ssecurity = ssecurity
+    client.pass_token = None
+    client._init_session()
+    authenticator = XiaomiBootstrapAuthenticator(client)
+    try:
+        return authenticator._finish_location(location)
+    except XiaomiBootstrapAuthenticationError:
+        raise
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as exc:
+        raise XiaomiAuthenticationNetworkError(
+            "Xiaomi browser session exchange could not reach the account service"
+        ) from exc
+    except Exception as exc:
+        raise XiaomiBootstrapAuthenticationError(
+            "Xiaomi browser session exchange failed"
+        ) from exc
 
 
 def login_interactive(
