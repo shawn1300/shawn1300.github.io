@@ -2,6 +2,8 @@
 
 > Design source: `docs/superpowers/specs/2026-08-04-environment-monitoring-design.md`
 
+> **Superseded collection plan (2026-08-04):** Do not execute the `micloud`, `ssecurity`, local bootstrap, or GitHub Actions collection tasks in this document. Real-device feasibility was proven with the official Xiaomi Home integration in a private Home Assistant deployment. The replacement design is `docs/superpowers/specs/2026-08-04-home-assistant-environment-export-design.md`; a new implementation plan must replace the collection tasks before work continues. Database, standalone page, public API, 30-day retention, and VRChat goals remain valid.
+
 **Goal:** Read two China-region Xiaomi `LYWSD03MMC` sensors through the existing Mi Home Bluetooth gateway, retain 30 days of readings in Supabase, publish an unlinked standalone `/environment` page, and expose a safe latest-reading API for a future VRChat OSC bridge.
 
 **Architecture:** A small Python collector uses a one-time locally bootstrapped Xiaomi cloud session, not repeated username/password logins. GitHub Actions runs the token-based collector every 10 minutes and writes through the Supabase service role. Next.js Route Handlers project safe public JSON from private tables. A sibling route group under `[locale]` supplies an independent themed page without the blog shell.

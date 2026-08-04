@@ -1,5 +1,7 @@
 # 环境监测运维说明
 
+> **历史文档警告（2026-08-04）：** 下文的 `micloud`、`ssecurity`、浏览器导入和 Edge 捕获步骤均已停止使用，不要继续执行。真实设备已经通过大阪服务器上的 Home Assistant 与小米官方 Xiaomi Home 集成验证。当前生产方向见 [`docs/superpowers/specs/2026-08-04-home-assistant-environment-export-design.md`](superpowers/specs/2026-08-04-home-assistant-environment-export-design.md)；完成新实现后，本页将改写为 Home Assistant、私有写入 API 和 Supabase 的运维流程。
+
 本页先记录真实设备可行性验证所需的安全步骤。数据库迁移、定时采集和故障恢复说明会在对应实现完成后继续补充。
 
 ## 安全边界
