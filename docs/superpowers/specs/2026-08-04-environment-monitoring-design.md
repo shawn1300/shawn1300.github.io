@@ -131,7 +131,7 @@ bootstrap 必须保持一次连续的登录会话：
 该入口使用固定版本的 Playwright 驱动 Windows 已安装的 Microsoft Edge，不执行 `playwright install`，也不下载或捆绑另一份 Chromium。它必须遵守以下边界：
 
 1. 启动一个可见、非持久化的临时浏览器上下文，不指定或读取用户日常 Edge/Chrome 配置目录，不加载现有扩展，不导出 storage state。
-2. 初始页面只能是 `https://account.xiaomi.com/pass/serviceLogin?sid=xiaomiio&_json=true`。账号、密码、图片验证码和短信验证码均由用户直接输入小米官方网页；程序不在终端索取这些值，不读取表单字段，也不监听或保存请求体。
+2. 初始页面只能是 `https://account.xiaomi.com/pass/serviceLogin?sid=xiaomiio`，由小米官方重定向到其可交互登录页；不能附加 `_json=true`，否则只会显示原始 JSON。账号、密码、图片验证码和短信验证码均由用户直接输入小米官方网页；程序不在终端索取这些值，不读取表单字段，也不监听或保存请求体。
 3. 程序只检查响应地址严格匹配 `https://account.xiaomi.com/pass/serviceLoginAuth2` 或 `https://account.xiaomi.com/pass/serviceLogin` 的响应；不使用后缀匹配，不接受子域名、用户信息、非 443 端口、HTTP 或其他路径。
 4. 候选响应体最大为 64 KiB，只接受可去除可选 `&&&START&&&` 前缀后解析为 JSON 对象、且 `code=0` 的结果。只提取 `userId`、`ssecurity` 和 `location`；忽略并不保存 `passToken`、密码、验证码及其他字段。
 5. `location` 继续复用严格的小米 HTTPS 登录完成地址校验。刷新响应的 `userId`、STS Cookie 中的 `userId` 若同时存在，必须完全一致。

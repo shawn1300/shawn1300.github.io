@@ -51,6 +51,20 @@ Set-Clipboard -Value ''
 
 成功后会生成已被 Git 忽略的 `.collector-credentials.json`。该文件不包含密码，但仍包含可访问小米云的会话材料，必须按密码对待。
 
+### 临时 Edge 登录捕获
+
+如果浏览器官方响应中没有 `passToken` 和 `ssecurity`，请停止重复登录和请求验证码。等待验证码冷却恢复后，在项目根目录运行一次：
+
+```powershell
+.\.venv\Scripts\python.exe -m collector.environment_collector.edge_bootstrap
+```
+
+程序会使用已安装的 Microsoft Edge 打开一个可见、非持久化的临时会话；不需要也不要运行 `playwright install`。请只在新打开的小米官方页面中输入小号的账号、密码和验证码，不要在终端输入或粘贴这些内容。程序不会读取日常浏览器配置、表单字段或请求体。
+
+登录过程中不要关闭临时 Edge 窗口。程序只监听小米官方登录响应中短暂出现的云端会话材料；成功后会先关闭 Edge，再列出温湿度计并要求选择室内和室外设备。等待上限为 10 分钟；失败、超时或关窗后不要立即重复请求验证码，只把终端最后一行脱敏错误用于排查。
+
+该流程不会保存浏览器 storage state、完整 Cookie、密码、验证码或 `passToken`。最终仍只生成与其他 bootstrap 相同的 `.collector-credentials.json`。
+
 ## 安全上传到 GitHub Secrets
 
 先安装并登录 GitHub CLI，然后在项目根目录使用 PowerShell：
