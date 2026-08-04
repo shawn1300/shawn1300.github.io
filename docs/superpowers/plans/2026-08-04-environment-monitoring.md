@@ -85,6 +85,9 @@ Do not modify:
 - [ ] Capture `isOnline` when the device list provides it. Leave `source_observed_at` null unless the cloud response supplies a real source timestamp.
 - [ ] Keep library logging at INFO or higher because debug output in legacy clients may contain session material.
 - [ ] Implement an interactive local bootstrap that prompts for username/password without echo, logs in once, lists matching devices locally, lets the user select indoor/outdoor, and writes `.collector-credentials.json` with restrictive local permissions where supported.
+- [ ] Add a small stateful bootstrap authentication adapter for Xiaomi `notificationUrl` verification. It must preserve one HTTP session, validate an exact `https://account.xiaomi.com` origin, open the full challenge URL without logging its query string, prompt without echo for the one-time SMS/email code, submit it in the same session, and then resume login.
+- [ ] Classify wrong credentials, rejected/expired verification, unsupported image captcha, invalid verification origin, and network failure without logging raw Xiaomi responses, cookies, passwords, codes, tokens, or complete challenge URLs.
+- [ ] Cover the verification branch with mocked responses, including origin rejection and secret-redaction assertions. Do not exercise a real account in automated tests.
 - [ ] Never print tokens or full DIDs. Document how to upload each value with GitHub CLI or the GitHub Secrets UI without pasting them into source code or chat.
 - [ ] Run collector unit tests.
 - [ ] Commit with `feat: add Xiaomi environment cloud probe`.
@@ -99,7 +102,7 @@ Do not modify:
 - [ ] Required success result: two exact model matches and valid temperature, humidity, and battery responses.
 - [ ] Record whether `isOnline` and any source timestamp are actually available; this determines final UI wording.
 - [ ] If shared-account access fails, repeat once with the primary account session.
-- [ ] If both fail because of captcha, verification, unsupported BLE cloud properties, or API rejection, stop implementation and produce a feasibility report recommending the ESP32 fallback. Do not continue with fake data.
+- [ ] If both fail after supported SMS/email verification because of unsupported image captcha, unsupported BLE cloud properties, or API rejection, stop implementation and produce a feasibility report recommending the ESP32 fallback. Do not continue with fake data.
 - [ ] If successful, upload only session/DID values to GitHub Secrets and continue.
 
 ## Task 4: Add the isolated Supabase schema and 30-day retention
