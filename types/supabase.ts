@@ -165,6 +165,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       environment_sensors: {
         Row: {
@@ -200,6 +201,15 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: 'environment_sensors_location_id_fkey'
+            columns: ['location_id']
+            isOneToOne: false
+            referencedRelation: 'environment_locations'
+            referencedColumns: ['id']
+          },
+        ]
       }
       environment_readings: {
         Row: {
@@ -232,6 +242,15 @@ export interface Database {
           collected_at?: string
           idempotency_key?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: 'environment_readings_sensor_id_fkey'
+            columns: ['sensor_id']
+            isOneToOne: false
+            referencedRelation: 'environment_sensors'
+            referencedColumns: ['id']
+          },
+        ]
       }
     }
     Views: Record<string, never>
