@@ -3,7 +3,7 @@
 > Product design: `docs/superpowers/specs/2026-08-04-environment-monitoring-design.md`
 > Resume entry: `docs/environment-next-steps.md`
 
-**Status:** Data collection, public read APIs and the standalone localized page are implemented and locally verified. Vercel production deployment and production-only checks remain.
+**Status:** Data collection, public read APIs and the standalone localized page are implemented, deployed to Vercel Production via main push, and verified (noindex, sitemap, API projection, error paths).
 
 ## Constraints
 
@@ -62,7 +62,7 @@
 - [x] Confirm page source contains `noindex, nofollow`.
 - [x] Confirm navigation and sitemap do not contain `/environment`.
 - [x] Inspect public JSON and browser network traffic for private fields.
-- [ ] Deploy to Vercel and verify all three localized paths with real data.
+- [x] Deploy to Vercel and verify all three localized paths with real data.
 - [ ] Update `docs/environment-operations.md` only if the deployed read APIs change operations.
 
 ## Later project
