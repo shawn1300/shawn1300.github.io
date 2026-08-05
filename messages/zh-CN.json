@@ -333,5 +333,37 @@
       "statusPartial": "部分完成",
       "statusFailed": "失败"
     }
+  },
+  "Environment": {
+    "metadataTitle": "家中环境",
+    "metadataDescription": "室内与室外温度、湿度及近期趋势。",
+    "eyebrow": "家 · 环境记录",
+    "title": "此刻，家里与外面。",
+    "subtitle": "两只传感器每十分钟留下一次读数。这里展示真实状态，不补齐缺失，也不把延迟数据伪装成实时。",
+    "location": "场所",
+    "home": "家",
+    "currentConditions": "当前读数",
+    "indoor": "室内",
+    "outdoor": "室外",
+    "temperature": "温度",
+    "humidity": "湿度",
+    "battery": "电量",
+    "lastUpdated": "数据时间",
+    "fresh": "新鲜",
+    "delayed": "延迟",
+    "unavailable": "暂无数据",
+    "difference": "室内 − 室外",
+    "range24h": "24 小时",
+    "range7d": "7 天",
+    "rawResolution": "十分钟原始读数",
+    "hourlyResolution": "每小时平均值",
+    "temperatureTrend": "温度趋势",
+    "humidityTrend": "湿度趋势",
+    "noHistory": "这个时间范围内还没有真实读数。",
+    "requestFailed": "暂时无法取得最新数据，已保留上一次有效读数。",
+    "historyFailed": "趋势数据加载失败，请稍后再试。",
+    "autoRefresh": "最新读数每 60 秒自动刷新",
+    "timezone": "时间按珀斯时区显示",
+    "chartSummary": "{title}：室内 {indoorCount} 个点，室外 {outdoorCount} 个点。"
   }
 }

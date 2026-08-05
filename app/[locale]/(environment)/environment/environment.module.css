@@ -1,0 +1,528 @@
+.page {
+  --environment-indoor: var(--chart-1);
+  --environment-outdoor: var(--chart-3);
+  width: min(100% - 2rem, 74rem);
+  margin-inline: auto;
+  padding: clamp(1.25rem, 3vw, 2.5rem) 0 5rem;
+}
+
+.header {
+  padding-bottom: clamp(2.75rem, 7vw, 6rem);
+}
+
+.topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 2.75rem;
+  margin-bottom: clamp(3rem, 9vw, 7rem);
+}
+
+.locationMark {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.locationMark span,
+.eyebrow,
+.sectionHeading span,
+.historyHeader p {
+  color: var(--muted-foreground);
+  font-family: var(--font-geist-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.locationMark strong {
+  font-size: 0.95rem;
+  font-weight: 580;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.controls button {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.eyebrow {
+  margin-bottom: 1.25rem;
+}
+
+.titleRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 2rem;
+}
+
+.titleRow h1 {
+  max-width: 14ch;
+  font-size: clamp(2.8rem, 7.7vw, 6.75rem);
+  font-weight: 530;
+  letter-spacing: -0.062em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.subtitle {
+  max-width: 43rem;
+  margin-top: 1.75rem;
+  color: var(--muted-foreground);
+  font-size: clamp(0.98rem, 1.4vw, 1.1rem);
+  line-height: 1.8;
+  text-wrap: pretty;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2rem;
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+  font-weight: 570;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.statusDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--muted-foreground);
+}
+
+.status[data-state="fresh"] .statusDot {
+  background: var(--chart-2);
+}
+
+.status[data-state="delayed"] .statusDot {
+  background: var(--environment-outdoor);
+}
+
+.notice {
+  margin-bottom: 1.5rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid color-mix(in oklch, var(--environment-outdoor) 42%, var(--border));
+  background: color-mix(in oklch, var(--environment-outdoor) 7%, var(--background));
+  color: var(--foreground);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.currentSection,
+.historySection {
+  border-top: 1px solid var(--border);
+}
+
+.sectionHeading,
+.historyHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem 0;
+}
+
+.sectionHeading h2,
+.historyHeader h2 {
+  font-size: 0.92rem;
+  font-weight: 620;
+  letter-spacing: -0.01em;
+}
+
+.readingsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.readingColumn {
+  min-width: 0;
+  padding: clamp(1.5rem, 4vw, 3.5rem) clamp(0rem, 4vw, 3.5rem) clamp(1.5rem, 4vw, 3rem) 0;
+}
+
+.readingColumn + .readingColumn {
+  border-left: 1px solid var(--border);
+  padding-right: 0;
+  padding-left: clamp(1.5rem, 4vw, 3.5rem);
+}
+
+.readingHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.readingHeading h3 {
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.temperatureLine {
+  display: flex;
+  align-items: flex-start;
+  margin: clamp(2.25rem, 6vw, 4.75rem) 0 clamp(2rem, 4vw, 3.25rem);
+  font-variant-numeric: tabular-nums;
+}
+
+.temperatureValue {
+  font-size: clamp(4.5rem, 11vw, 9.25rem);
+  font-weight: 470;
+  letter-spacing: -0.075em;
+  line-height: 0.75;
+}
+
+.temperatureUnit {
+  margin: 0.25rem 0 0 0.65rem;
+  color: var(--muted-foreground);
+  font-family: var(--font-geist-mono);
+  font-size: clamp(1rem, 2vw, 1.3rem);
+}
+
+.readingDetails {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.readingDetails div {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.readingDetails dt,
+.deltaRow dt {
+  color: var(--muted-foreground);
+  font-size: 0.76rem;
+}
+
+.readingDetails dd,
+.deltaRow dd {
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.readingDetails .timeDetail {
+  grid-column: 1 / -1;
+  padding-top: 0.75rem;
+  border-top: 1px solid color-mix(in oklch, var(--border) 65%, transparent);
+}
+
+.deltaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 1.35rem 0;
+}
+
+.deltaRow > span {
+  color: var(--muted-foreground);
+  font-family: var(--font-geist-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.deltaRow dl {
+  display: flex;
+  gap: clamp(1.5rem, 5vw, 4rem);
+}
+
+.deltaRow dl div {
+  display: flex;
+  align-items: baseline;
+  gap: 0.65rem;
+}
+
+.historySection {
+  margin-top: clamp(3.5rem, 8vw, 7rem);
+}
+
+.historyHeader {
+  align-items: center;
+  padding: 1.25rem 0 2.5rem;
+}
+
+.historyHeader p {
+  margin-top: 0.45rem;
+  text-transform: none;
+}
+
+.rangeControl {
+  display: inline-flex;
+  padding: 0.2rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+}
+
+.rangeControl button {
+  min-width: 5.5rem;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border-radius: 999px;
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+  font-weight: 570;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.rangeControl button[aria-pressed="true"] {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.rangeControl button:focus-visible,
+.controls button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.charts {
+  transition: opacity 160ms ease;
+}
+
+.chartsLoading {
+  composes: charts;
+  opacity: 0.45;
+}
+
+.loading {
+  margin: -1.5rem 0 1rem;
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+}
+
+.chartSection {
+  padding: clamp(1.75rem, 4vw, 3rem) 0 clamp(2.5rem, 6vw, 5rem);
+  border-top: 1px solid var(--border);
+}
+
+.chartHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.chartHeading figcaption {
+  font-size: clamp(1.15rem, 2.4vw, 1.55rem);
+  font-weight: 590;
+  letter-spacing: -0.03em;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  color: var(--muted-foreground);
+  font-size: 0.76rem;
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.legend i {
+  display: block;
+  width: 1.8rem;
+  height: 0;
+  border-top: 2px solid;
+}
+
+.indoorKey {
+  border-color: var(--environment-indoor) !important;
+}
+
+.outdoorKey {
+  border-color: var(--environment-outdoor) !important;
+  border-top-style: dashed !important;
+}
+
+.chartViewport {
+  width: 100%;
+  overflow: hidden;
+}
+
+.chartStage {
+  position: relative;
+  width: 100%;
+  min-width: 42rem;
+  height: clamp(15rem, 30vw, 21rem);
+}
+
+.chartStage svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.gridLine {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+/* 坐标轴标签是 SVG 外的 HTML，避免被 preserveAspectRatio="none"
+   非均匀拉伸；位置用 viewBox 坐标的百分比表达（线性映射，精确对齐） */
+.valueLabels,
+.timeLabels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.valueLabels span,
+.timeLabels span {
+  position: absolute;
+  color: var(--muted-foreground);
+  font-family: var(--font-geist-mono);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.valueLabels span {
+  left: 5.75%; /* 46/800：绘图区左缘（54）再左移 8 个 viewBox 单位 */
+  transform: translate(-100%, -50%);
+}
+
+.timeLabels span {
+  top: 96.9%; /* 252/260：chart.ts 中 HEIGHT - 8 的基线 */
+  transform: translate(-50%, -100%);
+}
+
+.timeLabels span:first-child {
+  transform: translate(0, -100%);
+}
+
+.timeLabels span:last-child {
+  transform: translate(-100%, -100%);
+}
+
+.indoorLine,
+.outdoorLine {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.25;
+}
+
+.indoorLine {
+  stroke: var(--environment-indoor);
+}
+
+.outdoorLine {
+  stroke: var(--environment-outdoor);
+  stroke-dasharray: 7 6;
+}
+
+.emptyChart {
+  display: grid;
+  min-height: 13rem;
+  place-items: center;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .page {
+    width: min(100% - 1.25rem, 74rem);
+    padding-top: 0.75rem;
+  }
+
+  .topline {
+    margin-bottom: 4rem;
+  }
+
+  .titleRow {
+    grid-template-columns: 1fr;
+  }
+
+  .titleRow > .status {
+    justify-self: start;
+  }
+
+  .sectionHeading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .readingsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .readingColumn {
+    padding-right: 0;
+  }
+
+  .readingColumn + .readingColumn {
+    border-top: 1px solid var(--border);
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  .temperatureValue {
+    font-size: clamp(5.25rem, 26vw, 7.5rem);
+  }
+
+  .deltaRow,
+  .historyHeader,
+  .chartHeading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .deltaRow dl {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .rangeControl {
+    width: 100%;
+  }
+
+  .rangeControl button {
+    flex: 1;
+  }
+
+  .chartViewport {
+    overflow: visible;
+  }
+
+  .chartStage {
+    min-width: 0;
+    height: 14rem;
+  }
+
+  .valueLabels span,
+  .timeLabels span {
+    font-size: 17px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rangeControl button,
+  .charts {
+    transition: none;
+  }
+}

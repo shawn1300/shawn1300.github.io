@@ -333,5 +333,37 @@
       "statusPartial": "Partial",
       "statusFailed": "Failed"
     }
+  },
+  "Environment": {
+    "metadataTitle": "Home environment",
+    "metadataDescription": "Indoor and outdoor temperature, humidity, and recent trends.",
+    "eyebrow": "HOME · ENVIRONMENT LOG",
+    "title": "Inside and outside, right now.",
+    "subtitle": "Two sensors leave a reading every ten minutes. This view shows the real state—without filling gaps or presenting delayed data as live.",
+    "location": "Location",
+    "home": "Home",
+    "currentConditions": "Current readings",
+    "indoor": "Indoor",
+    "outdoor": "Outdoor",
+    "temperature": "Temperature",
+    "humidity": "Humidity",
+    "battery": "Battery",
+    "lastUpdated": "Data time",
+    "fresh": "Fresh",
+    "delayed": "Delayed",
+    "unavailable": "No data",
+    "difference": "Indoor − outdoor",
+    "range24h": "24 hours",
+    "range7d": "7 days",
+    "rawResolution": "Raw ten-minute readings",
+    "hourlyResolution": "Hourly averages",
+    "temperatureTrend": "Temperature trend",
+    "humidityTrend": "Humidity trend",
+    "noHistory": "No real readings are available in this range yet.",
+    "requestFailed": "Latest data is temporarily unavailable. The last valid reading is still shown.",
+    "historyFailed": "Trend data could not be loaded. Please try again later.",
+    "autoRefresh": "Latest readings refresh every 60 seconds",
+    "timezone": "Times shown in the Perth time zone",
+    "chartSummary": "{title}: {indoorCount} indoor points and {outdoorCount} outdoor points."
   }
 }

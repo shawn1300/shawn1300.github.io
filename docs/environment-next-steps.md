@@ -35,25 +35,31 @@
 - 室内外真实读数各连续形成三个十分钟桶。
 - 同一时间桶内重复手动上传没有新增记录。
 - 当前运行资源正常，Home Assistant 启动日志无配置错误。
+- 公开 latest/history 领域层与 Route Handlers 已在本地完成，包含安全投影、新鲜度、室内外差值、24h 原始序列和 7d 小时聚合。
+- 本地 49 个测试、TypeScript、ESLint 和 Next.js 16.2.7 生产构建已通过；公开 API 尚未部署到 Vercel Production。
+- 生产模式本地服务已连接真实 Supabase 验证：latest、24h、7d 均返回 `200`，室内外均有数据，CDN 缓存头为 60/300 秒，禁用字段扫描为空。
+- 验证时 outdoor 源时间约 13 分钟，indoor 源时间约 62 分钟，因此总体新鲜度正确显示为 `delayed`；页面必须保留这种单角色延迟状态，不得把它伪装成实时数据。
+- 独立 `/environment` 页面已完成，支持中文、英文、日文、暖白/深色主题、60 秒 latest 刷新、24h/7d 切换、真实差值和项目内 SVG 图表。
+- 页面本地浏览器验证通过：三语言、亮暗主题、手机/平板/桌面、7d 交互、主题持久化、`noindex, nofollow`、无博客壳层、无页面横向溢出、控制台零错误、sitemap 不含环境页面。
+- 当前 54 个测试、TypeScript、ESLint 和 Next.js 16.2.7 生产构建均通过；公开 API 与页面尚未部署到 Vercel Production。
 
 不要再要求用户提供小米密码、验证码、Cookie、`ssecurity`、OAuth 材料、Supabase Key、SSH 私钥或 ingest token。
 
 ## 下一步
 
-从公开只读数据层开始，暂时不要先做视觉页面：
+公开只读数据层与独立页面已经在本地完成。下一步是生产部署与隐藏性检查：
 
 1. 完整阅读：
    - `docs/superpowers/specs/2026-08-04-environment-monitoring-design.md`
    - `docs/superpowers/plans/2026-08-04-environment-monitoring.md`
    - `docs/environment-operations.md`
-2. 按 `AGENTS.md` 要求，先阅读 `node_modules/next/dist/docs/` 中与 Route Handlers、缓存、layouts、metadata 相关的当前 Next.js 16.2.7 文档。
-3. 先测试驱动实现公开 environment domain：安全类型、新鲜度、室内外差值、24h 原始数据和 7d 小时聚合。
-4. 实现并测试：
+2. 部署到 Vercel Production，保持现有环境变量，不新增或打印任何秘密。
+3. 验证三个生产路径：`/environment`、`/en/environment`、`/ja/environment`。
+4. 验证页面只消费：
    - `GET /api/environment/latest?location=home`
    - `GET /api/environment/history?location=home&range=24h|7d`
-5. 确认公开 JSON 不包含数据库 ID、小米标识、Home Assistant 实体 ID或任何秘密。
-6. API 验证通过后，再进入独立 `/environment` 三语言页面与图表设计。
-7. 页面完成后做 Vercel 生产部署和隐藏性检查。
+5. 在生产页面再次检查 `noindex, nofollow`、无博客 Header/Footer/音乐、导航和 sitemap 不包含 `/environment`、公开 JSON 无私有字段。
+6. 如果部署流程或运维方式变化，再更新 `docs/environment-operations.md`。
 
 ## 当前相关代码
 
@@ -62,10 +68,23 @@
 - `lib/environment/ingest.ts`
 - `lib/environment/store.ts`
 - `lib/environment/supabase-store.ts`
+- `lib/environment/public.ts`
+- `lib/environment/public-handler.ts`
+- `lib/environment/supabase-public.ts`
+- `lib/environment/chart.ts`
 - `types/environment.ts`
 - `types/supabase.ts`
 - `supabase/migrations/006_environment_monitoring.sql`
 - `tests/environment-*.test.ts`
+- `app/api/environment/latest/route.ts`
+- `app/api/environment/history/route.ts`
+- `app/[locale]/(environment)/environment/layout.tsx`
+- `app/[locale]/(environment)/environment/page.tsx`
+- `app/[locale]/(environment)/environment/environment-dashboard.tsx`
+- `app/[locale]/(environment)/environment/environment.module.css`
+- `messages/zh-CN.json`
+- `messages/en.json`
+- `messages/ja.json`
 
 ## 必须保持的边界
 

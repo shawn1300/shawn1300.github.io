@@ -333,5 +333,37 @@
       "statusPartial": "一部完了",
       "statusFailed": "失敗"
     }
+  },
+  "Environment": {
+    "metadataTitle": "家の環境",
+    "metadataDescription": "室内と屋外の温度・湿度と最近の推移。",
+    "eyebrow": "自宅 · 環境の記録",
+    "title": "いま、家の中と外。",
+    "subtitle": "2台のセンサーが10分ごとに記録します。欠けた値を補わず、遅れたデータをリアルタイムのように見せません。",
+    "location": "場所",
+    "home": "自宅",
+    "currentConditions": "現在の値",
+    "indoor": "室内",
+    "outdoor": "屋外",
+    "temperature": "温度",
+    "humidity": "湿度",
+    "battery": "電池",
+    "lastUpdated": "データ時刻",
+    "fresh": "最新",
+    "delayed": "遅延",
+    "unavailable": "データなし",
+    "difference": "室内 − 屋外",
+    "range24h": "24時間",
+    "range7d": "7日間",
+    "rawResolution": "10分ごとの実測値",
+    "hourlyResolution": "1時間平均",
+    "temperatureTrend": "温度の推移",
+    "humidityTrend": "湿度の推移",
+    "noHistory": "この期間には実測値がまだありません。",
+    "requestFailed": "最新データを取得できません。最後に取得できた値を表示しています。",
+    "historyFailed": "推移データを読み込めませんでした。しばらくしてからお試しください。",
+    "autoRefresh": "最新値は60秒ごとに自動更新",
+    "timezone": "時刻はパース時間で表示",
+    "chartSummary": "{title}：室内 {indoorCount} 点、屋外 {outdoorCount} 点。"
   }
 }
