@@ -337,9 +337,23 @@
   "Environment": {
     "metadataTitle": "Home environment",
     "metadataDescription": "Indoor and outdoor temperature, humidity, and recent trends.",
-    "eyebrow": "HOME · ENVIRONMENT LOG",
-    "title": "Inside and outside, right now.",
-    "subtitle": "Two sensors leave a reading every ten minutes. This view shows the real state—without filling gaps or presenting delayed data as live.",
+    "copy": {
+      "home": {
+        "eyebrow": "HOME · BREATH",
+        "title": "Life within the walls, weather beyond them.",
+        "subtitle": "Warmth and damp never arrive all at once. They reveal themselves, reading by reading."
+      },
+      "dormitory": {
+        "eyebrow": "DORMITORY · BREATH",
+        "title": "In a small room, the air still finds its way.",
+        "subtitle": "Unseen warmth, moisture, and fine particles leave traces of their passing here."
+      },
+      "default": {
+        "eyebrow": "ENVIRONMENT · OBSERVATIONS",
+        "title": "The air here is always in motion.",
+        "subtitle": "Temperature, humidity, and particles in the air leave a quiet record of each moment."
+      }
+    },
     "location": "Location",
     "home": "Home",
     "currentConditions": "Current readings",

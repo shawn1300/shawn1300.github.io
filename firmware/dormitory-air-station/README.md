@@ -26,11 +26,19 @@ PMS5003 的电源必须是 5V，UART 通信电平是 3.3V。不要再次把 VCC 
 
 ## 私密配置
 
-同目录下的 `secrets.h` 只保存在本机，Git 已忽略它。填写：
+同目录下的 `secrets.h` 只保存在本机，Git 已忽略它。Wi-Fi 使用有序列表：
 
-- `WIFI_SSID`：2.4 GHz Wi-Fi 名称。
-- `WIFI_PASSWORD`：Wi-Fi 密码。
+- `WIFI_NETWORKS`：一项或多项 2.4 GHz Wi-Fi 名称与密码，首项优先。
 - `SOURCE_TOKEN`：`dormitory-esp32` 的独立上传令牌。
+
+```cpp
+constexpr WiFiCredential WIFI_NETWORKS[] = {
+    {"首选网络", "首选网络密码"},
+    {"备用网络", "备用网络密码"},
+};
+```
+
+每个网络最多连接三次，每次等待十五秒。三次失败后切换到下一项；所有网络都失败后停止联网尝试，只有重启 ESP32 才会重新开始。已经连接的网络后来断开时，也会从列表第一项重新尝试。联网尝试和停止状态都不影响传感器采样。
 
 不要把 Wi-Fi 密码或令牌发到聊天、截图或提交到 Git。如果 `secrets.h` 丢失，可以复制 `secrets.example.h` 并改名后重新填写。
 

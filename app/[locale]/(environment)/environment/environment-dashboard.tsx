@@ -8,6 +8,7 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { createModularEnvironmentChartModel } from "@/lib/environment/chart";
 import { environmentChartTooltipPlacement, moveEnvironmentChartSelection, nearestEnvironmentChartPoint, type EnvironmentChartSelection } from "@/lib/environment/chart-hit-test";
+import { environmentCopyKey } from "@/lib/environment/copy";
 import type { EnvironmentFreshness, EnvironmentHistoryRange, EnvironmentLocalizedName } from "@/types/environment";
 import type { EnvironmentHistoryResponseV2, EnvironmentLatestDeviceV2, EnvironmentLatestResponseV2, EnvironmentLocationSummaryV2, EnvironmentMetricKey } from "@/types/environment-v2";
 
@@ -164,6 +165,7 @@ export function EnvironmentDashboard(props: Props) {
   const [loading, setLoading] = useState(false);
   const requestRef = useRef<AbortController | null>(null);
   const nameKey = localeName(locale);
+  const copyKey = environmentCopyKey(location);
   const timeZone = latest?.location.timezone ?? history?.location.timezone ?? "Australia/Perth";
 
   const loadLocation = useCallback(async (slug: string, push: boolean) => {
@@ -221,8 +223,8 @@ export function EnvironmentDashboard(props: Props) {
         </select></label>
         <div className={styles.controls}><LanguageSwitcher /><ThemeToggle /></div>
       </div>
-      <p className={styles.eyebrow}>{t("eyebrow")}</p>
-      <div className={styles.titleRow}><div><h1>{t("title")}</h1><p className={styles.subtitle}>{t("subtitle")}</p></div><Status freshness={latest?.freshness ?? "unavailable"} /></div>
+      <p className={styles.eyebrow}>{t(`copy.${copyKey}.eyebrow`)}</p>
+      <div className={styles.titleRow}><div><h1>{t(`copy.${copyKey}.title`)}</h1><p className={styles.subtitle}>{t(`copy.${copyKey}.subtitle`)}</p></div><Status freshness={latest?.freshness ?? "unavailable"} /></div>
     </header>
     {latestError && <p className={styles.notice} role="status">{t("requestFailed")}</p>}
     <section className={styles.currentSection}>

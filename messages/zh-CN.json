@@ -337,9 +337,23 @@
   "Environment": {
     "metadataTitle": "家中环境",
     "metadataDescription": "室内与室外温度、湿度及近期趋势。",
-    "eyebrow": "家 · 环境记录",
-    "title": "此刻，家里与外面。",
-    "subtitle": "两只传感器每十分钟留下一次读数。这里展示真实状态，不补齐缺失，也不把延迟数据伪装成实时。",
+    "copy": {
+      "home": {
+        "eyebrow": "家 · 气息",
+        "title": "墙里是生活，墙外是天气。",
+        "subtitle": "冷暖与潮湿从不突然到来，它们在一次次读数里慢慢显现。"
+      },
+      "dormitory": {
+        "eyebrow": "宿舍 · 气息",
+        "title": "方寸之间，空气自有流动。",
+        "subtitle": "看不见的温湿与微尘，在这里留下经过的痕迹。"
+      },
+      "default": {
+        "eyebrow": "环境 · 记录",
+        "title": "此处的空气，正在静静流动。",
+        "subtitle": "温度、湿度与空气中的微粒，在这里留下每一刻的痕迹。"
+      }
+    },
     "location": "场所",
     "home": "家",
     "currentConditions": "当前读数",

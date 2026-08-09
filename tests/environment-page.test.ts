@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import { createEnvironmentChartModel } from "../lib/environment/chart";
+import { environmentCopyKey } from "../lib/environment/copy";
 
 const projectFile = (path: string) =>
   readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -10,7 +11,6 @@ const projectFile = (path: string) =>
 test("all locales provide the complete Environment message namespace", () => {
   const required = [
     "metadataTitle",
-    "title",
     "indoor",
     "outdoor",
     "temperature",
@@ -41,7 +41,23 @@ test("all locales provide the complete Environment message namespace", () => {
         `${locale} is missing Environment.${key}`
       );
     }
+    for (const location of ["home", "dormitory", "default"]) {
+      for (const field of ["eyebrow", "title", "subtitle"]) {
+        assert.equal(
+          typeof messages.Environment.copy?.[location]?.[field],
+          "string",
+          `${locale} is missing Environment.copy.${location}.${field}`
+        );
+      }
+    }
   }
+});
+
+test("environment header copy is location-aware and falls back safely", () => {
+  assert.equal(environmentCopyKey("home"), "home");
+  assert.equal(environmentCopyKey("dormitory"), "dormitory");
+  assert.equal(environmentCopyKey("future-location"), "default");
+  assert.equal(environmentCopyKey(""), "default");
 });
 
 test("environment route is isolated from the blog shell and private to robots", () => {
@@ -88,6 +104,8 @@ test("environment page server-renders a real snapshot and the client refreshes s
   assert.match(dashboard, /60_000/);
   assert.match(dashboard, /ThemeToggle/);
   assert.match(dashboard, /LanguageSwitcher/);
+  assert.match(dashboard, /environmentCopyKey\(location\)/);
+  assert.match(dashboard, /copy\.\$\{copyKey\}\.title/);
 });
 
 test("dashboard keeps chart labels outside the stretched SVG and preserves the last history while switching ranges", () => {

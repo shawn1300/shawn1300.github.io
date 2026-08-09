@@ -6,6 +6,11 @@
 #include <Wire.h>
 #include <time.h>
 
+struct WiFiCredential {
+  const char *ssid;
+  const char *password;
+};
+
 #include "secrets.h"
 #include "trusted-roots.h"
 
@@ -23,10 +28,14 @@ constexpr unsigned long kPmsWarmupMs = 30UL * 1000UL;
 constexpr unsigned long kPmsReadIntervalMs = 2UL * 1000UL;
 constexpr unsigned long kShtReadIntervalMs = 30UL * 1000UL;
 constexpr unsigned long kUploadIntervalMs = 10UL * 60UL * 1000UL;
-constexpr unsigned long kReconnectIntervalMs = 30UL * 1000UL;
+constexpr unsigned long kWifiAttemptTimeoutMs = 15UL * 1000UL;
+constexpr unsigned long kWifiBetweenAttemptsMs = 250UL;
 constexpr unsigned long kStatusIntervalMs = 60UL * 1000UL;
 constexpr uint32_t kHttpTimeoutMs = 8000;
 constexpr time_t kMinimumValidEpoch = 1704067200;  // 2024-01-01 UTC
+constexpr uint8_t kWifiAttemptsPerNetwork = 3;
+constexpr size_t kWifiNetworkCount =
+    sizeof(WIFI_NETWORKS) / sizeof(WIFI_NETWORKS[0]);
 
 HardwareSerial pmsSerial(2);
 Adafruit_PM25AQI pms5003;
@@ -55,6 +64,14 @@ Average temperature;
 Average humidity;
 Average pm25;
 
+enum class WiFiPhase {
+  starting,
+  trying,
+  betweenAttempts,
+  connected,
+  stopped,
+};
+
 bool shtReady = false;
 bool pmsReady = false;
 uint8_t shtAddress = 0;
@@ -62,19 +79,30 @@ unsigned long bootAt = 0;
 unsigned long lastPmsReadAt = 0;
 unsigned long lastShtReadAt = 0;
 unsigned long windowStartedAt = 0;
-unsigned long lastReconnectAt = 0;
 unsigned long lastStatusAt = 0;
 time_t lastSampleAt = 0;
+WiFiPhase wifiPhase = WiFiPhase::starting;
+size_t wifiNetworkIndex = 0;
+uint8_t wifiAttemptIndex = 0;
+unsigned long wifiPhaseStartedAt = 0;
 
 bool clockReady() {
   return time(nullptr) >= kMinimumValidEpoch;
 }
 
 bool validCredentials() {
-  return strcmp(WIFI_SSID, "PASTE_WIFI_NAME_HERE") != 0 &&
-         strcmp(WIFI_PASSWORD, "PASTE_WIFI_PASSWORD_HERE") != 0 &&
-         strcmp(SOURCE_TOKEN, "PASTE_SOURCE_TOKEN_HERE") != 0 &&
-         strlen(WIFI_SSID) > 0 && strlen(SOURCE_TOKEN) >= 32;
+  if (kWifiNetworkCount == 0 || strlen(SOURCE_TOKEN) < 32 ||
+      strstr(SOURCE_TOKEN, "PASTE_") != nullptr) {
+    return false;
+  }
+  for (const WiFiCredential &network : WIFI_NETWORKS) {
+    if (strlen(network.ssid) == 0 ||
+        strstr(network.ssid, "PASTE_") != nullptr ||
+        strstr(network.password, "PASTE_") != nullptr) {
+      return false;
+    }
+  }
+  return true;
 }
 
 bool beginSht30() {
@@ -88,31 +116,102 @@ bool beginSht30() {
   return false;
 }
 
-void beginWiFi() {
+const char *wifiPhaseName() {
+  switch (wifiPhase) {
+    case WiFiPhase::starting:
+      return "starting";
+    case WiFiPhase::trying:
+      return "trying";
+    case WiFiPhase::betweenAttempts:
+      return "between-attempts";
+    case WiFiPhase::connected:
+      return "connected";
+    case WiFiPhase::stopped:
+      return "stopped";
+  }
+  return "unknown";
+}
+
+void startWiFiAttempt(unsigned long nowMs) {
+  const WiFiCredential &network = WIFI_NETWORKS[wifiNetworkIndex];
+  Serial.printf("Wi-Fi %u/%u, attempt %u/%u: %s\n",
+                static_cast<unsigned>(wifiNetworkIndex + 1),
+                static_cast<unsigned>(kWifiNetworkCount),
+                static_cast<unsigned>(wifiAttemptIndex + 1),
+                static_cast<unsigned>(kWifiAttemptsPerNetwork), network.ssid);
+  WiFi.begin(network.ssid, network.password);
+  wifiPhase = WiFiPhase::trying;
+  wifiPhaseStartedAt = nowMs;
+}
+
+void stopWiFiAttempts() {
+  WiFi.disconnect(false, false);
+  wifiPhase = WiFiPhase::stopped;
+  Serial.println("All configured Wi-Fi networks failed");
+  Serial.println("Wi-Fi attempts stopped until reboot");
+}
+
+void advanceWiFiAttempt(unsigned long nowMs) {
+  WiFi.disconnect(false, false);
+  if (wifiAttemptIndex + 1 < kWifiAttemptsPerNetwork) {
+    ++wifiAttemptIndex;
+  } else if (wifiNetworkIndex + 1 < kWifiNetworkCount) {
+    ++wifiNetworkIndex;
+    wifiAttemptIndex = 0;
+    Serial.println("Switching to next Wi-Fi");
+  } else {
+    stopWiFiAttempts();
+    return;
+  }
+  wifiPhase = WiFiPhase::betweenAttempts;
+  wifiPhaseStartedAt = nowMs;
+}
+
+void beginWiFi(unsigned long nowMs) {
   WiFi.mode(WIFI_STA);
   WiFi.persistent(false);
-  WiFi.setAutoReconnect(true);
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  Serial.printf("Connecting to Wi-Fi: %s\n", WIFI_SSID);
+  WiFi.setAutoReconnect(false);
+  wifiNetworkIndex = 0;
+  wifiAttemptIndex = 0;
+  wifiPhase = WiFiPhase::starting;
+  wifiPhaseStartedAt = nowMs;
 }
 
 void maintainWiFi(unsigned long nowMs) {
-  static bool ntpConfigured = false;
-  if (WiFi.status() == WL_CONNECTED) {
-    if (!ntpConfigured) {
-      configTime(0, 0, "time.cloudflare.com", "time.google.com", "pool.ntp.org");
-      ntpConfigured = true;
-      Serial.print("Wi-Fi connected, IP: ");
-      Serial.println(WiFi.localIP());
-      Serial.println("UTC clock synchronization requested");
-    }
-    return;
-  }
-
-  if (nowMs - lastReconnectAt >= kReconnectIntervalMs) {
-    lastReconnectAt = nowMs;
-    Serial.println("Wi-Fi disconnected; requesting reconnect");
-    WiFi.reconnect();
+  switch (wifiPhase) {
+    case WiFiPhase::starting:
+      startWiFiAttempt(nowMs);
+      return;
+    case WiFiPhase::trying:
+      if (WiFi.status() == WL_CONNECTED) {
+        wifiPhase = WiFiPhase::connected;
+        configTime(0, 0, "time.cloudflare.com", "time.google.com",
+                   "pool.ntp.org");
+        Serial.print("Wi-Fi connected, IP: ");
+        Serial.println(WiFi.localIP());
+        Serial.println("UTC clock synchronization requested");
+      } else if (nowMs - wifiPhaseStartedAt >= kWifiAttemptTimeoutMs) {
+        Serial.println("Wi-Fi attempt timed out");
+        advanceWiFiAttempt(nowMs);
+      }
+      return;
+    case WiFiPhase::betweenAttempts:
+      if (nowMs - wifiPhaseStartedAt >= kWifiBetweenAttemptsMs) {
+        startWiFiAttempt(nowMs);
+      }
+      return;
+    case WiFiPhase::connected:
+      if (WiFi.status() != WL_CONNECTED) {
+        Serial.println("Wi-Fi disconnected; restarting configured network list");
+        WiFi.disconnect(false, false);
+        wifiNetworkIndex = 0;
+        wifiAttemptIndex = 0;
+        wifiPhase = WiFiPhase::betweenAttempts;
+        wifiPhaseStartedAt = nowMs;
+      }
+      return;
+    case WiFiPhase::stopped:
+      return;
   }
 }
 
@@ -278,7 +377,7 @@ void printStatus(unsigned long nowMs) {
   lastStatusAt = nowMs;
   Serial.printf(
       "Status: Wi-Fi=%s, UTC=%s, T/H/PM2.5 samples=%lu/%lu/%lu\n",
-      WiFi.status() == WL_CONNECTED ? "connected" : "disconnected",
+      wifiPhaseName(),
       clockReady() ? "ready" : "waiting",
       static_cast<unsigned long>(temperature.count),
       static_cast<unsigned long>(humidity.count),
@@ -292,16 +391,10 @@ void setup() {
   Serial.println();
   Serial.println("Dormitory air station production firmware");
 
-  if (!validCredentials()) {
-    Serial.println("STOP: fill in secrets.h before flashing this firmware");
-    while (true) delay(1000);
-  }
-
   bootAt = millis();
   windowStartedAt = bootAt;
   lastPmsReadAt = bootAt;
   lastShtReadAt = bootAt - kShtReadIntervalMs;
-  lastReconnectAt = bootAt;
 
   Wire.begin(kSdaPin, kSclPin);
   shtReady = beginSht30();
@@ -316,7 +409,12 @@ void setup() {
   Serial.println(pmsReady ? "PMS5003 UART ready; warming up for 30 seconds"
                           : "PMS5003 UART initialization failed");
 
-  beginWiFi();
+  if (validCredentials()) {
+    beginWiFi(bootAt);
+  } else {
+    wifiPhase = WiFiPhase::stopped;
+    Serial.println("Wi-Fi configuration invalid; attempts stopped until reboot");
+  }
 }
 
 void loop() {
