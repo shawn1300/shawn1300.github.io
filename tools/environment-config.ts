@@ -76,7 +76,7 @@ export function renderEnvironmentConfigurationSql(
 function setClipboard(secret: string) {
   const commands =
     process.platform === "win32"
-      ? [["powershell.exe", ["-NoProfile", "-Command", "Set-Clipboard"]]]
+      ? [["clip.exe", []]]
       : process.platform === "darwin"
         ? [["pbcopy", []]]
         : [
