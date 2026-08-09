@@ -1,454 +1,234 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
-import {
-  createEnvironmentChartModel,
-  type EnvironmentChartDatum,
-} from "@/lib/environment/chart";
-import type {
-  EnvironmentFreshness,
-  EnvironmentHistoryRange,
-  EnvironmentHistoryResponse,
-  EnvironmentLatestReading,
-  EnvironmentLatestResponse,
-  EnvironmentLocalizedName,
-  EnvironmentRole,
-} from "@/types/environment";
+import { createModularEnvironmentChartModel } from "@/lib/environment/chart";
+import { moveEnvironmentChartSelection, nearestEnvironmentChartPoint, type EnvironmentChartSelection } from "@/lib/environment/chart-hit-test";
+import type { EnvironmentFreshness, EnvironmentHistoryRange, EnvironmentLocalizedName } from "@/types/environment";
+import type { EnvironmentHistoryResponseV2, EnvironmentLatestDeviceV2, EnvironmentLatestResponseV2, EnvironmentLocationSummaryV2, EnvironmentMetricKey } from "@/types/environment-v2";
 
 import styles from "./environment.module.css";
 
-interface EnvironmentDashboardProps {
-  initialLatest: EnvironmentLatestResponse | null;
-  initialHistory: EnvironmentHistoryResponse | null;
+interface Props {
+  initialLocation: string;
+  locations: EnvironmentLocationSummaryV2[];
+  initialLatest: EnvironmentLatestResponseV2 | null;
+  initialHistory: EnvironmentHistoryResponseV2 | null;
   initialLatestError: boolean;
   initialHistoryError: boolean;
 }
 
-type Metric = "temperatureC" | "humidityPercent";
+const METRICS: EnvironmentMetricKey[] = ["temperatureC", "humidityPercent", "co2Ppm", "pm25UgM3"];
 
-const roles: EnvironmentRole[] = ["indoor", "outdoor"];
-
-function freshnessLabel(
-  freshness: EnvironmentFreshness,
-  t: ReturnType<typeof useTranslations<"Environment">>
-) {
-  return t(freshness);
+function localeName(locale: string): keyof EnvironmentLocalizedName {
+  return locale === "zh-CN" ? "zh" : locale === "ja" ? "ja" : "en";
 }
 
-function Status({
-  freshness,
-  t,
-}: {
-  freshness: EnvironmentFreshness;
-  t: ReturnType<typeof useTranslations<"Environment">>;
-}) {
-  return (
-    <span className={styles.status} data-state={freshness}>
-      <span className={styles.statusDot} aria-hidden="true" />
-      {freshnessLabel(freshness, t)}
-    </span>
-  );
+function number(value: number | null | undefined, locale: string, signed = false) {
+  if (value === null || value === undefined) return "—";
+  return new Intl.NumberFormat(locale, { maximumFractionDigits: 1, signDisplay: signed ? "always" : "auto" }).format(value);
 }
 
-function formatMeasurement(value: number | null, locale: string) {
-  if (value === null) return "—";
-  return new Intl.NumberFormat(locale, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 1,
-  }).format(value);
+function time(value: string, locale: string, timeZone: string, range?: EnvironmentHistoryRange) {
+  return new Intl.DateTimeFormat(locale, range === "7d"
+    ? { month: "short", day: "numeric", hour: "2-digit", timeZone }
+    : { hour: "2-digit", minute: "2-digit", timeZone }
+  ).format(new Date(value));
 }
 
-function formatSignedMeasurement(value: number | null, locale: string) {
-  if (value === null) return "—";
-  return new Intl.NumberFormat(locale, {
-    signDisplay: "always",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 1,
-  }).format(value);
+function Status({ freshness }: { freshness: EnvironmentFreshness }) {
+  const t = useTranslations("Environment");
+  return <span className={styles.status} data-state={freshness}><span className={styles.statusDot} aria-hidden="true" />{t(freshness)}</span>;
 }
 
-function formatTime(
-  value: string,
-  locale: string,
-  timeZone: string,
-  range?: EnvironmentHistoryRange
-) {
-  const options: Intl.DateTimeFormatOptions =
-    range === "7d"
-      ? { month: "short", day: "numeric", hour: "2-digit", timeZone }
-      : { hour: "2-digit", minute: "2-digit", timeZone };
-  return new Intl.DateTimeFormat(locale, options).format(new Date(value));
+function metricLabel(metric: EnvironmentMetricKey, t: ReturnType<typeof useTranslations<"Environment">>) {
+  return t(metric === "temperatureC" ? "temperature" : metric === "humidityPercent" ? "humidity" : metric === "co2Ppm" ? "co2" : metric === "pm25UgM3" ? "pm25" : "battery");
 }
 
-function ReadingColumn({
-  role,
-  reading,
-  locale,
-  timeZone,
-  t,
-}: {
-  role: EnvironmentRole;
-  reading: EnvironmentLatestReading | null;
-  locale: string;
-  timeZone: string;
-  t: ReturnType<typeof useTranslations<"Environment">>;
-}) {
-  const freshness = reading?.freshness ?? "unavailable";
-  return (
-    <article className={styles.readingColumn}>
-      <div className={styles.readingHeading}>
-        <h3>{t(role)}</h3>
-        <Status freshness={freshness} t={t} />
-      </div>
-      <div className={styles.temperatureLine}>
-        <span className={styles.temperatureValue}>
-          {formatMeasurement(reading?.temperatureC ?? null, locale)}
-        </span>
-        <span className={styles.temperatureUnit}>°C</span>
-      </div>
-      <dl className={styles.readingDetails}>
-        <div>
-          <dt>{t("humidity")}</dt>
-          <dd>
-            {formatMeasurement(reading?.humidityPercent ?? null, locale)}
-            {reading ? "%" : ""}
-          </dd>
-        </div>
-        <div>
-          <dt>{t("battery")}</dt>
-          <dd>
-            {formatMeasurement(reading?.batteryPercent ?? null, locale)}
-            {reading?.batteryPercent !== null && reading ? "%" : ""}
-          </dd>
-        </div>
-        <div className={styles.timeDetail}>
-          <dt>{t("lastUpdated")}</dt>
-          <dd>
-            {reading ? (
-              <time dateTime={reading.sourceUpdatedAt}>
-                {formatTime(reading.sourceUpdatedAt, locale, timeZone)}
-              </time>
-            ) : (
-              "—"
-            )}
-          </dd>
-        </div>
-      </dl>
-    </article>
-  );
+function DeviceCard({ device, locale, timeZone }: { device: EnvironmentLatestDeviceV2; locale: string; timeZone: string }) {
+  const t = useTranslations("Environment");
+  const name = device.name[localeName(locale)];
+  const primary = device.metrics.temperatureC ?? Object.values(device.metrics)[0];
+  const details = Object.values(device.metrics).filter((metric) => metric.key !== primary?.key);
+  return <article className={styles.deviceCard}>
+    <div className={styles.readingHeading}><h3>{name}</h3><Status freshness={device.freshness} /></div>
+    <div className={styles.temperatureLine}>
+      <span className={styles.temperatureValue}>{number(primary?.value, locale)}</span>
+      <span className={styles.temperatureUnit}>{primary?.unit ?? ""}</span>
+    </div>
+    <dl className={styles.readingDetails}>
+      {details.map((metric) => <div key={metric.key}><dt>{metricLabel(metric.key, t)}</dt><dd>{number(metric.value, locale)} {metric.unit}</dd></div>)}
+      <div className={styles.timeDetail}><dt>{t("lastUpdated")}</dt><dd>{primary ? <time dateTime={primary.sourceUpdatedAt}>{time(primary.sourceUpdatedAt, locale, timeZone)}</time> : "—"}</dd></div>
+    </dl>
+  </article>;
 }
 
-function historyData(
-  history: EnvironmentHistoryResponse,
-  role: EnvironmentRole,
-  metric: Metric
-): EnvironmentChartDatum[] {
-  return history.series[role].map((point) => ({
-    sourceUpdatedAt: point.sourceUpdatedAt,
-    value: point[metric],
-  }));
-}
-
-function EnvironmentChart({
-  title,
-  metric,
-  unit,
-  history,
-  locale,
-  t,
-}: {
-  title: string;
-  metric: Metric;
-  unit: string;
-  history: EnvironmentHistoryResponse | null;
-  locale: string;
-  t: ReturnType<typeof useTranslations<"Environment">>;
-}) {
+function EnvironmentChart({ metric, history, locale }: { metric: EnvironmentMetricKey; history: EnvironmentHistoryResponseV2; locale: string }) {
+  const t = useTranslations("Environment");
   const titleId = useId();
-  const descriptionId = useId();
-  const timeZone = history?.location.timezone ?? "Australia/Perth";
-  const input = {
-    indoor: history ? historyData(history, "indoor", metric) : [],
-    outdoor: history ? historyData(history, "outdoor", metric) : [],
-  };
-  const model = createEnvironmentChartModel(input);
-  const summary = t("chartSummary", {
-    title,
-    indoorCount: input.indoor.length,
-    outdoorCount: input.outdoor.length,
-  });
-
-  return (
-    <figure className={styles.chartSection}>
-      <div className={styles.chartHeading}>
-        <figcaption id={titleId}>{title}</figcaption>
-        <div className={styles.legend} aria-label={summary}>
-          <span><i className={styles.indoorKey} />{t("indoor")}</span>
-          <span><i className={styles.outdoorKey} />{t("outdoor")}</span>
-        </div>
-      </div>
-      {!model ? (
-        <div className={styles.emptyChart}>{t("noHistory")}</div>
-      ) : (
-        <div className={styles.chartViewport}>
-          <div className={styles.chartStage}>
-            <svg
-              viewBox={`0 0 ${model.width} ${model.height}`}
-              role="img"
-              aria-labelledby={`${titleId} ${descriptionId}`}
-              preserveAspectRatio="none"
-            >
-              <desc id={descriptionId}>{summary}</desc>
-              {model.valueTicks.map((tick) => (
-                <line
-                  key={tick.value}
-                  className={styles.gridLine}
-                  x1="54"
-                  x2={model.width - 18}
-                  y1={tick.y}
-                  y2={tick.y}
-                  vectorEffect="non-scaling-stroke"
-                />
-              ))}
-              {roles.map((role) => (
-                <path
-                  key={role}
-                  className={role === "indoor" ? styles.indoorLine : styles.outdoorLine}
-                  d={model.series[role].path}
-                  fill="none"
-                  vectorEffect="non-scaling-stroke"
-                />
-              ))}
-            </svg>
-            {/* 标签在 SVG 外绘制：preserveAspectRatio="none" 会非均匀拉伸
-                viewBox，SVG 内文字会被压扁；viewBox→容器是线性映射，
-                用百分比定位可精确对齐拉伸后的内容。 */}
-            <div className={styles.valueLabels} aria-hidden="true">
-              {model.valueTicks.map((tick) => (
-                <span
-                  key={tick.value}
-                  style={{ top: `${(tick.y / model.height) * 100}%` }}
-                >
-                  {formatMeasurement(tick.value, locale)}{unit}
-                </span>
-              ))}
-            </div>
-            <div className={styles.timeLabels} aria-hidden="true">
-              {model.timeTicks.map((tick) => (
-                <span
-                  key={tick.value}
-                  style={{ left: `${(tick.x / model.width) * 100}%` }}
-                >
-                  {formatTime(
-                    new Date(tick.value).toISOString(),
-                    locale,
-                    timeZone,
-                    history?.range
-                  )}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-    </figure>
+  const statusId = useId();
+  const [selection, setSelection] = useState<EnvironmentChartSelection | null>(null);
+  const seriesInput = useMemo(
+    () => history.series.filter((series) => series.metric === metric).map((series) => ({
+      id: series.device, label: series.deviceName[localeName(locale)], data: series.points,
+    })),
+    [history.series, locale, metric]
   );
+  const model = useMemo(() => createModularEnvironmentChartModel(seriesInput), [seriesInput]);
+  if (!model) return null;
+  const selectedSeries = selection ? model.series[selection.seriesIndex] : null;
+  const selectedPoint = selectedSeries && selection ? selectedSeries.points[selection.pointIndex] : null;
+  const unit = history.series.find((series) => series.metric === metric)?.unit ?? "";
+  const choosePointer = (event: ReactPointerEvent<SVGSVGElement>) => {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - bounds.left) / bounds.width) * model.width;
+    const y = ((event.clientY - bounds.top) / bounds.height) * model.height;
+    setSelection(nearestEnvironmentChartPoint(model.series, x, y, 28, {
+      x: bounds.width / model.width,
+      y: bounds.height / model.height,
+    }));
+  };
+  const handlePointerDown = (event: ReactPointerEvent<SVGSVGElement>) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    choosePointer(event);
+  };
+  const locationName = history.location.name[localeName(locale)];
+  const description = selectedPoint && selectedSeries
+    ? `${locationName}, ${selectedSeries.label}, ${time(selectedPoint.sourceUpdatedAt, locale, history.location.timezone, history.range)}, ${number(selectedPoint.value, locale)} ${unit}`
+    : t("chartKeyboardHint");
+  return <figure className={styles.chartSection}>
+    <div className={styles.chartHeading}>
+      <figcaption id={titleId}>{metricLabel(metric, t)}</figcaption>
+      <div className={styles.legend}>{model.series.map((series) => <span key={series.id}><i style={{ "--series-color": `var(--chart-${series.styleIndex % 5 + 1})` } as CSSProperties} />{series.label}</span>)}</div>
+    </div>
+    <div className={styles.chartViewport}><div className={styles.chartStage}>
+      <svg viewBox={`0 0 ${model.width} ${model.height}`} preserveAspectRatio="none" tabIndex={0}
+        role="img" aria-labelledby={`${titleId} ${statusId}`} className={styles.interactiveChart}
+        onPointerEnter={choosePointer} onPointerMove={choosePointer} onPointerDown={handlePointerDown}
+        onPointerUp={(event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); if (event.pointerType === "touch") setSelection(null); }}
+        onPointerCancel={() => setSelection(null)} onPointerLeave={(event) => { if (event.pointerType === "mouse") setSelection(null); }}
+        onFocus={() => setSelection((current) => current ?? moveEnvironmentChartSelection(model.series, null, "right"))}
+        onKeyDown={(event) => {
+          const direction = event.key === "ArrowLeft" ? "left" : event.key === "ArrowRight" ? "right" : event.key === "ArrowUp" ? "up" : event.key === "ArrowDown" ? "down" : null;
+          if (direction) { event.preventDefault(); setSelection((current) => moveEnvironmentChartSelection(model.series, current, direction)); }
+          if (event.key === "Escape") setSelection(null);
+        }}>
+        {model.valueTicks.map((tick) => <line key={tick.value} className={styles.gridLine} x1="54" x2={model.width - 18} y1={tick.y} y2={tick.y} vectorEffect="non-scaling-stroke" />)}
+        {model.series.map((series) => <path key={series.id} d={series.path} fill="none" vectorEffect="non-scaling-stroke"
+          className={styles.modularLine} style={{ stroke: `var(--chart-${series.styleIndex % 5 + 1})`, strokeDasharray: series.styleIndex % 2 ? "7 6" : undefined } as CSSProperties} />)}
+        {selectedPoint && <><line className={styles.selectionGuide} x1={selectedPoint.x} x2={selectedPoint.x} y1="18" y2={model.height - 34} vectorEffect="non-scaling-stroke" /><circle className={styles.selectionPoint} cx={selectedPoint.x} cy={selectedPoint.y} r="5" vectorEffect="non-scaling-stroke" /></>}
+      </svg>
+      <div className={styles.valueLabels} aria-hidden="true">{model.valueTicks.map((tick) => <span key={tick.value} style={{ top: `${tick.y / model.height * 100}%` }}>{number(tick.value, locale)}{unit}</span>)}</div>
+      <div className={styles.timeLabels} aria-hidden="true">{model.timeTicks.map((tick) => <span key={tick.value} style={{ left: `${tick.x / model.width * 100}%` }}>{time(new Date(tick.value).toISOString(), locale, history.location.timezone, history.range)}</span>)}</div>
+      {selectedPoint && selectedSeries && <div className={styles.chartTooltip} style={{ left: `${selectedPoint.x / model.width * 100}%`, top: `${selectedPoint.y / model.height * 100}%`, transform: selectedPoint.x > model.width * .72 ? "translate(-100%, -112%)" : "translate(0, -112%)" }}>
+        <strong>{locationName} · {selectedSeries.label}</strong><span>{time(selectedPoint.sourceUpdatedAt, locale, history.location.timezone, history.range)}</span><b>{number(selectedPoint.value, locale)} {unit}</b>
+      </div>}
+      <span id={statusId} className={styles.srOnly} role="status">{description}</span>
+    </div></div>
+  </figure>;
 }
 
-async function publicJson<T>(url: string): Promise<T> {
-  const response = await fetch(url);
+async function publicJson<T>(url: string, signal?: AbortSignal): Promise<T> {
+  const response = await fetch(url, { signal });
   if (!response.ok) throw new Error("ENVIRONMENT_REQUEST_FAILED");
   return response.json() as Promise<T>;
 }
 
-export function EnvironmentDashboard({
-  initialLatest,
-  initialHistory,
-  initialLatestError,
-  initialHistoryError,
-}: EnvironmentDashboardProps) {
+function locationFromPath() {
+  const match = window.location.pathname.match(/\/environment(?:\/([a-z0-9-]+))?\/?$/);
+  return match?.[1] ?? "home";
+}
+
+export function EnvironmentDashboard(props: Props) {
   const locale = useLocale();
   const t = useTranslations("Environment");
   const common = useTranslations("Common");
-  const [latest, setLatest] = useState(initialLatest);
-  const [history, setHistory] = useState(initialHistory);
-  const [range, setRange] = useState<EnvironmentHistoryRange>("24h");
-  const [latestError, setLatestError] = useState(initialLatestError);
-  const [historyError, setHistoryError] = useState(initialHistoryError);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const historyRequest = useRef<AbortController | null>(null);
-  const timeZone = latest?.location.timezone ?? "Australia/Perth";
+  const [location, setLocation] = useState(props.initialLocation);
+  const [latest, setLatest] = useState(props.initialLatest);
+  const [history, setHistory] = useState(props.initialHistory);
+  const [range, setRange] = useState<EnvironmentHistoryRange>(props.initialHistory?.range ?? "24h");
+  const [latestError, setLatestError] = useState(props.initialLatestError);
+  const [historyError, setHistoryError] = useState(props.initialHistoryError);
+  const [loading, setLoading] = useState(false);
+  const requestRef = useRef<AbortController | null>(null);
+  const nameKey = localeName(locale);
+  const timeZone = latest?.location.timezone ?? history?.location.timezone ?? "Australia/Perth";
+
+  const loadLocation = useCallback(async (slug: string, push: boolean) => {
+    if (slug === location && push) return;
+    requestRef.current?.abort();
+    const controller = new AbortController();
+    requestRef.current = controller;
+    setLoading(true); setLatestError(false); setHistoryError(false);
+    try {
+      const [nextLatest, nextHistory] = await Promise.all([
+        publicJson<EnvironmentLatestResponseV2>(`/api/environment/v2/locations/${slug}/latest`, controller.signal),
+        publicJson<EnvironmentHistoryResponseV2>(`/api/environment/v2/locations/${slug}/history?range=${range}`, controller.signal),
+      ]);
+      if (controller.signal.aborted) return;
+      setLatest(nextLatest); setHistory(nextHistory); setLocation(slug);
+      if (push) {
+        const index = window.location.pathname.indexOf("/environment");
+        const prefix = index >= 0 ? window.location.pathname.slice(0, index) : "";
+        window.history.pushState(null, "", `${prefix}/environment${slug === "home" ? "" : `/${slug}`}`);
+      }
+    } catch { if (!controller.signal.aborted) { setLatestError(true); setHistoryError(true); } }
+    finally { if (!controller.signal.aborted) setLoading(false); }
+  }, [location, range]);
 
   useEffect(() => {
-    let active = true;
-    const refresh = async () => {
-      try {
-        const next = await publicJson<EnvironmentLatestResponse>(
-          "/api/environment/latest?location=home"
-        );
-        if (active) {
-          setLatest(next);
-          setLatestError(false);
-        }
-      } catch {
-        if (active) setLatestError(true);
-      }
-    };
-    const interval = window.setInterval(refresh, 60_000);
-    return () => {
-      active = false;
-      window.clearInterval(interval);
-    };
-  }, []);
+    const listener = () => void loadLocation(locationFromPath(), false);
+    window.addEventListener("popstate", listener);
+    return () => window.removeEventListener("popstate", listener);
+  }, [loadLocation]);
 
-  useEffect(
-    () => () => {
-      historyRequest.current?.abort();
-    },
-    []
-  );
+  useEffect(() => {
+    const interval = window.setInterval(async () => {
+      try { setLatest(await publicJson(`/api/environment/v2/locations/${location}/latest`)); setLatestError(false); }
+      catch { setLatestError(true); }
+    }, 60_000);
+    return () => window.clearInterval(interval);
+  }, [location]);
 
-  const changeRange = async (nextRange: EnvironmentHistoryRange) => {
-    if (nextRange === range) return;
-    setRange(nextRange);
-    setHistoryLoading(true);
-    setHistoryError(false);
-    historyRequest.current?.abort();
-    const controller = new AbortController();
-    historyRequest.current = controller;
-    try {
-      const next = await publicJson<EnvironmentHistoryResponse>(
-        `/api/environment/history?location=home&range=${nextRange}`
-      );
-      if (!controller.signal.aborted) setHistory(next);
-    } catch {
-      if (!controller.signal.aborted) setHistoryError(true);
-    } finally {
-      if (!controller.signal.aborted) setHistoryLoading(false);
-    }
+  useEffect(() => () => requestRef.current?.abort(), []);
+
+  const changeRange = async (next: EnvironmentHistoryRange) => {
+    if (next === range) return;
+    setRange(next); setLoading(true); setHistoryError(false);
+    try { setHistory(await publicJson(`/api/environment/v2/locations/${location}/history?range=${next}`)); }
+    catch { setHistoryError(true); }
+    finally { setLoading(false); }
   };
 
-  // 切换范围加载期间保留上一次快照（外层降透明度 + 加载提示），
-  // 避免图表瞬间闪成"暂无数据"；空态只在真正没有读数时出现。
-  const displayedHistory = history;
-  const freshness = latest?.freshness ?? "unavailable";
-  const locationNameKey: keyof EnvironmentLocalizedName =
-    locale === "zh-CN" ? "zh" : locale === "ja" ? "ja" : "en";
-
-  return (
-    <main className={styles.page}>
-      <header className={styles.header}>
-        <div className={styles.topline}>
-          <div className={styles.locationMark}>
-            <span>{t("location")}</span>
-            <strong>{latest?.location.name[locationNameKey] ?? t("home")}</strong>
-          </div>
-          <div className={styles.controls}>
-            <LanguageSwitcher />
-            <ThemeToggle />
-          </div>
-        </div>
-        <p className={styles.eyebrow}>{t("eyebrow")}</p>
-        <div className={styles.titleRow}>
-          <div>
-            <h1>{t("title")}</h1>
-            <p className={styles.subtitle}>{t("subtitle")}</p>
-          </div>
-          <Status freshness={freshness} t={t} />
-        </div>
-      </header>
-
-      {latestError && (
-        <p className={styles.notice} role="status">{t("requestFailed")}</p>
-      )}
-
-      <section className={styles.currentSection} aria-labelledby="current-readings">
-        <div className={styles.sectionHeading}>
-          <h2 id="current-readings">{t("currentConditions")}</h2>
-          <span>{t("autoRefresh")}</span>
-        </div>
-        <div className={styles.readingsGrid}>
-          <ReadingColumn
-            role="indoor"
-            reading={latest?.readings.indoor ?? null}
-            locale={locale}
-            timeZone={timeZone}
-            t={t}
-          />
-          <ReadingColumn
-            role="outdoor"
-            reading={latest?.readings.outdoor ?? null}
-            locale={locale}
-            timeZone={timeZone}
-            t={t}
-          />
-        </div>
-        <div className={styles.deltaRow}>
-          <span>{t("difference")}</span>
-          <dl>
-            <div>
-              <dt>{t("temperature")}</dt>
-              <dd>{formatSignedMeasurement(latest?.deltas.temperatureC ?? null, locale)}{latest?.deltas.temperatureC !== null && latest ? " °C" : ""}</dd>
-            </div>
-            <div>
-              <dt>{t("humidity")}</dt>
-              <dd>{formatSignedMeasurement(latest?.deltas.humidityPercent ?? null, locale)}{latest?.deltas.humidityPercent !== null && latest ? "%" : ""}</dd>
-            </div>
-          </dl>
-        </div>
-      </section>
-
-      <section className={styles.historySection} aria-labelledby="history-title">
-        <div className={styles.historyHeader}>
-          <div>
-            <h2 id="history-title">
-              {range === "24h" ? t("rawResolution") : t("hourlyResolution")}
-            </h2>
-            <p>{t("timezone")}</p>
-          </div>
-          <div
-            className={styles.rangeControl}
-            aria-label={`${t("range24h")} / ${t("range7d")}`}
-          >
-            {(["24h", "7d"] as const).map((option) => (
-              <button
-                key={option}
-                type="button"
-                aria-pressed={range === option}
-                onClick={() => void changeRange(option)}
-              >
-                {t(option === "24h" ? "range24h" : "range7d")}
-              </button>
-            ))}
-          </div>
-        </div>
-        {historyError && (
-          <p className={styles.notice} role="status">{t("historyFailed")}</p>
-        )}
-        {historyLoading && <p className={styles.loading} role="status">{common("loading")}</p>}
-        <div className={historyLoading ? styles.chartsLoading : styles.charts}>
-          <EnvironmentChart
-            title={t("temperatureTrend")}
-            metric="temperatureC"
-            unit="°C"
-            history={displayedHistory}
-            locale={locale}
-            t={t}
-          />
-          <EnvironmentChart
-            title={t("humidityTrend")}
-            metric="humidityPercent"
-            unit="%"
-            history={displayedHistory}
-            locale={locale}
-            t={t}
-          />
-        </div>
-      </section>
-    </main>
-  );
+  const chartMetrics = METRICS.filter((metric) => history?.series.some((series) => series.metric === metric));
+  return <main className={styles.page}>
+    <header className={styles.header}>
+      <div className={styles.topline}>
+        <label className={styles.locationPicker}><span>{t("location")}</span><select value={location} disabled={loading} onChange={(event) => void loadLocation(event.target.value, true)}>
+          {props.locations.map((item) => <option key={item.slug} value={item.slug}>{item.name[nameKey]}</option>)}
+        </select></label>
+        <div className={styles.controls}><LanguageSwitcher /><ThemeToggle /></div>
+      </div>
+      <p className={styles.eyebrow}>{t("eyebrow")}</p>
+      <div className={styles.titleRow}><div><h1>{t("title")}</h1><p className={styles.subtitle}>{t("subtitle")}</p></div><Status freshness={latest?.freshness ?? "unavailable"} /></div>
+    </header>
+    {latestError && <p className={styles.notice} role="status">{t("requestFailed")}</p>}
+    <section className={styles.currentSection}>
+      <div className={styles.sectionHeading}><h2>{t("currentConditions")}</h2><span>{t("autoRefresh")}</span></div>
+      <div className={styles.deviceGrid}>{latest?.devices.map((device) => <DeviceCard key={device.slug} device={device} locale={locale} timeZone={timeZone} />)}</div>
+      {latest?.comparison && <div className={styles.deltaRow}><span>{t("difference")}</span><dl><div><dt>{t("temperature")}</dt><dd>{number(latest.comparison.temperatureC, locale, true)} °C</dd></div><div><dt>{t("humidity")}</dt><dd>{number(latest.comparison.humidityPercent, locale, true)}%</dd></div></dl></div>}
+      {Object.entries(latest?.airQuality ?? {}).map(([device, aqi]) => <article className={styles.referenceCard} key={device}><h3>{t("airQualityReference")}</h3><div><span>HJ 633—2026</span><strong>{aqi.china.value ?? "—"}</strong><small>{aqi.china.category ? t(`aqi_${aqi.china.category}`) : t("insufficientData")}</small></div><div><span>US EPA 2026 NowCast</span><strong>{aqi.unitedStates.value ?? "—"}</strong><small>{aqi.unitedStates.category ? t(`aqi_${aqi.unitedStates.category}`) : t("insufficientData")}</small></div><p>{t("sensorReferenceDisclaimer")}</p></article>)}
+      {Object.entries(latest?.co2 ?? {}).map(([device, reference]) => <article className={styles.referenceCard} key={device}><h3>{t("co2Reference")}</h3><div><span>{t("oneHourMean")}</span><strong>{reference.averagePpm ?? "—"} {reference.averagePpm === null ? "" : "ppm"}</strong><small>{reference.category ? t(`co2_${reference.category}`) : t("insufficientData")}</small></div><p>{t("co2Disclaimer")}</p></article>)}
+    </section>
+    <section className={styles.historySection}>
+      <div className={styles.historyHeader}><div><h2>{range === "24h" ? t("rawResolution") : t("hourlyResolution")}</h2><p>{t("timezoneNamed", { timezone: timeZone })}</p></div><div className={styles.rangeControl}>{(["24h", "7d"] as const).map((item) => <button type="button" key={item} aria-pressed={range === item} onClick={() => void changeRange(item)}>{t(item === "24h" ? "range24h" : "range7d")}</button>)}</div></div>
+      {historyError && <p className={styles.notice} role="status">{t("historyFailed")}</p>}
+      {loading && <p className={styles.loading} role="status">{common("loading")}</p>}
+      <div className={loading ? styles.chartsLoading : styles.charts}>{history && chartMetrics.map((metric) => <EnvironmentChart key={metric} metric={metric} history={history} locale={locale} />)}{history && chartMetrics.length === 0 && <div className={styles.emptyChart}>{t("noHistory")}</div>}</div>
+    </section>
+  </main>;
 }

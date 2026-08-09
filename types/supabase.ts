@@ -140,6 +140,8 @@ export interface Database {
           name_ja: string
           timezone: string
           enabled: boolean
+          public_enabled: boolean
+          display_order: number
           created_at: string
           updated_at: string
         }
@@ -151,6 +153,8 @@ export interface Database {
           name_ja: string
           timezone: string
           enabled?: boolean
+          public_enabled?: boolean
+          display_order?: number
           created_at?: string
           updated_at?: string
         }
@@ -162,6 +166,8 @@ export interface Database {
           name_ja?: string
           timezone?: string
           enabled?: boolean
+          public_enabled?: boolean
+          display_order?: number
           created_at?: string
           updated_at?: string
         }
@@ -248,6 +254,218 @@ export interface Database {
             columns: ['sensor_id']
             isOneToOne: false
             referencedRelation: 'environment_sensors'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      environment_sources: {
+        Row: {
+          id: string
+          slug: string
+          name: string
+          source_type: 'home_assistant' | 'esp32'
+          token_digest: string | null
+          enabled: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          slug: string
+          name: string
+          source_type: 'home_assistant' | 'esp32'
+          token_digest?: string | null
+          enabled?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          slug?: string
+          name?: string
+          source_type?: 'home_assistant' | 'esp32'
+          token_digest?: string | null
+          enabled?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      environment_devices: {
+        Row: {
+          id: string
+          location_id: string
+          source_id: string
+          slug: string
+          name_zh: string
+          name_en: string
+          name_ja: string
+          placement: 'indoor' | 'outdoor' | 'other'
+          enabled: boolean
+          display_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          location_id: string
+          source_id: string
+          slug: string
+          name_zh: string
+          name_en: string
+          name_ja: string
+          placement: 'indoor' | 'outdoor' | 'other'
+          enabled?: boolean
+          display_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          location_id?: string
+          source_id?: string
+          slug?: string
+          name_zh?: string
+          name_en?: string
+          name_ja?: string
+          placement?: 'indoor' | 'outdoor' | 'other'
+          enabled?: boolean
+          display_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'environment_devices_location_id_fkey'
+            columns: ['location_id']
+            isOneToOne: false
+            referencedRelation: 'environment_locations'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'environment_devices_source_id_fkey'
+            columns: ['source_id']
+            isOneToOne: false
+            referencedRelation: 'environment_sources'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      environment_device_metrics: {
+        Row: {
+          id: string
+          device_id: string
+          metric_key: 'temperatureC' | 'humidityPercent' | 'co2Ppm' | 'pm25UgM3' | 'batteryPercent'
+          enabled: boolean
+          display_order: number
+          show_aqi: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          device_id: string
+          metric_key: 'temperatureC' | 'humidityPercent' | 'co2Ppm' | 'pm25UgM3' | 'batteryPercent'
+          enabled?: boolean
+          display_order?: number
+          show_aqi?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          device_id?: string
+          metric_key?: 'temperatureC' | 'humidityPercent' | 'co2Ppm' | 'pm25UgM3' | 'batteryPercent'
+          enabled?: boolean
+          display_order?: number
+          show_aqi?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'environment_device_metrics_device_id_fkey'
+            columns: ['device_id']
+            isOneToOne: false
+            referencedRelation: 'environment_devices'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      environment_metric_readings: {
+        Row: {
+          id: string
+          metric_id: string
+          value: number
+          source_updated_at: string
+          collected_at: string
+          ten_minute_bucket: string
+          idempotency_key: string
+        }
+        Insert: {
+          id?: string
+          metric_id: string
+          value: number
+          source_updated_at: string
+          collected_at?: string
+          ten_minute_bucket: string
+          idempotency_key: string
+        }
+        Update: {
+          id?: string
+          metric_id?: string
+          value?: number
+          source_updated_at?: string
+          collected_at?: string
+          ten_minute_bucket?: string
+          idempotency_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'environment_metric_readings_metric_id_fkey'
+            columns: ['metric_id']
+            isOneToOne: false
+            referencedRelation: 'environment_device_metrics'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      environment_location_comparisons: {
+        Row: {
+          location_id: string
+          indoor_device_id: string
+          outdoor_device_id: string
+        }
+        Insert: {
+          location_id: string
+          indoor_device_id: string
+          outdoor_device_id: string
+        }
+        Update: {
+          location_id?: string
+          indoor_device_id?: string
+          outdoor_device_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'environment_location_comparisons_location_id_fkey'
+            columns: ['location_id']
+            isOneToOne: true
+            referencedRelation: 'environment_locations'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'environment_location_comparisons_indoor_device_id_fkey'
+            columns: ['indoor_device_id']
+            isOneToOne: false
+            referencedRelation: 'environment_devices'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'environment_location_comparisons_outdoor_device_id_fkey'
+            columns: ['outdoor_device_id']
+            isOneToOne: false
+            referencedRelation: 'environment_devices'
             referencedColumns: ['id']
           },
         ]

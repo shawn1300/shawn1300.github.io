@@ -24,6 +24,11 @@ test("all locales provide the complete Environment message namespace", () => {
     "temperatureTrend",
     "humidityTrend",
     "requestFailed",
+    "co2",
+    "pm25",
+    "chartKeyboardHint",
+    "sensorReferenceDisclaimer",
+    "co2Disclaimer",
   ];
 
   for (const locale of ["zh-CN", "en", "ja"]) {
@@ -67,10 +72,19 @@ test("environment page server-renders a real snapshot and the client refreshes s
     "app/[locale]/(environment)/environment/environment-dashboard.tsx"
   );
 
-  assert.match(page, /createEnvironmentPublicService/);
+  const content = projectFile(
+    "app/[locale]/(environment)/environment/environment-page-content.tsx"
+  );
+  const dynamicPage = projectFile(
+    "app/[locale]/(environment)/environment/[location]/page.tsx"
+  );
+  assert.match(page, /EnvironmentPageContent location="home"/);
+  assert.match(content, /createEnvironmentPublicServiceV2/);
+  assert.match(dynamicPage, /requireLocation/);
   assert.match(page, /dynamic\s*=\s*["']force-dynamic["']/);
-  assert.match(dashboard, /\/api\/environment\/latest\?location=home/);
-  assert.match(dashboard, /\/api\/environment\/history\?location=home&range=/);
+  assert.match(dashboard, /\/api\/environment\/v2\/locations\/\$\{slug\}\/latest/);
+  assert.match(dashboard, /\/api\/environment\/v2\/locations\/\$\{slug\}\/history\?range=/);
+  assert.match(dashboard, /window\.history\.pushState/);
   assert.match(dashboard, /60_000/);
   assert.match(dashboard, /ThemeToggle/);
   assert.match(dashboard, /LanguageSwitcher/);
@@ -96,8 +110,12 @@ test("dashboard keeps chart labels outside the stretched SVG and preserves the l
   // 切换范围期间保留上一次快照，禁止按 range 判断把图表清成空态
   assert.doesNotMatch(dashboard, /history\?\.range === range/);
 
-  // 温度轴单位与读数区一致
-  assert.match(dashboard, /unit="°C"/);
+  // 轴单位来自固定指标注册表投影，不再硬编码室内/室外
+  assert.match(dashboard, /\?\.unit/);
+  assert.match(dashboard, /createModularEnvironmentChartModel/);
+  assert.match(dashboard, /nearestEnvironmentChartPoint/);
+  assert.match(dashboard, /onPointerMove/);
+  assert.match(dashboard, /ArrowLeft/);
 });
 
 test("chart model shares a padded domain and distinguishes both series", () => {

@@ -9,14 +9,30 @@ export interface EnvironmentChartDatum {
   value: number;
 }
 
-interface EnvironmentChartPoint extends EnvironmentChartDatum {
+export interface EnvironmentChartPoint extends EnvironmentChartDatum {
   x: number;
   y: number;
 }
 
-interface EnvironmentChartSeries {
+export interface EnvironmentChartSeries {
   path: string;
   points: EnvironmentChartPoint[];
+}
+
+export interface ModularEnvironmentChartSeriesInput {
+  id: string;
+  label: string;
+  data: EnvironmentChartDatum[];
+}
+
+export interface ModularEnvironmentChartSeries extends EnvironmentChartSeries {
+  id: string;
+  label: string;
+  styleIndex: number;
+}
+
+export interface ModularEnvironmentChartModel extends Omit<EnvironmentChartModel, "series"> {
+  series: ModularEnvironmentChartSeries[];
 }
 
 export interface EnvironmentChartModel {
@@ -156,3 +172,39 @@ export function createEnvironmentChartModel(input: Record<
   };
 }
 
+export function createModularEnvironmentChartModel(
+  input: ModularEnvironmentChartSeriesInput[]
+): ModularEnvironmentChartModel | null {
+  const data = input.map((series, styleIndex) => ({
+    ...series,
+    styleIndex,
+    data: validData(series.data),
+  }));
+  const all = data.flatMap((series) => series.data);
+  if (all.length === 0) return null;
+  const rawMinimumValue = Math.min(...all.map((item) => item.value));
+  const rawMaximumValue = Math.max(...all.map((item) => item.value));
+  const span = rawMaximumValue - rawMinimumValue;
+  const padding = span === 0 ? 1 : Math.max(span * 0.12, 0.5);
+  const minimumValue = rawMinimumValue - padding;
+  const maximumValue = rawMaximumValue + padding;
+  const times = all.map((item) => Date.parse(item.sourceUpdatedAt));
+  const rawMinimumTime = Math.min(...times);
+  const rawMaximumTime = Math.max(...times);
+  const minimumTime = rawMinimumTime === rawMaximumTime ? rawMinimumTime - 30 * 60_000 : rawMinimumTime;
+  const maximumTime = rawMinimumTime === rawMaximumTime ? rawMaximumTime + 30 * 60_000 : rawMaximumTime;
+  const series = data.map((item) => {
+    const points = item.data.map((datum) => ({
+      ...datum,
+      x: coordinate(Date.parse(datum.sourceUpdatedAt), minimumTime, maximumTime, PADDING.left, WIDTH - PADDING.right),
+      y: coordinate(datum.value, minimumValue, maximumValue, HEIGHT - PADDING.bottom, PADDING.top),
+    }));
+    return { id: item.id, label: item.label, styleIndex: item.styleIndex, points, path: pathFor(points) };
+  });
+  return {
+    width: WIDTH, height: HEIGHT, minimumValue, maximumValue, minimumTime, maximumTime,
+    valueTicks: ticks(minimumValue, maximumValue, 4).map((value) => ({ value, y: coordinate(value, minimumValue, maximumValue, HEIGHT - PADDING.bottom, PADDING.top) })),
+    timeTicks: ticks(minimumTime, maximumTime, 4).map((value) => ({ value, x: coordinate(value, minimumTime, maximumTime, PADDING.left, WIDTH - PADDING.right) })),
+    series,
+  };
+}

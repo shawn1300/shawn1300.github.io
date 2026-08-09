@@ -1,6 +1,6 @@
 # 环境监测项目：下次从这里继续
 
-更新：2026-08-05
+更新：2026-08-09
 
 ## 恢复指令
 
@@ -11,6 +11,8 @@
 随后必须阅读本文件直接链接的当前设计和计划，不要恢复已经移除的旧 Xiaomi 登录实验。
 
 ## 当前完成状态
+
+### 已部署的生产状态
 
 数据链路已经真实上线：
 
@@ -47,9 +49,17 @@
 
 不要再要求用户提供小米密码、验证码、Cookie、`ssecurity`、OAuth 材料、Supabase Key、SSH 私钥或 ingest token。
 
+### 已在仓库完成、尚未执行生产迁移/部署
+
+- 模块化 v2 schema、每来源令牌摘要、Home Assistant/ESP32 v2 ingest、公开 v2 API 已实现。
+- `/environment/<slug>`、场所下拉无刷新切换、模块化设备/指标、鼠标/触控/键盘单曲线提示已实现。
+- HJ 633—2026 与 US EPA May 2026 PM2.5 参考、CO₂ 一小时通风参考已实现。
+- 配置验证、迁移生成、剪贴板令牌生成和完整教程见 `docs/environment-configuration-guide.md`。
+- `supabase/migrations/007_environment_monitoring_v2.sql` **尚未自动应用到生产**；必须先备份、审阅、执行并完成兼容性检查。
+
 ## 下一步
 
-公开只读数据层与独立页面已部署到 Vercel Production，隐藏性检查已通过。剩余事项：
+先按配置教程的生产门禁部署 v2；完成真实三轮十分钟读数验证后，再处理：
 
 1. VRChat 桥接（独立阶段，只消费公开 `latest` API）。
 2. 如果部署流程或运维方式变化，再更新 `docs/environment-operations.md`。

@@ -16,8 +16,9 @@ type EnvironmentDatabase = {
     Tables: Pick<
       Database["public"]["Tables"],
       | "environment_locations"
-      | "environment_sensors"
-      | "environment_readings"
+      | "environment_devices"
+      | "environment_device_metrics"
+      | "environment_metric_readings"
     >;
     Views: Record<string, never>;
     Functions: Database["public"]["Functions"];
@@ -70,51 +71,71 @@ export class SupabaseEnvironmentPublicRepository
 
   private async findEnabledSensors(locationId: string) {
     const { data, error } = await this.supabase
-      .from("environment_sensors")
-      .select("id, role")
+      .from("environment_devices")
+      .select("id, placement")
       .eq("location_id", locationId)
       .eq("enabled", true)
-      .in("role", ["indoor", "outdoor"]);
+      .in("placement", ["indoor", "outdoor"])
+      .in("slug", ["home-indoor", "home-outdoor"]);
 
     if (error) throw new EnvironmentPublicRepositoryError();
-    return (data ?? []) as EnabledSensor[];
+    return (data ?? []).map((device) => ({
+      id: device.id,
+      role: device.placement as EnvironmentRole,
+    }));
   }
 
-  private reading(
+  private readingFromMetrics(
     sensor: EnabledSensor,
-    value: {
-      temperature_c: number;
-      humidity_percent: number;
-      battery_percent: number | null;
-      source_updated_at: string;
-    }
-  ): EnvironmentRepositoryReading {
+    values: Map<string, { value: number; sourceUpdatedAt: string }>
+  ): EnvironmentRepositoryReading | null {
+    const temperature = values.get("temperatureC");
+    const humidity = values.get("humidityPercent");
+    if (!temperature || !humidity) return null;
+    const battery = values.get("batteryPercent");
     return {
       role: sensor.role,
-      temperatureC: Number(value.temperature_c),
-      humidityPercent: Number(value.humidity_percent),
-      batteryPercent:
-        value.battery_percent === null ? null : Number(value.battery_percent),
-      sourceUpdatedAt: value.source_updated_at,
+      temperatureC: Number(temperature.value),
+      humidityPercent: Number(humidity.value),
+      batteryPercent: battery ? Number(battery.value) : null,
+      sourceUpdatedAt:
+        [temperature.sourceUpdatedAt, humidity.sourceUpdatedAt, battery?.sourceUpdatedAt]
+          .filter((value): value is string => Boolean(value))
+          .sort()
+          .at(-1) ?? temperature.sourceUpdatedAt,
     };
+  }
+
+  private async metricsForSensors(sensors: EnabledSensor[]) {
+    if (sensors.length === 0) return [];
+    const { data, error } = await this.supabase
+      .from("environment_device_metrics")
+      .select("id, device_id, metric_key")
+      .in("device_id", sensors.map((sensor) => sensor.id))
+      .eq("enabled", true)
+      .in("metric_key", ["temperatureC", "humidityPercent", "batteryPercent"]);
+    if (error) throw new EnvironmentPublicRepositoryError();
+    return data ?? [];
   }
 
   async findLatestReadings(locationId: string) {
     const sensors = await this.findEnabledSensors(locationId);
+    const metrics = await this.metricsForSensors(sensors);
     const results = await Promise.all(
       sensors.map(async (sensor) => {
-        const { data, error } = await this.supabase
-          .from("environment_readings")
-          .select(
-            "temperature_c, humidity_percent, battery_percent, source_updated_at"
-          )
-          .eq("sensor_id", sensor.id)
-          .order("source_updated_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (error) throw new EnvironmentPublicRepositoryError();
-        return data ? this.reading(sensor, data) : null;
+        const sensorMetrics = metrics.filter((metric) => metric.device_id === sensor.id);
+        const rows = await Promise.all(sensorMetrics.map(async (metric) => {
+          const { data, error } = await this.supabase
+            .from("environment_metric_readings")
+            .select("value, source_updated_at")
+            .eq("metric_id", metric.id)
+            .order("source_updated_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (error) throw new EnvironmentPublicRepositoryError();
+          return data ? [metric.metric_key, { value: Number(data.value), sourceUpdatedAt: data.source_updated_at }] as const : null;
+        }));
+        return this.readingFromMetrics(sensor, new Map(rows.filter((row): row is NonNullable<typeof row> => row !== null)));
       })
     );
     return results.filter(
@@ -124,22 +145,35 @@ export class SupabaseEnvironmentPublicRepository
 
   async findReadingsSince(locationId: string, since: Date) {
     const sensors = await this.findEnabledSensors(locationId);
+    const metrics = await this.metricsForSensors(sensors);
     const results = await Promise.all(
       sensors.map(async (sensor) => {
+        const sensorMetrics = metrics.filter((metric) => metric.device_id === sensor.id);
+        if (sensorMetrics.length === 0) return [];
         const { data, error } = await this.supabase
-          .from("environment_readings")
-          .select(
-            "temperature_c, humidity_percent, battery_percent, source_updated_at"
-          )
-          .eq("sensor_id", sensor.id)
+          .from("environment_metric_readings")
+          .select("metric_id, value, source_updated_at")
+          .in("metric_id", sensorMetrics.map((metric) => metric.id))
           .gte("source_updated_at", since.toISOString())
           // 降序取最新一批，避免超出上限时丢掉最新读数；
           // 取回后反转回升序（领域层会再排序，这里保持输出整洁）
           .order("source_updated_at", { ascending: false })
-          .limit(MAX_HISTORY_READINGS_PER_ROLE);
+          .limit(MAX_HISTORY_READINGS_PER_ROLE * 3);
 
         if (error) throw new EnvironmentPublicRepositoryError();
-        return (data ?? []).reverse().map((value) => this.reading(sensor, value));
+        const keyById = new Map(sensorMetrics.map((metric) => [metric.id, metric.metric_key]));
+        const grouped = new Map<string, Map<string, { value: number; sourceUpdatedAt: string }>>();
+        for (const row of (data ?? []).reverse()) {
+          const key = keyById.get(row.metric_id);
+          if (!key) continue;
+          const group = grouped.get(row.source_updated_at) ?? new Map();
+          group.set(key, { value: Number(row.value), sourceUpdatedAt: row.source_updated_at });
+          grouped.set(row.source_updated_at, group);
+        }
+        return [...grouped.values()].flatMap((values) => {
+          const reading = this.readingFromMetrics(sensor, values);
+          return reading ? [reading] : [];
+        });
       })
     );
     return results.flat();
@@ -151,4 +185,3 @@ export function createEnvironmentPublicRepository() {
     createAdminSupabase() as unknown as SupabaseClient<EnvironmentDatabase>;
   return new SupabaseEnvironmentPublicRepository(client);
 }
-

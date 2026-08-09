@@ -1,7 +1,9 @@
 # 环境监测运维说明
 
-更新：2026-08-05
-生产链路：Home Assistant → 私有写入 API → Supabase
+更新：2026-08-09
+当前生产链路：Home Assistant → v1 私有写入 API → Supabase
+
+模块化 v2 的配置、来源令牌、Home Assistant/ESP32 示例和上线步骤见 `docs/environment-configuration-guide.md`。`007_environment_monitoring_v2.sql` 尚未执行前，以下旧表检查仍是生产事实；不要把“代码已完成”误认为“生产迁移已完成”。
 
 ## 安全边界
 
@@ -152,7 +154,7 @@ FROM cron.job
 WHERE jobname = 'environment-readings-retention';
 ```
 
-清理函数只处理 `environment_readings`，不得影响博客表或旧环境表。
+执行 v2 migration 之前，清理函数只处理 `environment_readings`；执行之后同时处理 `environment_readings` 与 `environment_metric_readings`，不得影响博客表。
 
 ## 回滚
 

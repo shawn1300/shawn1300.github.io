@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test tests/*.test.ts"
+    "test": "tsx --test tests/*.test.ts",
+    "environment:validate": "tsx tools/environment-config.ts validate",
+    "environment:generate-migration": "tsx tools/environment-config.ts generate-migration",
+    "environment:generate-token": "tsx tools/environment-config.ts generate-token"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

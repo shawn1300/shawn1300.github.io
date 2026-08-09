@@ -144,7 +144,7 @@ npm start
 
 Vercel 项目还需要配置 `.env.example` 中的 Supabase、DeepSeek 和 `CRON_SECRET`。首次发布后可登录后台进入“自动翻译”，点击一次连续同步以生成已有内容的英文和日文译文。
 
-环境监测的恢复入口与当前运维说明分别见 [`docs/environment-next-steps.md`](docs/environment-next-steps.md) 和 [`docs/environment-operations.md`](docs/environment-operations.md)。
+环境监测的模块化添加教程、恢复入口与运维说明分别见 [`docs/environment-configuration-guide.md`](docs/environment-configuration-guide.md)、[`docs/environment-next-steps.md`](docs/environment-next-steps.md) 和 [`docs/environment-operations.md`](docs/environment-operations.md)。
 
 ## License
 
