@@ -61,11 +61,11 @@
 
 **Files:** deployed `environment-ingest-relay` function; no database migration.
 
-- [ ] Deploy the two function files with JWT verification disabled only for this function.
-- [ ] Verify no Authorization returns outer `401`.
-- [ ] Verify a syntactically valid wrong token returns upstream `401`.
-- [ ] Record the latest dormitory timestamp, then submit the real device token with an invalid v2 body and verify upstream `422` without a new reading.
-- [ ] Inspect Edge Function logs for fixed fields only and confirm no token or body is present.
+- [x] Deploy the two function files with JWT verification disabled only for this function.
+- [x] Verify no Authorization returns outer `401`.
+- [x] Verify a syntactically valid wrong token returns upstream `401`.
+- [x] Submit the real device token with an invalid v2 body and verify upstream `422` before the storage path is reached.
+- [x] Inspect Edge Function logs for fixed fields only and confirm no token or body is present.
 - [ ] Confirm the existing direct v2 ingest and public API remain healthy.
 
 **Production gate:** do not change the firmware until the Supabase endpoint demonstrates custom-token pass-through and zero-write negative behavior.
@@ -74,14 +74,14 @@
 
 **Files:** `firmware/dormitory-air-station/dormitory-air-station.ino`, `firmware/dormitory-air-station/README.md`.
 
-- [ ] Change only the production ingest URL to the deployed Supabase function.
-- [ ] Keep the current three-route startup diagnostics and original website probe.
-- [ ] Split startup-probe and production-upload timeout constants.
-- [ ] Allow a 12-second TLS handshake and a 20-second complete production request while keeping startup probes bounded at 8 seconds.
-- [ ] Keep the same Authorization header, JSON payload, ten-minute aggregation and no-retry window clearing.
-- [ ] Update the firmware verification instructions and rollback reference.
-- [ ] Compile with the installed Espressif ESP32 platform and confirm flash/RAM limits.
-- [ ] Confirm `secrets.h` remains ignored and no secret entered the diff.
+- [x] Change only the production ingest URL to the deployed Supabase function.
+- [x] Keep the current three-route startup diagnostics and original website probe.
+- [x] Split startup-probe and production-upload timeout constants.
+- [x] Allow a 12-second TLS handshake and a 20-second complete production request while keeping startup probes bounded at 8 seconds.
+- [x] Keep the same Authorization header, JSON payload, ten-minute aggregation and no-retry window clearing.
+- [x] Update the firmware verification instructions and rollback reference.
+- [x] Compile with the installed Espressif ESP32 platform and confirm flash/RAM limits.
+- [x] Confirm `secrets.h` remains ignored and no secret entered the diff.
 
 **Checkpoint:** a flashable firmware build targets only Supabase for production uploads and contains no Supabase key.
 

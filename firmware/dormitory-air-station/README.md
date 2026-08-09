@@ -1,6 +1,6 @@
 # 宿舍空气站 ESP32 固件
 
-这套固件用于 ESP32-WROOM-32、PMS5003 和 SHT30。设备持续采样并分别计算温度、湿度、PM2.5 的平均值，每 10 分钟通过 HTTPS 上传一次。
+这套固件用于 ESP32-WROOM-32、PMS5003 和 SHT30。设备持续采样并分别计算温度、湿度、PM2.5 的平均值，每 10 分钟通过 HTTPS 上传一次。ESP32 的正式上传入口是 Supabase Edge Function，随后由它把请求交给现有网站接口验证并写入数据库。
 
 ## 固定接线
 
@@ -31,6 +31,8 @@ PMS5003 的电源必须是 5V，UART 通信电平是 3.3V。不要再次把 VCC 
 - `WIFI_NETWORKS`：一项或多项 2.4 GHz Wi-Fi 名称与密码，首项优先。
 - `SOURCE_TOKEN`：`dormitory-esp32` 的独立上传令牌。
 
+ESP32 不需要、也不保存 Supabase 的 anon key、publishable key 或 service-role key；设备仍只使用这枚来源令牌。
+
 ```cpp
 constexpr WiFiCredential WIFI_NETWORKS[] = {
     {"首选网络", "首选网络密码"},
@@ -51,12 +53,14 @@ constexpr WiFiCredential WIFI_NETWORKS[] = {
    - 当前网站：DNS、TCP 443 和 TLS；
    - Supabase：DNS、TCP 443 和 TLS；
    - 大阪服务器：TCP 80 和不含凭据的 `HEAD /` 请求。
-5. 看到 `Probe summary` 后，根据 `DNS_FAIL`、`TCP_FAIL`、`TLS_FAIL`、`HTTP_FAIL` 或 `OK` 判断每条线路在哪一层失败。大阪的 `HTTP_OK` 只表示线路可达，不代表已经具备正式 HTTPS 上传接口。
+5. 看到 `Probe summary` 后，根据 `DNS_FAIL`、`TCP_FAIL`、`TLS_FAIL`、`HTTP_FAIL` 或 `OK` 判断每条线路在哪一层失败。正式上传使用 Supabase；网站线路仍保留为诊断项。大阪的 `HTTP_OK` 只表示线路可达，不代表已经具备正式 HTTPS 上传接口。
 6. PMS5003 开机前 30 秒的数据会被丢弃，这是正常预热。
 7. 每分钟会打印一次状态；约 10 分钟后应出现 `Upload HTTP status: 200`。
 8. 浏览 `/environment/dormitory`，确认温度、湿度和 PM2.5 出现。
 
-程序不会在日志中打印 Wi-Fi 密码或上传令牌。某个传感器临时失败时，其他有效指标仍会独立上传。断网窗口不会补传，恢复联网后会从下一个 10 分钟窗口继续。
+正式上传的 TLS 握手最多等待 12 秒，整次请求最多等待 20 秒；启动自检仍保持 8 秒上限。程序不会在日志中打印 Wi-Fi 密码或上传令牌。某个传感器临时失败时，其他有效指标仍会独立上传。断网或上传失败的窗口不会补传，恢复联网后会从下一个 10 分钟窗口继续。
+
+如需紧急回退，只把 `dormitory-air-station.ino` 中的 `kIngestUrl` 改回 `https://shawn1300.cc.cd/api/environment/v2/ingest` 并重新刷机；来源令牌、JSON 格式和数据库配置都不用改。
 
 ## 只测试传感器
 

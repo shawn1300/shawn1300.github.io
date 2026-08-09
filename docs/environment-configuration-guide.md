@@ -7,13 +7,14 @@
 ## 架构与安全边界
 
 ```text
-米家设备 → Home Assistant ─┐
-                           ├→ 私有 HTTPS ingest API → Supabase RLS 表 → 公开只读 API → /environment
-DIY 传感器 → ESP32 ────────┘
+米家设备 → Home Assistant → 网站私有 HTTPS ingest API ─┐
+                                                       ├→ Supabase RLS 表 → 公开只读 API → /environment
+DIY 传感器 → ESP32 → Supabase Edge Function 中转入口 ──┘
 ```
 
 - 旧 Home Assistant 请求继续使用 `POST /api/environment/ingest` 和服务端 `ENVIRONMENT_INGEST_TOKEN`。
 - 新来源使用 `POST /api/environment/v2/ingest`，每个来源一枚独立令牌。
+- ESP32 的正式上传入口是 `https://gbmxqegjkmzuvhisyxou.supabase.co/functions/v1/environment-ingest-relay`；它只做有界中转，仍由网站 v2 接口验证来源令牌和写入数据库。
 - ESP32 和 Home Assistant 都不能持有 Supabase Key，尤其不能持有 Service Role Key。
 - 新表全部启用 RLS；浏览器只能通过公开 Route Handler 读取经过白名单投影的数据。
 - 明文来源令牌只存在于生成时的本机剪贴板和对应设备的秘密存储中；数据库只保存 SHA-256 摘要。
@@ -187,16 +188,17 @@ docker compose restart
 
 ## ESP32 HTTPS 上传骨架
 
-ESP32 必须校时、验证服务器 CA、设置短超时，并在失败后等待下一次十分钟周期；不要高频无限重试。
+ESP32 必须校时、验证服务器 CA、设置有界超时，并在失败后等待下一次十分钟周期；不要高频无限重试。ESP32 使用 Supabase Edge Function 作为正式接收入口，但仍只携带来源令牌，不携带任何 Supabase Key。
 
 ```cpp
 WiFiClientSecure client;
 client.setCACert(ROOT_CA_PEM);       // 使用有效根证书，不要 setInsecure()
+client.setHandshakeTimeout(12);
 
 HTTPClient https;
-https.setConnectTimeout(8000);
-https.setTimeout(8000);
-https.begin(client, "https://shawn1300.cc.cd/api/environment/v2/ingest");
+https.setConnectTimeout(20000);
+https.setTimeout(20000);
+https.begin(client, "https://gbmxqegjkmzuvhisyxou.supabase.co/functions/v1/environment-ingest-relay");
 https.addHeader("Authorization", String("Bearer ") + SOURCE_TOKEN);
 https.addHeader("Content-Type", "application/json");
 

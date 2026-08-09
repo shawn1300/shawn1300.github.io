@@ -21,9 +21,9 @@ constexpr int kSdaPin = 21;
 constexpr int kSclPin = 22;
 
 constexpr char kIngestUrl[] =
-    "https://shawn1300.cc.cd/api/environment/v2/ingest";
-constexpr char kIngestHost[] = "shawn1300.cc.cd";
-constexpr uint16_t kIngestPort = 443;
+    "https://gbmxqegjkmzuvhisyxou.supabase.co/functions/v1/environment-ingest-relay";
+constexpr char kWebsiteProbeHost[] = "shawn1300.cc.cd";
+constexpr uint16_t kHttpsPort = 443;
 constexpr char kSupabaseHost[] = "gbmxqegjkmzuvhisyxou.supabase.co";
 constexpr char kOsakaHost[] = "217.142.225.118";
 constexpr uint16_t kOsakaPort = 80;
@@ -36,7 +36,10 @@ constexpr unsigned long kUploadIntervalMs = 10UL * 60UL * 1000UL;
 constexpr unsigned long kWifiAttemptTimeoutMs = 15UL * 1000UL;
 constexpr unsigned long kWifiBetweenAttemptsMs = 250UL;
 constexpr unsigned long kStatusIntervalMs = 60UL * 1000UL;
-constexpr uint32_t kHttpTimeoutMs = 8000;
+constexpr uint32_t kProbeTimeoutMs = 8000;
+constexpr uint32_t kProbeTlsHandshakeTimeoutSeconds = 8;
+constexpr uint32_t kUploadTimeoutMs = 20000;
+constexpr uint32_t kUploadTlsHandshakeTimeoutSeconds = 12;
 constexpr time_t kMinimumValidEpoch = 1704067200;  // 2024-01-01 UTC
 constexpr uint8_t kWifiAttemptsPerNetwork = 3;
 constexpr size_t kWifiNetworkCount =
@@ -245,7 +248,7 @@ ProbeResult probeHttps(const char *title, const char *host) {
 
   NetworkClient tcpClient;
   const unsigned long tcpStartedAt = millis();
-  if (!tcpClient.connect(address, kIngestPort, kHttpTimeoutMs)) {
+  if (!tcpClient.connect(address, kHttpsPort, kProbeTimeoutMs)) {
     Serial.printf("TCP 443 FAILED after %lu ms\n", millis() - tcpStartedAt);
     return ProbeResult::tcpFail;
   }
@@ -254,9 +257,9 @@ ProbeResult probeHttps(const char *title, const char *host) {
 
   NetworkClientSecure tlsClient;
   tlsClient.setCACert(HTTPS_TRUSTED_ROOTS);
-  tlsClient.setHandshakeTimeout(8);
+  tlsClient.setHandshakeTimeout(kProbeTlsHandshakeTimeoutSeconds);
   const unsigned long tlsStartedAt = millis();
-  if (!tlsClient.connect(host, kIngestPort)) {
+  if (!tlsClient.connect(host, kHttpsPort)) {
     char errorText[160] = {};
     const int errorCode = tlsClient.lastError(errorText, sizeof(errorText));
     Serial.printf("TLS FAILED after %lu ms: %d (%s)\n",
@@ -276,12 +279,12 @@ ProbeResult probeOsakaHttp() {
   const IPAddress address(217, 142, 225, 118);
   NetworkClient client;
   const unsigned long tcpStartedAt = millis();
-  if (!client.connect(address, kOsakaPort, kHttpTimeoutMs)) {
+  if (!client.connect(address, kOsakaPort, kProbeTimeoutMs)) {
     Serial.printf("TCP 80 FAILED after %lu ms\n", millis() - tcpStartedAt);
     return ProbeResult::tcpFail;
   }
   Serial.printf("TCP 80 OK: %lu ms\n", millis() - tcpStartedAt);
-  client.setTimeout(kHttpTimeoutMs);
+  client.setTimeout(kProbeTimeoutMs);
 
   const size_t sent = client.printf(
       "HEAD / HTTP/1.1\r\n"
@@ -299,7 +302,7 @@ ProbeResult probeOsakaHttp() {
   size_t used = 0;
   bool lineComplete = false;
   const unsigned long responseStartedAt = millis();
-  while (millis() - responseStartedAt < kHttpTimeoutMs &&
+  while (millis() - responseStartedAt < kProbeTimeoutMs &&
          used + 1 < sizeof(statusLine)) {
     while (client.available() > 0 && used + 1 < sizeof(statusLine)) {
       const int value = client.read();
@@ -364,7 +367,7 @@ void runConnectivityProbe() {
   Serial.println();
   Serial.println("Connectivity probe starting");
   const ProbeResult website =
-      probeHttps("[1/3] Website HTTPS", kIngestHost);
+      probeHttps("[1/3] Website HTTPS", kWebsiteProbeHost);
   const ProbeResult supabase =
       probeHttps("[2/3] Supabase HTTPS", kSupabaseHost);
   const ProbeResult osaka = probeOsakaHttp();
@@ -495,11 +498,11 @@ void uploadWindow() {
 
   NetworkClientSecure client;
   client.setCACert(HTTPS_TRUSTED_ROOTS);
-  client.setHandshakeTimeout(8);
+  client.setHandshakeTimeout(kUploadTlsHandshakeTimeoutSeconds);
 
   HTTPClient http;
-  http.setConnectTimeout(kHttpTimeoutMs);
-  http.setTimeout(kHttpTimeoutMs);
+  http.setConnectTimeout(kUploadTimeoutMs);
+  http.setTimeout(kUploadTimeoutMs);
   if (!http.begin(client, kIngestUrl)) {
     Serial.println("Upload failed: HTTPS client initialization failed");
     return;
