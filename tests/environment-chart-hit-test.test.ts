@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { createModularEnvironmentChartModel } from "../lib/environment/chart";
-import { moveEnvironmentChartSelection, nearestEnvironmentChartPoint } from "../lib/environment/chart-hit-test";
+import { environmentChartTooltipPlacement, moveEnvironmentChartSelection, nearestEnvironmentChartPoint } from "../lib/environment/chart-hit-test";
 
 const model = createModularEnvironmentChartModel([
   { id: "inside", label: "Inside", data: [
@@ -29,5 +29,20 @@ test("keyboard movement clamps endpoints and chooses nearest time on another ser
   assert.equal(moveEnvironmentChartSelection(model.series, initial, "right")?.pointIndex, 1);
   assert.deepEqual(moveEnvironmentChartSelection(model.series, initial, "down"), {
     seriesIndex: 1, pointIndex: 0, distance: 0,
+  });
+});
+
+test("tooltip placement expands toward the inside of every chart quadrant", () => {
+  assert.deepEqual(environmentChartTooltipPlacement(100, 50, 800, 260), {
+    inline: "after", block: "after",
+  });
+  assert.deepEqual(environmentChartTooltipPlacement(700, 50, 800, 260), {
+    inline: "before", block: "after",
+  });
+  assert.deepEqual(environmentChartTooltipPlacement(100, 210, 800, 260), {
+    inline: "after", block: "before",
+  });
+  assert.deepEqual(environmentChartTooltipPlacement(700, 210, 800, 260), {
+    inline: "before", block: "before",
   });
 });

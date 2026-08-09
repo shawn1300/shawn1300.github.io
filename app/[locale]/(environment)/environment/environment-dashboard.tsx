@@ -7,7 +7,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { createModularEnvironmentChartModel } from "@/lib/environment/chart";
-import { moveEnvironmentChartSelection, nearestEnvironmentChartPoint, type EnvironmentChartSelection } from "@/lib/environment/chart-hit-test";
+import { environmentChartTooltipPlacement, moveEnvironmentChartSelection, nearestEnvironmentChartPoint, type EnvironmentChartSelection } from "@/lib/environment/chart-hit-test";
 import type { EnvironmentFreshness, EnvironmentHistoryRange, EnvironmentLocalizedName } from "@/types/environment";
 import type { EnvironmentHistoryResponseV2, EnvironmentLatestDeviceV2, EnvironmentLatestResponseV2, EnvironmentLocationSummaryV2, EnvironmentMetricKey } from "@/types/environment-v2";
 
@@ -82,6 +82,9 @@ function EnvironmentChart({ metric, history, locale }: { metric: EnvironmentMetr
   if (!model) return null;
   const selectedSeries = selection ? model.series[selection.seriesIndex] : null;
   const selectedPoint = selectedSeries && selection ? selectedSeries.points[selection.pointIndex] : null;
+  const tooltipPlacement = selectedPoint
+    ? environmentChartTooltipPlacement(selectedPoint.x, selectedPoint.y, model.width, model.height)
+    : null;
   const unit = history.series.find((series) => series.metric === metric)?.unit ?? "";
   const choosePointer = (event: ReactPointerEvent<SVGSVGElement>) => {
     const bounds = event.currentTarget.getBoundingClientRect();
@@ -124,7 +127,12 @@ function EnvironmentChart({ metric, history, locale }: { metric: EnvironmentMetr
       </svg>
       <div className={styles.valueLabels} aria-hidden="true">{model.valueTicks.map((tick) => <span key={tick.value} style={{ top: `${tick.y / model.height * 100}%` }}>{number(tick.value, locale)}{unit}</span>)}</div>
       <div className={styles.timeLabels} aria-hidden="true">{model.timeTicks.map((tick) => <span key={tick.value} style={{ left: `${tick.x / model.width * 100}%` }}>{time(new Date(tick.value).toISOString(), locale, history.location.timezone, history.range)}</span>)}</div>
-      {selectedPoint && selectedSeries && <div className={styles.chartTooltip} style={{ left: `${selectedPoint.x / model.width * 100}%`, top: `${selectedPoint.y / model.height * 100}%`, transform: selectedPoint.x > model.width * .72 ? "translate(-100%, -112%)" : "translate(0, -112%)" }}>
+      {selectedPoint && selectedSeries && tooltipPlacement && <div
+        className={styles.chartTooltip}
+        data-inline={tooltipPlacement.inline}
+        data-block={tooltipPlacement.block}
+        style={{ left: `${selectedPoint.x / model.width * 100}%`, top: `${selectedPoint.y / model.height * 100}%` }}
+      >
         <strong>{locationName} · {selectedSeries.label}</strong><span>{time(selectedPoint.sourceUpdatedAt, locale, history.location.timezone, history.range)}</span><b>{number(selectedPoint.value, locale)} {unit}</b>
       </div>}
       <span id={statusId} className={styles.srOnly} role="status">{description}</span>

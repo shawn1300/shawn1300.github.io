@@ -6,6 +6,23 @@ export interface EnvironmentChartSelection {
   distance: number;
 }
 
+export interface EnvironmentChartTooltipPlacement {
+  inline: "before" | "after";
+  block: "before" | "after";
+}
+
+export function environmentChartTooltipPlacement(
+  x: number,
+  y: number,
+  width: number,
+  height: number
+): EnvironmentChartTooltipPlacement {
+  return {
+    inline: x > width / 2 ? "before" : "after",
+    block: y < height / 2 ? "after" : "before",
+  };
+}
+
 export function nearestEnvironmentChartPoint(
   series: ModularEnvironmentChartSeries[],
   x: number,

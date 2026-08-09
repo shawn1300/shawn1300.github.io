@@ -485,7 +485,9 @@
   position: absolute;
   z-index: 4;
   display: grid;
-  min-width: 9.5rem;
+  box-sizing: border-box;
+  width: min(9.5rem, calc(50% - 1.5rem));
+  min-width: min(8rem, calc(50% - 1.5rem));
   gap: 0.2rem;
   padding: 0.65rem 0.75rem;
   border: 1px solid var(--border);
@@ -494,7 +496,13 @@
   box-shadow: 0 8px 28px color-mix(in oklch, var(--foreground) 12%, transparent);
   pointer-events: none;
   backdrop-filter: blur(8px);
+  overflow-wrap: anywhere;
 }
+.chartTooltip[data-inline="after"] { --tooltip-x: 0.75rem; }
+.chartTooltip[data-inline="before"] { --tooltip-x: calc(-100% - 0.75rem); }
+.chartTooltip[data-block="after"] { --tooltip-y: 0.75rem; }
+.chartTooltip[data-block="before"] { --tooltip-y: calc(-100% - 0.75rem); }
+.chartTooltip[data-inline][data-block] { transform: translate(var(--tooltip-x), var(--tooltip-y)); }
 .chartTooltip strong,
 .chartTooltip b { font-size: 0.78rem; }
 .chartTooltip span { color: var(--muted-foreground); font-size: 0.7rem; }
@@ -619,7 +627,6 @@
     font-size: 17px;
   }
 
-  .chartTooltip { min-width: 8rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
