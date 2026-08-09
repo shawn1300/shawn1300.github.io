@@ -22,6 +22,8 @@ constexpr int kSclPin = 22;
 
 constexpr char kIngestUrl[] =
     "https://shawn1300.cc.cd/api/environment/v2/ingest";
+constexpr char kIngestHost[] = "shawn1300.cc.cd";
+constexpr uint16_t kIngestPort = 443;
 constexpr char kDeviceSlug[] = "dormitory-air-station";
 
 constexpr unsigned long kPmsWarmupMs = 30UL * 1000UL;
@@ -85,6 +87,7 @@ WiFiPhase wifiPhase = WiFiPhase::starting;
 size_t wifiNetworkIndex = 0;
 uint8_t wifiAttemptIndex = 0;
 unsigned long wifiPhaseStartedAt = 0;
+bool httpsProbePending = false;
 
 bool clockReady() {
   return time(nullptr) >= kMinimumValidEpoch;
@@ -185,6 +188,7 @@ void maintainWiFi(unsigned long nowMs) {
     case WiFiPhase::trying:
       if (WiFi.status() == WL_CONNECTED) {
         wifiPhase = WiFiPhase::connected;
+        httpsProbePending = true;
         configTime(0, 0, "time.cloudflare.com", "time.google.com",
                    "pool.ntp.org");
         Serial.print("Wi-Fi connected, IP: ");
@@ -213,6 +217,49 @@ void maintainWiFi(unsigned long nowMs) {
     case WiFiPhase::stopped:
       return;
   }
+}
+
+void runHttpsProbe() {
+  if (!httpsProbePending || WiFi.status() != WL_CONNECTED || !clockReady()) {
+    return;
+  }
+  httpsProbePending = false;
+  Serial.println("HTTPS probe starting");
+
+  IPAddress address;
+  if (WiFi.hostByName(kIngestHost, address) != 1) {
+    Serial.printf("HTTPS probe DNS failed for %s\n", kIngestHost);
+    return;
+  }
+  Serial.printf("HTTPS probe DNS: %s -> %s\n", kIngestHost,
+                address.toString().c_str());
+
+  NetworkClient tcpClient;
+  const unsigned long tcpStartedAt = millis();
+  if (!tcpClient.connect(address, kIngestPort, kHttpTimeoutMs)) {
+    Serial.printf("HTTPS probe TCP failed after %lu ms\n",
+                  millis() - tcpStartedAt);
+    return;
+  }
+  Serial.printf("HTTPS probe TCP connected in %lu ms\n",
+                millis() - tcpStartedAt);
+  tcpClient.stop();
+
+  NetworkClientSecure tlsClient;
+  tlsClient.setCACert(HTTPS_TRUSTED_ROOTS);
+  tlsClient.setHandshakeTimeout(8);
+  const unsigned long tlsStartedAt = millis();
+  if (!tlsClient.connect(kIngestHost, kIngestPort)) {
+    char errorText[160] = {};
+    const int errorCode = tlsClient.lastError(errorText, sizeof(errorText));
+    Serial.printf("HTTPS probe TLS failed after %lu ms: %d (%s)\n",
+                  millis() - tlsStartedAt, errorCode,
+                  errorText[0] == '\0' ? "no TLS detail" : errorText);
+    return;
+  }
+  Serial.printf("HTTPS probe TLS connected in %lu ms\n",
+                millis() - tlsStartedAt);
+  tlsClient.stop();
 }
 
 void readSht30(unsigned long nowMs) {
@@ -420,6 +467,7 @@ void setup() {
 void loop() {
   const unsigned long nowMs = millis();
   maintainWiFi(nowMs);
+  runHttpsProbe();
   readSht30(nowMs);
   readPms5003(nowMs);
   printStatus(nowMs);
