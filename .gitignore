@@ -49,5 +49,8 @@ next-env.d.ts
 # dev scripts (may contain keys)
 scripts/
 
+# ESP32 local credentials
+/firmware/dormitory-air-station/secrets.h
+
 # local isolated worktrees
 .worktrees/
