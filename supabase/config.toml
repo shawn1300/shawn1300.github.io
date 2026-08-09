@@ -1,0 +1,4 @@
+project_id = "shawn1300"
+
+[functions.environment-ingest-relay]
+verify_jwt = false
