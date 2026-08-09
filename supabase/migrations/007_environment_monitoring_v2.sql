@@ -103,14 +103,14 @@ BEGIN
     RAISE EXCEPTION 'environment metric is unavailable' USING ERRCODE = '23514';
   END IF;
 
-  IF NOT CASE configured_key
+  IF NOT (CASE configured_key
     WHEN 'temperatureC' THEN NEW.value BETWEEN -30 AND 100
     WHEN 'humidityPercent' THEN NEW.value BETWEEN 0 AND 100
     WHEN 'co2Ppm' THEN NEW.value BETWEEN 1 AND 50000
     WHEN 'pm25UgM3' THEN NEW.value BETWEEN 0 AND 5000
     WHEN 'batteryPercent' THEN NEW.value BETWEEN 0 AND 100
     ELSE false
-  END THEN
+  END) THEN
     RAISE EXCEPTION 'environment metric value is outside its allowed range' USING ERRCODE = '23514';
   END IF;
 
