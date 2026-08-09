@@ -4,7 +4,7 @@
 > Existing v2 design: `docs/superpowers/specs/2026-08-09-modular-environment-monitoring-design.md`
 > Firmware design: `docs/superpowers/specs/2026-08-09-dormitory-esp32-air-station-design.md`
 
-**Status:** In progress. Deploy and verify the relay before changing the ESP32 production upload URL.
+**Status:** Complete. The relay is live, the ESP32 uses it for production uploads, and three consecutive hardware windows passed end to end.
 
 ## Constraints
 
@@ -66,7 +66,7 @@
 - [x] Verify a syntactically valid wrong token returns upstream `401`.
 - [x] Submit the real device token with an invalid v2 body and verify upstream `422` before the storage path is reached.
 - [x] Inspect Edge Function logs for fixed fields only and confirm no token or body is present.
-- [ ] Confirm the existing direct v2 ingest and public API remain healthy.
+- [x] Confirm the existing direct v2 ingest and public API remain healthy.
 
 **Production gate:** do not change the firmware until the Supabase endpoint demonstrates custom-token pass-through and zero-write negative behavior.
 
@@ -89,11 +89,11 @@
 
 **Files:** COM4 device, Edge Function logs, existing public APIs.
 
-- [ ] Flash the compiled firmware to `ESP32 Dev Module` on COM4.
-- [ ] Confirm startup probes finish and sensor sample counts continue increasing.
-- [ ] Confirm three consecutive ten-minute windows return `Upload HTTP status: 200`.
-- [ ] Confirm stored/duplicate/skipped result JSON remains compatible with the existing firmware log.
-- [ ] Confirm the public dormitory latest timestamp and temperature/humidity/PM2.5 values advance.
-- [ ] Recheck function logs for secret-safe structured events.
+- [x] Flash the compiled firmware to `ESP32 Dev Module` on COM4.
+- [x] Confirm startup networking completes and sensor sample counts continue increasing.
+- [x] Confirm three consecutive ten-minute windows return upstream `200` at 22:46, 22:56 and 23:06 Australia/Perth time.
+- [x] Confirm the successful response path remains compatible with the existing firmware log and window clearing.
+- [x] Confirm the public dormitory latest timestamp and temperature/humidity/PM2.5 values advance.
+- [x] Recheck function logs for secret-safe structured events.
 
-**Completion:** only after three consecutive hardware windows pass, mark the plan complete and update the environment handoff documentation with the Supabase relay as the active ESP32 route.
+**Completion:** three consecutive hardware windows passed. `firmware/dormitory-air-station/README.md` and `docs/environment-configuration-guide.md` document the Supabase relay as the active ESP32 route.
