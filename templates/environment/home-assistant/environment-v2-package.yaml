@@ -1,0 +1,81 @@
+# Copy this file into /config/packages/ with a globally unique filename.
+# Only edit the ENVIRONMENT DEVICE CONFIGURATION block and the secret value.
+
+rest_command:
+  environment_v2_template_ingest:
+    url: "https://shawn1300.cc.cd/api/environment/v2/ingest"
+    method: POST
+    headers:
+      Authorization: !secret environment_v2_authorization
+      Content-Type: "application/json"
+    content_type: "application/json"
+    timeout: 20
+    payload: >-
+      {{ {"schemaVersion": 2, "sentAt": sent_at, "readings": readings} | to_json }}
+
+automation:
+  - id: environment_v2_template_upload
+    alias: "Environment v2: upload every 10 minutes"
+    description: "Upload valid environment entities as one v2 batch."
+    mode: single
+    triggers:
+      - trigger: time_pattern
+        minutes: "/10"
+
+    variables:
+      # ===== ENVIRONMENT DEVICE CONFIGURATION: EDIT ONLY THIS BLOCK =====
+      # Device slugs must match config/environment.ts and the applied migration.
+      # Use an empty string for a metric this device does not provide.
+      environment_devices:
+        - device: "replace-with-device-slug"
+          temperature_entity: "sensor.replace_temperature"
+          humidity_entity: "sensor.replace_humidity"
+          battery_entity: ""
+          co2_entity: ""
+          pm25_entity: ""
+      # ===== END ENVIRONMENT DEVICE CONFIGURATION =====
+
+    actions:
+      - variables:
+          environment_readings_json: >-
+            {% set result = namespace(readings=[]) %}
+            {% for device in environment_devices %}
+              {% set metrics = namespace(values={}) %}
+              {% set updated = namespace(values=[]) %}
+
+              {% if device.temperature_entity and is_number(states(device.temperature_entity)) %}
+                {% set metrics.values = dict(metrics.values, temperatureC=states(device.temperature_entity) | float) %}
+                {% set updated.values = updated.values + [as_timestamp(states[device.temperature_entity].last_updated)] %}
+              {% endif %}
+              {% if device.humidity_entity and is_number(states(device.humidity_entity)) %}
+                {% set metrics.values = dict(metrics.values, humidityPercent=states(device.humidity_entity) | float) %}
+                {% set updated.values = updated.values + [as_timestamp(states[device.humidity_entity].last_updated)] %}
+              {% endif %}
+              {% if device.battery_entity and is_number(states(device.battery_entity)) %}
+                {% set metrics.values = dict(metrics.values, batteryPercent=states(device.battery_entity) | float) %}
+                {% set updated.values = updated.values + [as_timestamp(states[device.battery_entity].last_updated)] %}
+              {% endif %}
+              {% if device.co2_entity and is_number(states(device.co2_entity)) %}
+                {% set metrics.values = dict(metrics.values, co2Ppm=states(device.co2_entity) | float) %}
+                {% set updated.values = updated.values + [as_timestamp(states[device.co2_entity].last_updated)] %}
+              {% endif %}
+              {% if device.pm25_entity and is_number(states(device.pm25_entity)) %}
+                {% set metrics.values = dict(metrics.values, pm25UgM3=states(device.pm25_entity) | float) %}
+                {% set updated.values = updated.values + [as_timestamp(states[device.pm25_entity].last_updated)] %}
+              {% endif %}
+
+              {% if metrics.values | count > 0 %}
+                {% set source_updated_at = (updated.values | max) | timestamp_custom('%Y-%m-%dT%H:%M:%S.000Z', false) %}
+                {% set reading = {"device": device.device, "sourceUpdatedAt": source_updated_at, "metrics": metrics.values} %}
+                {% set result.readings = result.readings + [reading] %}
+              {% endif %}
+            {% endfor %}
+            {{ result.readings | to_json }}
+
+      - condition: template
+        value_template: "{{ environment_readings_json | from_json | count > 0 }}"
+
+      - action: rest_command.environment_v2_template_ingest
+        data:
+          sent_at: "{{ utcnow().strftime('%Y-%m-%dT%H:%M:%S.000Z') }}"
+          readings: "{{ environment_readings_json | from_json }}"

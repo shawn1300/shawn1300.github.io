@@ -1,6 +1,6 @@
 # 环境监测项目：下次从这里继续
 
-更新：2026-08-09
+更新：2026-08-10
 
 ## 恢复指令
 
@@ -26,6 +26,17 @@
 → Supabase 环境表与 30 天清理
 ```
 
+宿舍空气站也已上线：
+
+```text
+SHT30 + PMS5003
+→ ESP32 每 10 分钟聚合
+→ Supabase Edge Function 中转
+→ 网站 v2 ingest
+→ Supabase 模块化环境表
+→ /environment/dormitory
+```
+
 已确认：
 
 - Home Assistant 不开放公网 `8123`，只通过 SSH 隧道管理。
@@ -46,23 +57,24 @@
   - sitemap 不含 `/environment`；页面 HTML 无博客 Header/Footer/导航，仅有静态资源链接。
   - `latest` 返回真实数据（室内外均 `fresh`，差值正常），24h/7d 均 `200`；公开 JSON 无私有字段。
   - 错误路径正确：缺参数 `400`、未知地点 `404`、非法范围 `400`。
+- 模块化 v2 migration、来源令牌摘要、配置映射、写入与公开 API 已部署。
+- `dormitory-esp32` 通过 Supabase 中转连续完成三个十分钟真实窗口，公开页面持续显示新鲜的温度、湿度和 PM2.5。
+- Supabase 中转只转发有界请求，不持有 Supabase Key，日志不记录设备令牌或传感器正文。
 
 不要再要求用户提供小米密码、验证码、Cookie、`ssecurity`、OAuth 材料、Supabase Key、SSH 私钥或 ingest token。
 
-### 已在仓库完成、尚未执行生产迁移/部署
+### 可复用模板
 
-- 模块化 v2 schema、每来源令牌摘要、Home Assistant/ESP32 v2 ingest、公开 v2 API 已实现。
-- `/environment/<slug>`、场所下拉无刷新切换、模块化设备/指标、鼠标/触控/键盘单曲线提示已实现。
-- HJ 633—2026 与 US EPA May 2026 PM2.5 参考、CO₂ 一小时通风参考已实现。
-- 配置验证、迁移生成、剪贴板令牌生成和完整教程见 `docs/environment-configuration-guide.md`。
-- `supabase/migrations/007_environment_monitoring_v2.sql` **尚未自动应用到生产**；必须先备份、审阅、执行并完成兼容性检查。
+- 新来源统一从 `templates/environment/README.md` 开始。
+- ESP32 模板把 Wi‑Fi、UTC、十分钟聚合和 Supabase 上传核心与 SHT30/PMS5003 适配器分开。
+- Home Assistant 模板是一份 v2 package，会跳过不可用和非数字实体，不会把异常状态写成 `0`。
+- 模板只供新来源复制；当前宿舍固件和“家”的 v1 自动化均保持不动。
 
 ## 下一步
 
-先按配置教程的生产门禁部署 v2；完成真实三轮十分钟读数验证后，再处理：
-
-1. VRChat 桥接（独立阶段，只消费公开 `latest` API）。
-2. 如果部署流程或运维方式变化，再更新 `docs/environment-operations.md`。
+1. 添加新场所或设备时，先读 `templates/environment/README.md` 和 `docs/environment-configuration-guide.md`，复制对应模板并执行三窗口验收。
+2. VRChat 桥接仍是独立阶段，只消费公开 `latest` API。
+3. 如果部署流程或运维方式变化，再更新 `docs/environment-operations.md`。
 
 ## 当前相关代码
 
@@ -78,6 +90,9 @@
 - `types/environment.ts`
 - `types/supabase.ts`
 - `supabase/migrations/006_environment_monitoring.sql`
+- `supabase/migrations/007_environment_monitoring_v2.sql`
+- `supabase/functions/environment-ingest-relay/`
+- `templates/environment/`
 - `tests/environment-*.test.ts`
 - `app/api/environment/latest/route.ts`
 - `app/api/environment/history/route.ts`
@@ -94,10 +109,11 @@
 - `/environment` 不进入博客主页、Header、移动导航或 sitemap。
 - 页面 metadata 使用 `noindex, nofollow`。
 - 页面与博客壳层隔离，但复用暖白默认主题和现有深色主题。
-- 当前只有“家”，不要创建宿舍、公司等空占位场所。
+- `/environment` 默认显示“家”，`/environment/dormitory` 是已上线场所；不要创建没有真实设备的空占位场所。
 - 第二层固定显示室内和室外。
 - 数据源只保留最近 30 天；页面第一版只提供 24h 和 7d。
-- 现有旧 ESP32 数据和博客表保持不动。
+- 当前宿舍 ESP32 与“家”的 v1 Home Assistant 自动化保持不动；新设备只从模板创建。
+- 博客表和历史环境数据保持不动。
 - VRChat 桥接留到页面完成后的独立阶段，只消费公开 latest API。
 - 保留用户未跟踪的 `public/mom50ome-qr*` 文件，不提交也不删除。
 

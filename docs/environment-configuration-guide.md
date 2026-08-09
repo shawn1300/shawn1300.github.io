@@ -4,6 +4,8 @@
 
 本教程说明如何在不增加后台管理页面的前提下，添加场所、Home Assistant 或 ESP32 数据源、温湿度计、CO₂ 和 PM2.5 设备。配置频率低，因此元数据写在 `config/environment.ts`，令牌永远不写入配置或 Git。
 
+可直接复制的完整模板位于 [`templates/environment`](../templates/environment/README.md)：ESP32 提供公共上传核心与 SHT30/PMS5003 示例，Home Assistant 提供 v2 package。本教程仍是元数据、迁移和令牌流程的权威说明。
+
 ## 架构与安全边界
 
 ```text
@@ -145,6 +147,8 @@ WHERE slug = 'greenhouse-esp32';
 
 ## Home Assistant 在哪里放令牌
 
+新来源优先复制 [`templates/environment/home-assistant`](../templates/environment/home-assistant/README.md) 的完整 package。下面的片段用于理解关键配置，不替代模板中的有效状态过滤、批量请求和回滚说明。
+
 令牌放在 Home Assistant 的 `/config/secrets.yaml`，不要放在自动化正文、日志或界面截图中：
 
 ```yaml
@@ -189,6 +193,8 @@ docker compose restart
 ## ESP32 HTTPS 上传骨架
 
 ESP32 必须校时、验证服务器 CA、设置有界超时，并在失败后等待下一次十分钟周期；不要高频无限重试。ESP32 使用 Supabase Edge Function 作为正式接收入口，但仍只携带来源令牌，不携带任何 Supabase Key。
+
+可编译的完整项目位于 [`templates/environment/esp32/station-template`](../templates/environment/esp32/station-template/README.md)。下面只展示上传核心，不能单独作为完整固件。
 
 ```cpp
 WiFiClientSecure client;

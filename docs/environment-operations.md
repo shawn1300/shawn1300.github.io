@@ -1,9 +1,9 @@
 # 环境监测运维说明
 
-更新：2026-08-09
-当前生产链路：Home Assistant → v1 私有写入 API → Supabase
+更新：2026-08-10
+当前生产链路：Home Assistant → v1 私有写入 API → Supabase；宿舍 ESP32 → Supabase Edge Function 中转 → v2 私有写入 API → Supabase
 
-模块化 v2 的配置、来源令牌、Home Assistant/ESP32 示例和上线步骤见 `docs/environment-configuration-guide.md`。`007_environment_monitoring_v2.sql` 尚未执行前，以下旧表检查仍是生产事实；不要把“代码已完成”误认为“生产迁移已完成”。
+模块化 v2 已用于宿舍真实数据。配置、来源令牌和上线步骤见 `docs/environment-configuration-guide.md`；新来源优先从 `templates/environment/README.md` 选择 ESP32 或 Home Assistant 模板。以下 Home Assistant 运维步骤仍只针对当前“家”的稳定 v1 自动化，不要用模板覆盖它。
 
 ## 安全边界
 
