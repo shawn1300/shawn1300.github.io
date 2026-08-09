@@ -24,6 +24,9 @@ constexpr char kIngestUrl[] =
     "https://shawn1300.cc.cd/api/environment/v2/ingest";
 constexpr char kIngestHost[] = "shawn1300.cc.cd";
 constexpr uint16_t kIngestPort = 443;
+constexpr char kSupabaseHost[] = "gbmxqegjkmzuvhisyxou.supabase.co";
+constexpr char kOsakaHost[] = "217.142.225.118";
+constexpr uint16_t kOsakaPort = 80;
 constexpr char kDeviceSlug[] = "dormitory-air-station";
 
 constexpr unsigned long kPmsWarmupMs = 30UL * 1000UL;
@@ -74,6 +77,16 @@ enum class WiFiPhase {
   stopped,
 };
 
+enum class ProbeResult {
+  notRun,
+  dnsFail,
+  tcpFail,
+  tlsFail,
+  httpFail,
+  tlsOk,
+  httpOk,
+};
+
 bool shtReady = false;
 bool pmsReady = false;
 uint8_t shtAddress = 0;
@@ -87,7 +100,8 @@ WiFiPhase wifiPhase = WiFiPhase::starting;
 size_t wifiNetworkIndex = 0;
 uint8_t wifiAttemptIndex = 0;
 unsigned long wifiPhaseStartedAt = 0;
-bool httpsProbePending = false;
+bool connectivityProbePending = false;
+bool connectivityProbeCompleted = false;
 
 bool clockReady() {
   return time(nullptr) >= kMinimumValidEpoch;
@@ -188,7 +202,7 @@ void maintainWiFi(unsigned long nowMs) {
     case WiFiPhase::trying:
       if (WiFi.status() == WL_CONNECTED) {
         wifiPhase = WiFiPhase::connected;
-        httpsProbePending = true;
+        if (!connectivityProbeCompleted) connectivityProbePending = true;
         configTime(0, 0, "time.cloudflare.com", "time.google.com",
                    "pool.ntp.org");
         Serial.print("Wi-Fi connected, IP: ");
@@ -219,47 +233,146 @@ void maintainWiFi(unsigned long nowMs) {
   }
 }
 
-void runHttpsProbe() {
-  if (!httpsProbePending || WiFi.status() != WL_CONNECTED || !clockReady()) {
-    return;
-  }
-  httpsProbePending = false;
-  Serial.println("HTTPS probe starting");
-
+ProbeResult probeHttps(const char *title, const char *host) {
+  Serial.println();
+  Serial.println(title);
   IPAddress address;
-  if (WiFi.hostByName(kIngestHost, address) != 1) {
-    Serial.printf("HTTPS probe DNS failed for %s\n", kIngestHost);
-    return;
+  if (WiFi.hostByName(host, address) != 1) {
+    Serial.printf("DNS FAILED: %s\n", host);
+    return ProbeResult::dnsFail;
   }
-  Serial.printf("HTTPS probe DNS: %s -> %s\n", kIngestHost,
-                address.toString().c_str());
+  Serial.printf("DNS OK: %s\n", address.toString().c_str());
 
   NetworkClient tcpClient;
   const unsigned long tcpStartedAt = millis();
   if (!tcpClient.connect(address, kIngestPort, kHttpTimeoutMs)) {
-    Serial.printf("HTTPS probe TCP failed after %lu ms\n",
-                  millis() - tcpStartedAt);
-    return;
+    Serial.printf("TCP 443 FAILED after %lu ms\n", millis() - tcpStartedAt);
+    return ProbeResult::tcpFail;
   }
-  Serial.printf("HTTPS probe TCP connected in %lu ms\n",
-                millis() - tcpStartedAt);
+  Serial.printf("TCP 443 OK: %lu ms\n", millis() - tcpStartedAt);
   tcpClient.stop();
 
   NetworkClientSecure tlsClient;
   tlsClient.setCACert(HTTPS_TRUSTED_ROOTS);
   tlsClient.setHandshakeTimeout(8);
   const unsigned long tlsStartedAt = millis();
-  if (!tlsClient.connect(kIngestHost, kIngestPort)) {
+  if (!tlsClient.connect(host, kIngestPort)) {
     char errorText[160] = {};
     const int errorCode = tlsClient.lastError(errorText, sizeof(errorText));
-    Serial.printf("HTTPS probe TLS failed after %lu ms: %d (%s)\n",
+    Serial.printf("TLS FAILED after %lu ms: %d (%s)\n",
                   millis() - tlsStartedAt, errorCode,
                   errorText[0] == '\0' ? "no TLS detail" : errorText);
+    return ProbeResult::tlsFail;
+  }
+  Serial.printf("TLS OK: %lu ms\n", millis() - tlsStartedAt);
+  tlsClient.stop();
+  return ProbeResult::tlsOk;
+}
+
+ProbeResult probeOsakaHttp() {
+  Serial.println();
+  Serial.println("[3/3] Osaka HTTP");
+
+  const IPAddress address(217, 142, 225, 118);
+  NetworkClient client;
+  const unsigned long tcpStartedAt = millis();
+  if (!client.connect(address, kOsakaPort, kHttpTimeoutMs)) {
+    Serial.printf("TCP 80 FAILED after %lu ms\n", millis() - tcpStartedAt);
+    return ProbeResult::tcpFail;
+  }
+  Serial.printf("TCP 80 OK: %lu ms\n", millis() - tcpStartedAt);
+  client.setTimeout(kHttpTimeoutMs);
+
+  const size_t sent = client.printf(
+      "HEAD / HTTP/1.1\r\n"
+      "Host: %s\r\n"
+      "User-Agent: dormitory-air-station-probe\r\n"
+      "Connection: close\r\n\r\n",
+      kOsakaHost);
+  if (sent == 0) {
+    Serial.println("HTTP FAILED: request could not be sent");
+    client.stop();
+    return ProbeResult::httpFail;
+  }
+
+  char statusLine[96] = {};
+  size_t used = 0;
+  bool lineComplete = false;
+  const unsigned long responseStartedAt = millis();
+  while (millis() - responseStartedAt < kHttpTimeoutMs &&
+         used + 1 < sizeof(statusLine)) {
+    while (client.available() > 0 && used + 1 < sizeof(statusLine)) {
+      const int value = client.read();
+      if (value < 0) break;
+      if (value == '\n') {
+        lineComplete = true;
+        break;
+      }
+      if (value != '\r') statusLine[used++] = static_cast<char>(value);
+    }
+    if (lineComplete ||
+        (used > 0 && !client.connected() && client.available() == 0)) {
+      break;
+    }
+    delay(10);
+  }
+  statusLine[used] = '\0';
+  client.stop();
+
+  const char *statusSeparator = strchr(statusLine, ' ');
+  const int statusCode =
+      statusSeparator == nullptr ? 0 : atoi(statusSeparator + 1);
+  if (strncmp(statusLine, "HTTP/", 5) != 0 || statusCode < 100 ||
+      statusCode > 599) {
+    Serial.println("HTTP FAILED: no valid status line");
+    return ProbeResult::httpFail;
+  }
+
+  Serial.printf("HTTP OK: %d (%lu ms)\n", statusCode,
+                millis() - responseStartedAt);
+  return ProbeResult::httpOk;
+}
+
+const char *probeResultName(ProbeResult result) {
+  switch (result) {
+    case ProbeResult::notRun:
+      return "NOT_RUN";
+    case ProbeResult::dnsFail:
+      return "DNS_FAIL";
+    case ProbeResult::tcpFail:
+      return "TCP_FAIL";
+    case ProbeResult::tlsFail:
+      return "TLS_FAIL";
+    case ProbeResult::httpFail:
+      return "HTTP_FAIL";
+    case ProbeResult::tlsOk:
+      return "TLS_OK";
+    case ProbeResult::httpOk:
+      return "HTTP_OK";
+  }
+  return "UNKNOWN";
+}
+
+void runConnectivityProbe() {
+  if (!connectivityProbePending || connectivityProbeCompleted ||
+      WiFi.status() != WL_CONNECTED || !clockReady()) {
     return;
   }
-  Serial.printf("HTTPS probe TLS connected in %lu ms\n",
-                millis() - tlsStartedAt);
-  tlsClient.stop();
+  connectivityProbePending = false;
+  connectivityProbeCompleted = true;
+
+  Serial.println();
+  Serial.println("Connectivity probe starting");
+  const ProbeResult website =
+      probeHttps("[1/3] Website HTTPS", kIngestHost);
+  const ProbeResult supabase =
+      probeHttps("[2/3] Supabase HTTPS", kSupabaseHost);
+  const ProbeResult osaka = probeOsakaHttp();
+
+  Serial.println();
+  Serial.printf("Probe summary: Website=%s, Supabase=%s, Osaka=%s\n",
+                probeResultName(website), probeResultName(supabase),
+                probeResultName(osaka));
 }
 
 void readSht30(unsigned long nowMs) {
@@ -467,7 +580,7 @@ void setup() {
 void loop() {
   const unsigned long nowMs = millis();
   maintainWiFi(nowMs);
-  runHttpsProbe();
+  runConnectivityProbe();
   readSht30(nowMs);
   readPms5003(nowMs);
   printStatus(nowMs);

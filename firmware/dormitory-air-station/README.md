@@ -47,10 +47,14 @@ constexpr WiFiCredential WIFI_NETWORKS[] = {
 1. 上传时如果一直停在 `Connecting...`，按住 BOOT，轻按一下 RST，看到开始写入后松开 BOOT。
 2. 打开串口监视器，波特率设为 `115200`。
 3. 确认出现 SHT30、PMS5003 和 Wi-Fi 就绪信息。
-4. UTC 时间同步后会自动执行一次 HTTPS 自检，依次显示 DNS、TCP 和 TLS 结果；该自检不上传数据。
-5. PMS5003 开机前 30 秒的数据会被丢弃，这是正常预热。
-6. 每分钟会打印一次状态；约 10 分钟后应出现 `Upload HTTP status: 200`。
-7. 浏览 `/environment/dormitory`，确认温度、湿度和 PM2.5 出现。
+4. UTC 时间同步后会自动执行一次三线路自检：
+   - 当前网站：DNS、TCP 443 和 TLS；
+   - Supabase：DNS、TCP 443 和 TLS；
+   - 大阪服务器：TCP 80 和不含凭据的 `HEAD /` 请求。
+5. 看到 `Probe summary` 后，根据 `DNS_FAIL`、`TCP_FAIL`、`TLS_FAIL`、`HTTP_FAIL` 或 `OK` 判断每条线路在哪一层失败。大阪的 `HTTP_OK` 只表示线路可达，不代表已经具备正式 HTTPS 上传接口。
+6. PMS5003 开机前 30 秒的数据会被丢弃，这是正常预热。
+7. 每分钟会打印一次状态；约 10 分钟后应出现 `Upload HTTP status: 200`。
+8. 浏览 `/environment/dormitory`，确认温度、湿度和 PM2.5 出现。
 
 程序不会在日志中打印 Wi-Fi 密码或上传令牌。某个传感器临时失败时，其他有效指标仍会独立上传。断网窗口不会补传，恢复联网后会从下一个 10 分钟窗口继续。
 
