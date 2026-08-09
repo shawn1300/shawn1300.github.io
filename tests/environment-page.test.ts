@@ -57,7 +57,7 @@ test("environment header copy is location-aware and falls back safely", () => {
   const chinese = JSON.parse(projectFile("messages/zh-CN.json"));
   assert.equal(
     chinese.Environment.copy.home.title,
-    "屋里是生活，屋外的天气。"
+    "屋外是天气，屋里是生活。"
   );
   assert.equal(environmentCopyKey("home"), "home");
   assert.equal(environmentCopyKey("dormitory"), "dormitory");
