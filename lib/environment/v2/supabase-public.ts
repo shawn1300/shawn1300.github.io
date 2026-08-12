@@ -6,6 +6,7 @@ import type {
   EnvironmentPublicRepositoryV2,
   EnvironmentRepositoryMetricReadingV2,
 } from "@/lib/environment/v2/public";
+import { readEnvironmentHistoryPagesV2 } from "@/lib/environment/v2/pagination";
 import { createAdminSupabase } from "@/lib/supabase/server";
 import type { Database } from "@/types/supabase";
 
@@ -20,8 +21,6 @@ type EnvironmentDatabaseV2 = {
     CompositeTypes: Record<string, never>;
   };
 };
-
-const MAX_HISTORY_ROWS = 25_000;
 
 class EnvironmentPublicRepositoryErrorV2 extends Error {
   constructor() {
@@ -102,12 +101,17 @@ export class SupabaseEnvironmentPublicRepositoryV2 implements EnvironmentPublicR
 
   async findReadingsSince(metricIds: string[], since: Date) {
     if (metricIds.length === 0) return [];
-    const { data, error } = await this.supabase.from("environment_metric_readings")
-      .select("metric_id, value, source_updated_at").in("metric_id", metricIds)
-      .gte("source_updated_at", since.toISOString())
-      .order("source_updated_at", { ascending: false }).limit(MAX_HISTORY_ROWS);
-    if (error) throw new EnvironmentPublicRepositoryErrorV2();
-    return (data ?? []).reverse().map((row) => this.reading(row));
+    const rows = await readEnvironmentHistoryPagesV2(async (from, to) => {
+      const { data, error } = await this.supabase.from("environment_metric_readings")
+        .select("id, metric_id, value, source_updated_at").in("metric_id", metricIds)
+        .gte("source_updated_at", since.toISOString())
+        .order("source_updated_at", { ascending: false })
+        .order("id", { ascending: false })
+        .range(from, to);
+      if (error) throw new EnvironmentPublicRepositoryErrorV2();
+      return data ?? [];
+    });
+    return rows.reverse().map((row) => this.reading(row));
   }
 }
 

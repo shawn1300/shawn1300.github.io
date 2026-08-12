@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-import { createEnvironmentChartModel } from "../lib/environment/chart";
+import { createEnvironmentChartModel, createModularEnvironmentChartModel } from "../lib/environment/chart";
 import { environmentCopyKey } from "../lib/environment/copy";
 
 const projectFile = (path: string) =>
@@ -178,4 +178,24 @@ test("chart model is empty without valid real points and centers one reading", (
   assert.ok(one);
   assert.equal(one.series.indoor.points[0].x, 418);
   assert.equal(Number.isFinite(one.series.indoor.points[0].y), true);
+});
+
+test("seven-day chart keeps the full requested time domain when data is recent", () => {
+  const minimumTime = Date.parse("2026-08-05T12:00:00.000Z");
+  const maximumTime = Date.parse("2026-08-12T12:00:00.000Z");
+  const model = createModularEnvironmentChartModel([
+    {
+      id: "inside",
+      label: "Indoor",
+      data: [
+        { sourceUpdatedAt: "2026-08-11T12:00:00.000Z", value: 25 },
+        { sourceUpdatedAt: "2026-08-12T12:00:00.000Z", value: 26 },
+      ],
+    },
+  ], { minimumTime, maximumTime });
+
+  assert.ok(model);
+  assert.equal(model.minimumTime, minimumTime);
+  assert.equal(model.maximumTime, maximumTime);
+  assert.ok(model.series[0].points[0].x > model.width * 0.75);
 });

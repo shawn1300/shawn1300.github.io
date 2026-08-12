@@ -31,6 +31,11 @@ export interface ModularEnvironmentChartSeries extends EnvironmentChartSeries {
   styleIndex: number;
 }
 
+export interface EnvironmentChartTimeDomain {
+  minimumTime: number;
+  maximumTime: number;
+}
+
 export interface ModularEnvironmentChartModel extends Omit<EnvironmentChartModel, "series"> {
   series: ModularEnvironmentChartSeries[];
 }
@@ -173,7 +178,8 @@ export function createEnvironmentChartModel(input: Record<
 }
 
 export function createModularEnvironmentChartModel(
-  input: ModularEnvironmentChartSeriesInput[]
+  input: ModularEnvironmentChartSeriesInput[],
+  timeDomain?: EnvironmentChartTimeDomain
 ): ModularEnvironmentChartModel | null {
   const data = input.map((series, styleIndex) => ({
     ...series,
@@ -191,8 +197,16 @@ export function createModularEnvironmentChartModel(
   const times = all.map((item) => Date.parse(item.sourceUpdatedAt));
   const rawMinimumTime = Math.min(...times);
   const rawMaximumTime = Math.max(...times);
-  const minimumTime = rawMinimumTime === rawMaximumTime ? rawMinimumTime - 30 * 60_000 : rawMinimumTime;
-  const maximumTime = rawMinimumTime === rawMaximumTime ? rawMaximumTime + 30 * 60_000 : rawMaximumTime;
+  const hasExplicitTimeDomain = timeDomain
+    && Number.isFinite(timeDomain.minimumTime)
+    && Number.isFinite(timeDomain.maximumTime)
+    && timeDomain.minimumTime < timeDomain.maximumTime;
+  const minimumTime = hasExplicitTimeDomain
+    ? timeDomain.minimumTime
+    : rawMinimumTime === rawMaximumTime ? rawMinimumTime - 30 * 60_000 : rawMinimumTime;
+  const maximumTime = hasExplicitTimeDomain
+    ? timeDomain.maximumTime
+    : rawMinimumTime === rawMaximumTime ? rawMaximumTime + 30 * 60_000 : rawMaximumTime;
   const series = data.map((item) => {
     const points = item.data.map((datum) => ({
       ...datum,

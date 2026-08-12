@@ -79,7 +79,10 @@ function EnvironmentChart({ metric, history, locale }: { metric: EnvironmentMetr
     })),
     [history.series, locale, metric]
   );
-  const model = useMemo(() => createModularEnvironmentChartModel(seriesInput), [seriesInput]);
+  const model = useMemo(() => createModularEnvironmentChartModel(seriesInput, {
+    minimumTime: Date.parse(history.from),
+    maximumTime: Date.parse(history.to),
+  }), [history.from, history.to, seriesInput]);
   if (!model) return null;
   const selectedSeries = selection ? model.series[selection.seriesIndex] : null;
   const selectedPoint = selectedSeries && selection ? selectedSeries.points[selection.pointIndex] : null;
