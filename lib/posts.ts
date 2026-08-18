@@ -62,7 +62,10 @@ export const getPublishedPosts = unstable_cache(
         post_tags(tag:tags(*))
       `)
       .eq("status", "published")
-      .order("published_at", { ascending: false })
+      // 旧数据中可能存在“直接发布”而 published_at 为空的文章。
+      // 先把这类文章按创建时间倒序放在前面，再按正常发布时间倒序。
+      .order("published_at", { ascending: false, nullsFirst: true })
+      .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
     if (categoryId) {

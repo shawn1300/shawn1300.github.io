@@ -54,7 +54,8 @@ export async function GET(request: NextRequest) {
       .select("id, title, slug, excerpt, content, published_at, created_at")
       .eq("status", "published")
       .or(`title.ilike.${pattern},content.ilike.${pattern},excerpt.ilike.${pattern}`)
-      .order("published_at", { ascending: false })
+      .order("published_at", { ascending: false, nullsFirst: true })
+      .order("created_at", { ascending: false })
       .limit(5),
     supabase
       .from("diaries")
