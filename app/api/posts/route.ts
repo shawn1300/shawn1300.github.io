@@ -38,6 +38,8 @@ export async function POST(request: NextRequest) {
         cover_image: cover_image || null,
         category_id: category_id || null,
         status: status || "draft",
+        // 数据库旧触发器只覆盖“草稿改为发布”，直接发布时需要在这里赋值。
+        published_at: status === "published" ? new Date().toISOString() : null,
         author_id: user.id,
       })
       .select()
