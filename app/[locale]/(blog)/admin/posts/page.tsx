@@ -25,7 +25,8 @@ export default async function AdminPostsPage({ params }: { params: Promise<{ loc
       *,
       category:categories(name)
     `)
-    .order("updated_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false });
 
   if (error) {
     return (
