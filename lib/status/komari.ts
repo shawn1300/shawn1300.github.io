@@ -99,6 +99,7 @@ function pointToNode(config: StatusNodeConfig, point: Record<string, unknown>, n
 
 async function loadNode(
   baseUrl: string,
+  apiKey: string | null,
   config: StatusNodeConfig,
   fetchImpl: FetchLike,
   now: number
@@ -108,7 +109,10 @@ async function loadNode(
   try {
     const response = await fetchImpl(`${baseUrl}/api/recent/${encodeURIComponent(config.id)}`, {
       cache: "no-store",
-      headers: { accept: "application/json" },
+      headers: {
+        accept: "application/json",
+        ...(apiKey ? { authorization: `Bearer ${apiKey}` } : {}),
+      },
       signal: controller.signal,
     });
     if (!response.ok) return { node: emptyNode(config), sourceFailed: true };
@@ -138,7 +142,7 @@ export async function getStatusSnapshot(options: StatusServiceOptions = {}): Pro
   const fetchImpl = options.fetchImpl ?? fetch;
   const now = options.now ?? Date.now();
   const results = await Promise.all(
-    config.nodes.map((node) => loadNode(config.baseUrl, node, fetchImpl, now))
+    config.nodes.map((node) => loadNode(config.baseUrl, config.apiKey, node, fetchImpl, now))
   );
   const nodes = results.map((result) => result.node);
 

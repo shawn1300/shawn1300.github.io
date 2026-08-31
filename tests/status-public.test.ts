@@ -11,12 +11,15 @@ const NOW = Date.parse("2026-08-31T12:00:30.000Z");
 test("status snapshot selects the newest point, calculates usage, and isolates node failures", async () => {
   const config = parseStatusConfig({
     KOMARI_BASE_URL: "https://monitor.example.com",
+    KOMARI_API_KEY: "dashboard-secret",
     KOMARI_NODES: JSON.stringify([
       { id: ONLINE_ID, name: "Oracle Phoenix", flag: "🇺🇸", location: "Phoenix" },
       { id: FAILED_ID, name: "Oracle Tokyo", flag: "🇯🇵", location: "Tokyo" },
     ]),
   });
-  const mockFetch = (async (input: string | URL | Request) => {
+  let authorization: string | null = null;
+  const mockFetch = (async (input: string | URL | Request, init?: RequestInit) => {
+    authorization = new Headers(init?.headers).get("authorization");
     if (String(input).includes(FAILED_ID)) throw new Error("upstream token detail must stay private");
     return Response.json({
       status: "success",
@@ -57,9 +60,10 @@ test("status snapshot selects the newest point, calculates usage, and isolates n
   assert.equal(result.nodes[0].disk.percent, 25);
   assert.equal(result.nodes[0].online, true);
   assert.equal(result.nodes[1].online, false);
+  assert.equal(authorization, "Bearer dashboard-secret");
 
   const publicJson = JSON.stringify(result).toLowerCase();
-  for (const forbidden of ["uuid", ONLINE_ID, FAILED_ID, "agent-secret", "token", "ipv4", "ipv6"]) {
+  for (const forbidden of ["uuid", ONLINE_ID, FAILED_ID, "agent-secret", "dashboard-secret", "token", "ipv4", "ipv6"]) {
     assert.equal(publicJson.includes(forbidden.toLowerCase()), false);
   }
 });

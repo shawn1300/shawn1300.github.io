@@ -1,11 +1,13 @@
 # Komari 服务器状态页
 
-博客的 /status 是独立页面，不使用博客 Header、Footer，也不会嵌入 Komari 后台。页面通过博客服务端读取 Komari 的公开最近状态接口，浏览器只访问同域的 /api/status。
+博客的 /status 是独立页面，不使用博客 Header、Footer，也不会嵌入 Komari 后台。页面通过博客服务端读取 Komari 的最近状态接口，浏览器只访问同域的 /api/status。
 
 ## 安全边界
 
 - 每台机器的 **Agent Token** 只用于该机器向 Komari 上报数据。
-- **不要**把 Agent Token、Komari 管理员 API Key、管理员 Cookie 写入 Vercel 或提交到仓库。
+- 私有站点使用一枚 **Komari 面板 API Key**。它属于整个 Komari 面板，不是每台服务器一个；后续新增节点继续复用。
+- API Key 只保存到 Vercel 的加密环境变量 `KOMARI_API_KEY`。**不要**写进代码、`KOMARI_NODES`、Git 仓库或任何 `NEXT_PUBLIC_` 变量。
+- **不要**把 Agent Token 或管理员 Cookie 写入 Vercel 或提交到仓库。
 - KOMARI_NODES 只保存节点 UUID 和允许公开展示的名称、地区、系统等信息。
 - 本站 API 会清洗响应，不向浏览器返回节点 UUID、Agent Token、IP 地址、价格或私有备注。
 
@@ -15,7 +17,11 @@
 
     KOMARI_BASE_URL=https://monitor.example.com
 
+    KOMARI_API_KEY=你的 Komari 面板 API Key
+
     KOMARI_NODES=[{"id":"11111111-1111-4111-8111-111111111111","name":"Oracle Phoenix","flag":"🇺🇸","location":"Phoenix","provider":"Oracle Cloud","os":"Ubuntu","arch":"amd64"}]
+
+如果 Komari 已关闭“私有站点”，`KOMARI_API_KEY` 可以省略。开启私有站点时必须填写，博客服务端会用 `Authorization: Bearer` 请求 Komari，但不会把密钥返回给浏览器。
 
 其中只有 id 和 name 必填。其他字段用于卡片显示：
 
@@ -79,8 +85,9 @@ Vercel 输入框也可以使用等价的单行 JSON。注意对象之间必须�
 
 - 返回 success: true：博客端配置和数据代理正常。
 - 返回 STATUS_NOT_CONFIGURED：Vercel 缺少 KOMARI_BASE_URL 或 KOMARI_NODES。
+- 返回 STATUS_API_KEY_INVALID：KOMARI_API_KEY 格式错误。
 - 返回 STATUS_NODES_INVALID：JSON 格式、UUID 或字段类型错误。
 - 页面显示离线：先在 Komari 后台确认节点在线，再检查 UUID 是否复制完整。
 - 页面提示部分数据不可用：Komari、Cloudflare 或网络暂时不可达；页面会保留上一次成功数据并继续每 15 秒重试。
 
-Komari 开启私有站点时，必须保持公开最近状态接口 /api/recent/UUID 可读取；本站不使用管理员权限绕过私有站点。
+Komari 开启私有站点时，匿名请求 `/api/recent/UUID` 会返回 401；请配置面板 API Key，不要改用 Agent Token。

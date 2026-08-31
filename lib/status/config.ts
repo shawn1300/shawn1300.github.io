@@ -1,6 +1,7 @@
 interface StatusEnvironment {
   [key: string]: string | undefined;
   KOMARI_BASE_URL?: string;
+  KOMARI_API_KEY?: string;
   KOMARI_NODES?: string;
 }
 
@@ -16,6 +17,7 @@ export interface StatusNodeConfig {
 
 export interface StatusConfig {
   baseUrl: string;
+  apiKey: string | null;
   nodes: StatusNodeConfig[];
 }
 
@@ -28,6 +30,15 @@ export class StatusConfigError extends Error {
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SECRET_FIELDS = new Set(["token", "agenttoken", "apikey", "secret"]);
+
+function parseApiKey(value: string | undefined) {
+  if (value === undefined || value === "") return null;
+  const apiKey = value.trim();
+  if (!apiKey || apiKey.length > 4096 || /[\r\n]/.test(apiKey)) {
+    throw new StatusConfigError("STATUS_API_KEY_INVALID");
+  }
+  return apiKey;
+}
 
 function optionalText(value: unknown, maximumLength: number) {
   if (value === undefined || value === null || value === "") return null;
@@ -100,6 +111,7 @@ export function parseStatusConfig(environment: StatusEnvironment): StatusConfig 
 
   return {
     baseUrl: url.toString().replace(/\/$/, ""),
+    apiKey: parseApiKey(environment.KOMARI_API_KEY),
     nodes,
   };
 }
