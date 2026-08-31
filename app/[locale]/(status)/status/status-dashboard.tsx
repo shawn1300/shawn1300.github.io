@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { Search } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
@@ -18,6 +19,41 @@ interface Props {
 
 const REFRESH_INTERVAL_MS = 15_000;
 const DISPLAY_TIME_ZONE = "Australia/Perth";
+const FLAG_ASSETS: Readonly<Record<string, string>> = {
+  "🇺🇸": "us",
+  US: "us",
+  "🇯🇵": "jp",
+  JP: "jp",
+  "🇸🇬": "sg",
+  SG: "sg",
+  "🇨🇳": "cn",
+  CN: "cn",
+  "🇭🇰": "hk",
+  HK: "hk",
+  "🇹🇼": "tw",
+  TW: "tw",
+  "🇰🇷": "kr",
+  KR: "kr",
+  "🇬🇧": "gb",
+  GB: "gb",
+  UK: "gb",
+  "🇩🇪": "de",
+  DE: "de",
+  "🇫🇷": "fr",
+  FR: "fr",
+  "🇳🇱": "nl",
+  NL: "nl",
+  "🇨🇦": "ca",
+  CA: "ca",
+  "🇦🇺": "au",
+  AU: "au",
+  "🇮🇳": "in",
+  IN: "in",
+  "🇧🇷": "br",
+  BR: "br",
+  "🇨🇭": "ch",
+  CH: "ch",
+};
 
 function formatNumber(value: number, locale: string, maximumFractionDigits = 1) {
   return new Intl.NumberFormat(locale, { maximumFractionDigits }).format(value);
@@ -61,6 +97,27 @@ function meterLevel(value: number | null) {
   if (value >= 90) return "danger";
   if (value >= 75) return "warning";
   return "normal";
+}
+
+function ServerFlag({ value }: { value: string | null }) {
+  const normalized = value?.trim() ?? "";
+  const asset = FLAG_ASSETS[normalized] ?? FLAG_ASSETS[normalized.toUpperCase()];
+
+  if (asset) {
+    return (
+      <span className={styles.flag} aria-hidden="true">
+        <Image
+          src={"/status-flags/" + asset + ".svg"}
+          alt=""
+          width={22}
+          height={15}
+          unoptimized
+        />
+      </span>
+    );
+  }
+
+  return <span className={styles.flagFallback} aria-hidden="true">{normalized || "◌"}</span>;
 }
 
 function UsageRow({
@@ -117,7 +174,7 @@ function ServerCard({ node, locale }: { node: PublicStatusNode; locale: string }
     <article className={styles.serverCard} data-online={node.online}>
       <header className={styles.cardHeader}>
         <div className={styles.serverIdentity}>
-          <span className={styles.flag} aria-hidden="true">{node.flag ?? "◌"}</span>
+          <ServerFlag value={node.flag} />
           <div className={styles.serverName}>
             <h2>{node.name}</h2>
             {meta.length > 0 && (
