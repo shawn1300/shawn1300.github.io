@@ -37,6 +37,8 @@
 
 如果省略 os 和 arch，监控数据仍能正常显示，系统一栏会提示尚未配置。
 
+状态卡片会根据 os 字段自动显示内置 SVG 系统图标，不需要额外配置。目前支持 Windows、Ubuntu、Debian、CentOS、Rocky Linux、Alpine Linux、Arch Linux、Fedora、macOS 和通用 Linux。识别时不区分大小写，例如 Windows 10、Ubuntu 24.04.4 LTS 都会自动匹配。
+
 ### 内置 SVG 国旗
 
 状态页会把常用国家与地区转换为博客内置的 SVG 旗帜，因此不依赖 Windows 的国旗 Emoji 支持。flag 既可以填写 Emoji，也可以填写两位代码；为了方便在电脑上编辑，推荐直接使用两位代码。

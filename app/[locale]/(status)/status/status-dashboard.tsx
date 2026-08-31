@@ -54,6 +54,20 @@ const FLAG_ASSETS: Readonly<Record<string, string>> = {
   "🇨🇭": "ch",
   CH: "ch",
 };
+const OS_ASSET_MATCHERS = [
+  ["windows", "windows"],
+  ["ubuntu", "ubuntu"],
+  ["debian", "debian"],
+  ["rocky", "rocky"],
+  ["centos", "centos"],
+  ["alpine", "alpine"],
+  ["arch", "arch"],
+  ["fedora", "fedora"],
+  ["macos", "macos"],
+  ["mac os", "macos"],
+  ["darwin", "macos"],
+  ["linux", "linux"],
+] as const;
 
 function formatNumber(value: number, locale: string, maximumFractionDigits = 1) {
   return new Intl.NumberFormat(locale, { maximumFractionDigits }).format(value);
@@ -118,6 +132,24 @@ function ServerFlag({ value }: { value: string | null }) {
   }
 
   return <span className={styles.flagFallback} aria-hidden="true">{normalized || "◌"}</span>;
+}
+
+function ServerOsIcon({ value }: { value: string | null }) {
+  const normalized = value?.trim().toLowerCase() ?? "";
+  const asset = OS_ASSET_MATCHERS.find(([keyword]) => normalized.includes(keyword))?.[1];
+  if (!asset) return null;
+
+  return (
+    <Image
+      className={styles.osIcon}
+      src={"/status-os/" + asset + ".svg"}
+      alt=""
+      width={15}
+      height={15}
+      unoptimized
+      aria-hidden="true"
+    />
+  );
 }
 
 function UsageRow({
@@ -192,7 +224,7 @@ function ServerCard({ node, locale }: { node: PublicStatusNode; locale: string }
 
       <dl className={styles.systemLine}>
         <dt>{t("system")}</dt>
-        <dd><i aria-hidden="true" />{system}</dd>
+        <dd><ServerOsIcon value={node.os} />{system}</dd>
       </dl>
 
       <div className={styles.usageList}>
