@@ -37,16 +37,54 @@
 
 如果省略 os 和 arch，监控数据仍能正常显示，系统一栏会提示尚未配置。
 
-状态页会把常用国家与地区转换为博客内置的 SVG 旗帜，因此不依赖 Windows 的国旗 Emoji 支持。目前内置：美国、日本、新加坡、中国大陆、香港、台湾、韩国、英国、德国、法国、荷兰、加拿大、澳大利亚、印度、巴西和瑞士。既可以填写 Emoji，也可以填写两位代码，例如 US、JP、SG。
+### 内置 SVG 国旗
+
+状态页会把常用国家与地区转换为博客内置的 SVG 旗帜，因此不依赖 Windows 的国旗 Emoji 支持。flag 既可以填写 Emoji，也可以填写两位代码；为了方便在电脑上编辑，推荐直接使用两位代码。
+
+| 国家或地区 | 推荐代码 | 也支持 |
+| --- | --- | --- |
+| 美国 | US | 🇺🇸 |
+| 日本 | JP | 🇯🇵 |
+| 新加坡 | SG | 🇸🇬 |
+| 中国大陆 | CN | 🇨🇳 |
+| 香港 | HK | 🇭🇰 |
+| 台湾 | TW | 🇹🇼 |
+| 韩国 | KR | 🇰🇷 |
+| 英国 | GB 或 UK | 🇬🇧 |
+| 德国 | DE | 🇩🇪 |
+| 法国 | FR | 🇫🇷 |
+| 荷兰 | NL | 🇳🇱 |
+| 加拿大 | CA | 🇨🇦 |
+| 澳大利亚 | AU | 🇦🇺 |
+| 印度 | IN | 🇮🇳 |
+| 巴西 | BR | 🇧🇷 |
+| 瑞士 | CH | 🇨🇭 |
+
+如果填写的值不在上表中，页面会回退为普通文字或 Emoji，不会影响服务器监控数据。
 
 ## 以后新增一台机器
 
 1. 在 Komari 后台创建节点，复制后台生成的 Agent 安装命令。
 2. 只在新机器上运行安装命令，确认 Agent 已显示在线。
 3. 打开该节点详情页。地址形如 https://monitor.example.com/instance/UUID，复制最后一段 UUID。
-4. 打开 Vercel 的 KOMARI_NODES，在数组末尾追加一个对象。
-5. 保存环境变量，然后重新部署一次 Production；Vercel 的环境变量变更只会应用到新部署。
-6. 打开 https://你的博客域名/status，通常 15 秒内会出现新卡片。
+4. 进入 Vercel 项目的 **Settings → Environment Variables**，找到 KOMARI_NODES 并点击 Edit。
+5. 先复制并备份输入框里的完整旧值，然后在数组最后一个 } 后面添加英文逗号和新节点对象。
+6. 保存环境变量，然后重新部署一次最新的 Production Deployment；Vercel 的环境变量变更只会应用到新部署。
+7. 打开 https://你的博客域名/status，通常 15 秒内会出现新卡片。
+
+追加节点对象模板：
+
+    {
+      "id": "从 Komari 节点详情页复制的 UUID",
+      "name": "Oracle 新地区",
+      "flag": "两位国家或地区代码",
+      "location": "城市名称",
+      "provider": "Oracle Cloud",
+      "os": "Ubuntu 24.04.4 LTS",
+      "arch": "amd64"
+    }
+
+新增服务器时不需要创建新的 KOMARI_API_KEY，也不要修改 KOMARI_BASE_URL。每台机器只有节点 UUID 和 Agent Token 不同；Agent Token 仍然只保留在对应机器上，不能放进 KOMARI_NODES。
 
 双节点示例：
 
@@ -54,24 +92,34 @@
       {
         "id": "11111111-1111-4111-8111-111111111111",
         "name": "Oracle Phoenix",
-        "flag": "🇺🇸",
+        "flag": "US",
         "location": "Phoenix",
         "provider": "Oracle Cloud",
-        "os": "Ubuntu",
+        "os": "Ubuntu 24.04.4 LTS",
         "arch": "amd64"
       },
       {
         "id": "22222222-2222-4222-8222-222222222222",
-        "name": "Oracle Tokyo",
-        "flag": "🇯🇵",
-        "location": "Tokyo",
+        "name": "Oracle Osaka",
+        "flag": "JP",
+        "location": "Osaka",
         "provider": "Oracle Cloud",
-        "os": "Ubuntu",
-        "arch": "arm64"
+        "os": "Ubuntu 24.04.4 LTS",
+        "arch": "amd64"
       }
     ]
 
 Vercel 输入框也可以使用等价的单行 JSON。注意对象之间必须有逗号，整个内容只能有一对最外层方括号。
+
+### 保存后的检查清单
+
+- KOMARI_NODES 最外层仍然是 [ 和 ]。
+- 每个节点对象之间有英文逗号。
+- 每台服务器使用不同的 UUID，名称也尽量不同。
+- KOMARI_API_KEY、KOMARI_BASE_URL 保持原值。
+- Vercel 环境变量保存后已重新部署 Production。
+- /status 出现新卡片，国旗、在线状态和指标正常。
+- 如果电脑仍显示旧页面，按 Ctrl + F5 强制刷新一次。
 
 ## 删除或改名
 
