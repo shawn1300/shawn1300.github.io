@@ -34,6 +34,7 @@
 - **自动翻译** — DeepSeek 每天增量翻译，只翻译有变化的 Markdown 块
 - **响应式** — 适配桌面 & 移动端
 - **双主题** — 暖白亮色默认，可切换深炭蓝暗色，并保存主题偏好
+- **服务器状态** — 独立的 /status 页面汇总 Komari 节点状态与资源使用率
 
 ## 项目结构
 
@@ -144,7 +145,7 @@ npm start
 
 Vercel 项目还需要配置 `.env.example` 中的 Supabase、DeepSeek 和 `CRON_SECRET`。首次发布后可登录后台进入“自动翻译”，点击一次连续同步以生成已有内容的英文和日文译文。
 
-环境监测的模块化添加教程、恢复入口与运维说明分别见 [`docs/environment-configuration-guide.md`](docs/environment-configuration-guide.md)、[`docs/environment-next-steps.md`](docs/environment-next-steps.md) 和 [`docs/environment-operations.md`](docs/environment-operations.md)。
+环境监测的模块化添加教程、恢复入口与运维说明分别见 [环境监测配置](docs/environment-configuration-guide.md)、[后续步骤](docs/environment-next-steps.md) 和 [运维说明](docs/environment-operations.md)。Komari 状态页与新增服务器配置见 [服务器状态页配置](docs/status-monitoring.md)。
 
 ## License
 
