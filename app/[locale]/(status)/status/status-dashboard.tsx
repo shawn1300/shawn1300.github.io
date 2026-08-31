@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Search } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -55,14 +56,6 @@ function formatUptime(value: number | null, locale: string) {
   return parts.join(" ");
 }
 
-function formatDate(value: string, locale: string) {
-  return new Intl.DateTimeFormat(locale, {
-    dateStyle: "medium",
-    timeStyle: "medium",
-    timeZone: DISPLAY_TIME_ZONE,
-  }).format(new Date(value));
-}
-
 function meterLevel(value: number | null) {
   if (value === null) return "unknown";
   if (value >= 90) return "danger";
@@ -74,16 +67,18 @@ function UsageRow({
   label,
   value,
   detail,
+  locale,
 }: {
   label: string;
   value: number | null;
-  detail: string;
+  detail?: string;
+  locale: string;
 }) {
   return (
     <div className={styles.usageRow}>
       <div className={styles.usageHeading}>
         <span>{label}</span>
-        <strong>{value === null ? "—" : detail}</strong>
+        <strong>{formatPercent(value, locale)}</strong>
       </div>
       <div
         className={styles.meter}
@@ -96,27 +91,25 @@ function UsageRow({
       >
         <span style={{ width: String(Math.min(100, Math.max(0, value ?? 0))) + "%" }} />
       </div>
+      {detail && <p className={styles.usageDetail}>{detail}</p>}
     </div>
   );
 }
 
 function ServerCard({ node, locale }: { node: PublicStatusNode; locale: string }) {
   const t = useTranslations("Status");
-  const system = [node.os, node.arch].filter(Boolean).join(" / ") || t("unknownSystem");
+  const system = [node.os, node.arch].filter(Boolean).join(" / ") || "—";
+  const meta = [node.provider, node.location].filter((value): value is string => Boolean(value));
   const memoryDetail =
     node.memory.percent === null
       ? "—"
-      : formatPercent(node.memory.percent, locale) +
-        " · " +
-        formatBytes(node.memory.used, locale) +
+      : formatBytes(node.memory.used, locale) +
         " / " +
         formatBytes(node.memory.total, locale);
   const diskDetail =
     node.disk.percent === null
       ? "—"
-      : formatPercent(node.disk.percent, locale) +
-        " · " +
-        formatBytes(node.disk.used, locale) +
+      : formatBytes(node.disk.used, locale) +
         " / " +
         formatBytes(node.disk.total, locale);
 
@@ -125,9 +118,13 @@ function ServerCard({ node, locale }: { node: PublicStatusNode; locale: string }
       <header className={styles.cardHeader}>
         <div className={styles.serverIdentity}>
           <span className={styles.flag} aria-hidden="true">{node.flag ?? "◌"}</span>
-          <div>
+          <div className={styles.serverName}>
             <h2>{node.name}</h2>
-            <p>{[node.provider, node.location].filter(Boolean).join(" · ") || t("monitoredNode")}</p>
+            {meta.length > 0 && (
+              <div className={styles.metaTags}>
+                {meta.map((value) => <span key={value}>{value}</span>)}
+              </div>
+            )}
           </div>
         </div>
         <span className={styles.onlineBadge} data-online={node.online}>
@@ -136,25 +133,27 @@ function ServerCard({ node, locale }: { node: PublicStatusNode; locale: string }
         </span>
       </header>
 
-      <dl className={styles.systemRow}>
-        <div><dt>{t("system")}</dt><dd>{system}</dd></div>
-        <div><dt>{t("processes")}</dt><dd>{node.processCount === null ? "—" : formatNumber(node.processCount, locale, 0)}</dd></div>
+      <dl className={styles.systemLine}>
+        <dt>{t("system")}</dt>
+        <dd><i aria-hidden="true" />{system}</dd>
       </dl>
 
       <div className={styles.usageList}>
-        <UsageRow label={t("cpu")} value={node.cpuPercent} detail={formatPercent(node.cpuPercent, locale)} />
-        <UsageRow label={t("memory")} value={node.memory.percent} detail={memoryDetail} />
-        <UsageRow label={t("disk")} value={node.disk.percent} detail={diskDetail} />
+        <UsageRow label={t("cpu")} value={node.cpuPercent} locale={locale} />
+        <UsageRow label={t("memory")} value={node.memory.percent} detail={memoryDetail} locale={locale} />
+        <UsageRow label={t("disk")} value={node.disk.percent} detail={diskDetail} locale={locale} />
       </div>
 
-      <dl className={styles.networkGrid}>
-        <div><dt>{t("liveNetwork")}</dt><dd>↑ {formatRate(node.network.up, locale)}<br />↓ {formatRate(node.network.down, locale)}</dd></div>
-        <div><dt>{t("totalTraffic")}</dt><dd>↑ {formatBytes(node.network.totalUp, locale)}<br />↓ {formatBytes(node.network.totalDown, locale)}</dd></div>
-        <div><dt>{t("uptime")}</dt><dd>{formatUptime(node.uptimeSeconds, locale)}</dd></div>
+      <dl className={styles.compactStats}>
         <div>
-          <dt>{t("lastUpdated")}</dt>
-          <dd>{node.updatedAt ? <time dateTime={node.updatedAt}>{formatDate(node.updatedAt, locale)}</time> : "—"}</dd>
+          <dt>{t("totalTraffic")}</dt>
+          <dd><span>↑ {formatBytes(node.network.totalUp, locale)}</span><span>↓ {formatBytes(node.network.totalDown, locale)}</span></dd>
         </div>
+        <div>
+          <dt>{t("liveNetwork")}</dt>
+          <dd><span>↑ {formatRate(node.network.up, locale)}</span><span>↓ {formatRate(node.network.down, locale)}</span></dd>
+        </div>
+        <div><dt>{t("uptime")}</dt><dd>{formatUptime(node.uptimeSeconds, locale)}</dd></div>
       </dl>
     </article>
   );
@@ -221,21 +220,26 @@ export function StatusDashboard({ initialSnapshot, initialError }: Props) {
   }, [locale, query, snapshot.nodes]);
 
   const showNotice = requestFailed || snapshot.degraded;
+  const totalTraffic = useMemo(() => {
+    let totalUp: number | null = null;
+    let totalDown: number | null = null;
+    for (const node of snapshot.nodes) {
+      if (node.network.totalUp !== null) totalUp = (totalUp ?? 0) + node.network.totalUp;
+      if (node.network.totalDown !== null) totalDown = (totalDown ?? 0) + node.network.totalDown;
+    }
+    return { up: totalUp, down: totalDown };
+  }, [snapshot.nodes]);
 
   return (
     <main className={styles.page}>
-      <header className={styles.hero}>
-        <div className={styles.topline}>
-          <Link className={styles.brand} href="/">{t("brand")}</Link>
-          <div className={styles.controls}><LanguageSwitcher /><ThemeToggle /></div>
-        </div>
-        <p className={styles.eyebrow}>{t("eyebrow")}</p>
-        <div className={styles.titleRow}>
-          <div>
-            <h1>{t("title")}</h1>
-            <p className={styles.subtitle}>{t("subtitle")}</p>
+      <header className={styles.topbar}>
+        <Link className={styles.brand} href="/">{t("brand")}</Link>
+        <div className={styles.headerActions}>
+          <span className={styles.refreshNote}><i aria-hidden="true" />{t("autoRefresh")}</span>
+          <div className={styles.controls}>
+            <LanguageSwitcher />
+            <ThemeToggle />
           </div>
-          <p className={styles.refreshNote}>{t("autoRefresh")}</p>
         </div>
       </header>
 
@@ -243,6 +247,7 @@ export function StatusDashboard({ initialSnapshot, initialError }: Props) {
         <div><span>{t("currentTime")}</span><strong>{clock ?? "—"}</strong></div>
         <div><span>{t("onlineServers")}</span><strong>{snapshot.summary.online} / {snapshot.summary.total}</strong></div>
         <div><span>{t("regions")}</span><strong>{snapshot.summary.regions}</strong></div>
+        <div><span>{t("totalTraffic")}</span><strong>↑ {formatBytes(totalTraffic.up, locale)}<br />↓ {formatBytes(totalTraffic.down, locale)}</strong></div>
         <div><span>{t("aggregateTraffic")}</span><strong>↑ {formatRate(snapshot.summary.networkUp, locale)}<br />↓ {formatRate(snapshot.summary.networkDown, locale)}</strong></div>
       </section>
 
@@ -252,6 +257,7 @@ export function StatusDashboard({ initialSnapshot, initialError }: Props) {
         <div className={styles.serverTools}>
           <label className={styles.search}>
             <span className={styles.srOnly}>{t("searchPlaceholder")}</span>
+            <Search aria-hidden="true" size={15} strokeWidth={1.8} />
             <input
               type="search"
               value={query}
