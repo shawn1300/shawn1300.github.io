@@ -130,6 +130,14 @@ supabase/migrations/005_i18n_translations.sql
 - 英文或日文译文缺失/过期时，页面暂时显示中文原文和提示，不会出现空白页。
 - 评论正文保持访客提交时的原语言，只翻译评论界面。
 
+## 阅后即焚
+
+在后台侧栏打开「阅后即焚」，创建带有效期的一次性纯文本链接。收件人无需登录，点击「查看并销毁」后才能看到正文。正文由浏览器加密和解密，Supabase 保存密文。
+
+1. 在 Supabase 应用 `supabase/migrations/20261127155328_burn_messages.sql`。
+2. 在 Supabase 后台的 Authentication → Users 找到站主账号的 User UID，将它设为服务端环境变量 `BURN_OWNER_USER_ID`。本地用 `.env.local`，Vercel 部署用项目环境变量。
+3. 使用现有的 `CRON_SECRET` 启用 Vercel 每日清理。消息到期后立即不可领取，清理任务随后删除已过期的密文。
+
 ## 部署
 
 一键部署到 Vercel：

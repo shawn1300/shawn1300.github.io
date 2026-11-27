@@ -162,6 +162,7 @@
       "comments": "コメント",
       "gallery": "ギャラリー",
       "translations": "自動翻訳",
+      "burn": "一度きりのメッセージ",
       "backToBlog": "ブログへ戻る",
       "logout": "ログアウト"
     },
@@ -333,6 +334,45 @@
       "statusPartial": "一部完了",
       "statusFailed": "失敗"
     }
+  },
+  "Burn": {
+    "title": "一度きりのメッセージ",
+    "metadataDescription": "一度だけ読める非公開のメッセージを開きます。",
+    "createDescription": "テキストを共有するための、一度だけ使えるリンクを作成します。",
+    "messageLabel": "メッセージ本文",
+    "byteCount": "{used, number} / {max, number} バイト",
+    "expiryLabel": "リンクの有効期間",
+    "expiry": {
+      "1h": "1 時間",
+      "24h": "24 時間",
+      "7d": "7 日間"
+    },
+    "createLink": "リンクを作成",
+    "creating": "作成中…",
+    "invalidSize": "16 KiB 以内でメッセージを入力してください。",
+    "httpsRequired": "Web Crypto に対応したブラウザーで、このページを HTTPS で開いてください。",
+    "signInRequired": "セッションの有効期限が切れました。管理画面に再ログインしてください。",
+    "forbidden": "メッセージを作成できるのはサイト管理者のみです。",
+    "unconfigured": "管理者アカウントの設定後にメッセージを作成できます。",
+    "createError": "リンクの作成を確認できませんでした。もう一度お試しください。",
+    "linkReady": "一度だけ使えるリンクを作成しました",
+    "expiresAt": "有効期限 {date}",
+    "shareLink": "共有リンク",
+    "copyLink": "リンクをコピー",
+    "copied": "リンクをコピーしました。",
+    "copyManually": "選択されたリンクを手動でコピーしてください。",
+    "shareHint": "リンク全体を受取人だけに共有してください。",
+    "createAnother": "別のメッセージを作成",
+    "readerLoading": "リンクを確認中…",
+    "invalidLink": "無効なリンクです。共有されたリンクが完全かご確認ください。",
+    "readDescription": "下のボタンでメッセージを開きます。受け取るとリンクは直ちに無効になります。",
+    "readHint": "受取人は本文のコピーやスクリーンショットを撮影できます。",
+    "reveal": "読んで削除する",
+    "reading": "読み込み中…",
+    "revealed": "メッセージを受け取りました。リンクは無効になりました。",
+    "unavailable": "このメッセージは利用できません。",
+    "readError": "メッセージを開けませんでした。すでに受け取りが完了している場合は、リンクが無効になっていることがあります。",
+    "retry": "もう一度試す"
   },
   "Environment": {
     "metadataTitle": "家の環境",

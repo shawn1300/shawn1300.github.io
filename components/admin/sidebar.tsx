@@ -17,6 +17,7 @@ const navItems = [
   { href: "/admin/gallery", label: "gallery" },
   { href: "/admin/comments", label: "comments" },
   { href: "/admin/translations", label: "translations" },
+  { href: "/admin/burn", label: "burn", exact: true },
 ];
 
 export function AdminSidebar() {
